@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  /* Copa Omega Star — Beyblade X palette */
+  --color-omega-black: #0a0a0f;
+  --color-omega-dark: #12121a;
+  --color-omega-card: #1a1a2e;
+  --color-omega-border: #2a2a4a;
+
+  --color-omega-blue: #00b4d8;
+  --color-omega-blue-glow: #0096c7;
+  --color-omega-purple: #7b2ff7;
+  --color-omega-purple-glow: #9d4edd;
+  --color-omega-gold: #ffd60a;
+  --color-omega-gold-glow: #ffc300;
+  --color-omega-red: #ff4757;
+  --color-omega-green: #2ed573;
+
+  --color-omega-text: #e8e8f0;
+  --color-omega-muted: #8888aa;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-omega-black);
+  color: var(--color-omega-text);
+}
+
+/* Star glow animation */
+@keyframes star-pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px var(--color-omega-gold)); }
+  50% { filter: drop-shadow(0 0 12px var(--color-omega-gold-glow)); }
+}
+
+.star-glow {
+  animation: star-pulse 2s ease-in-out infinite;
+}
+
+/* Neon text glow */
+.neon-blue {
+  text-shadow: 0 0 10px var(--color-omega-blue), 0 0 40px var(--color-omega-blue-glow);
+}
+
+.neon-purple {
+  text-shadow: 0 0 10px var(--color-omega-purple), 0 0 40px var(--color-omega-purple-glow);
+}
+
+.neon-gold {
+  text-shadow: 0 0 10px var(--color-omega-gold), 0 0 30px var(--color-omega-gold-glow);
+}
