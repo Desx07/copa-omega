@@ -20,7 +20,7 @@ export async function PATCH(
     const { data: adminPlayer } = await supabase
       .from("players")
       .select("is_admin")
-      .eq("user_id", user.id)
+      .eq("id", user.id)
       .single();
 
     if (!adminPlayer?.is_admin) {

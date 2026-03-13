@@ -15,22 +15,21 @@ export default async function AdminPlayersPage() {
     redirect("/auth/login");
   }
 
-  // Verificar que es admin
-  const { data: profile } = await supabase
-    .from("players")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
+  // Verificar admin + obtener jugadores en paralelo (queries independientes)
+  const [profileResult, playersResult] = await Promise.all([
+    supabase.from("players").select("is_admin").eq("id", user.id).single(),
+    supabase
+      .from("players")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_admin, created_at")
+      .order("stars", { ascending: false }),
+  ]);
+
+  const { data: profile } = profileResult;
+  const { data: players } = playersResult;
 
   if (!profile?.is_admin) {
     redirect("/dashboard");
   }
-
-  // Obtener todos los jugadores ordenados por estrellas
-  const { data: players } = await supabase
-    .from("players")
-    .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_admin, created_at")
-    .order("stars", { ascending: false });
 
   const allPlayers = players ?? [];
   const totalPlayers = allPlayers.length;

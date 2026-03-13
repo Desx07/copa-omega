@@ -23,32 +23,41 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name.trim(), alias: alias.trim() },
-      },
-    });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name.trim(), alias: alias.trim() },
+        },
+      });
 
-    if (error) {
-      toast.error(error.message);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      if (data.user) {
+        // Update player profile with alias
+        const { error: updateError } = await supabase
+          .from("players")
+          .update({ alias: alias.trim(), full_name: name.trim() })
+          .eq("id", data.user.id);
+
+        if (updateError) {
+          toast.error("Cuenta creada pero hubo un error guardando tu alias");
+        }
+      }
+
+      toast.success("Cuenta creada! Bienvenido a la Copa Omega Star");
+      router.push("/dashboard");
+    } catch {
+      toast.error("Error de conexión, intentá de nuevo");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    if (data.user) {
-      // Update player profile with alias
-      await supabase
-        .from("players")
-        .update({ alias: alias.trim(), full_name: name.trim() })
-        .eq("id", data.user.id);
-    }
-
-    toast.success("Cuenta creada! Bienvenido a la Copa Omega Star");
-    router.push("/dashboard");
   }
 
   return (

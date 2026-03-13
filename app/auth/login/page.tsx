@@ -17,16 +17,21 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      toast.error("Email o contraseña incorrectos");
+      if (error) {
+        toast.error("Email o contraseña incorrectos");
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch {
+      toast.error("Error de conexión, intentá de nuevo");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push("/dashboard");
   }
 
   return (

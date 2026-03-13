@@ -15,24 +15,23 @@ export default async function AdminMatchesPage() {
     redirect("/auth/login");
   }
 
-  // Verificar que es admin
-  const { data: profile } = await supabase
-    .from("players")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
+  // Verificar admin + obtener partidas en paralelo (queries independientes)
+  const [profileResult, matchesResult] = await Promise.all([
+    supabase.from("players").select("is_admin").eq("id", user.id).single(),
+    supabase
+      .from("matches")
+      .select(
+        "*, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)"
+      )
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const { data: profile } = profileResult;
+  const { data: matches } = matchesResult;
 
   if (!profile?.is_admin) {
     redirect("/dashboard");
   }
-
-  // Obtener todas las partidas con datos de jugadores
-  const { data: matches } = await supabase
-    .from("matches")
-    .select(
-      "*, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)"
-    )
-    .order("created_at", { ascending: false });
 
   const allMatches = matches ?? [];
   const pendingMatches = allMatches.filter((m) => m.status === "pending");

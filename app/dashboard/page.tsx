@@ -10,23 +10,27 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Check if current user is admin
-  let isAdmin = false;
-  if (user) {
-    const { data: currentPlayer } = await supabase
-      .from("players")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-    isAdmin = currentPlayer?.is_admin ?? false;
-  }
-
-  // Fetch all players ordered by stars DESC, then wins DESC
-  const { data: players } = await supabase
+  // Fetch admin check + leaderboard in parallel (queries independientes)
+  const playersQuery = supabase
     .from("players")
     .select("id, alias, full_name, stars, wins, losses, is_eliminated, avatar_url")
     .order("stars", { ascending: false })
     .order("wins", { ascending: false });
+
+  let isAdmin = false;
+  let players: Awaited<typeof playersQuery>["data"] = null;
+
+  if (user) {
+    const [adminResult, playersResult] = await Promise.all([
+      supabase.from("players").select("is_admin").eq("id", user.id).single(),
+      playersQuery,
+    ]);
+    isAdmin = adminResult.data?.is_admin ?? false;
+    players = playersResult.data;
+  } else {
+    const { data } = await playersQuery;
+    players = data;
+  }
 
   const leaderboard = players ?? [];
 
