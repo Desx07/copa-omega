@@ -66,25 +66,33 @@ Si el usuario te pone un nombre, adoptalo. Si no, presentate simplemente como su
 
 ### RATCHETS — Tier List
 
+IMPORTANTE: El formato del ratchet es [puntas]-[altura en mm]. Ej: 4-60 = 4 puntas, 60mm de altura.
+- Alturas disponibles: 50mm (el más bajo), 60mm (estándar), 70mm, 80mm (el más alto).
+- El primer número (1-12) son las puntas/dientes del ratchet, afectan el burst resistance y peso.
+- MÁS BAJO = mejor para attack (centro de gravedad bajo, más estable en impactos).
+- MÁS ALTO = mejor para defense/stamina (evita contacto, más spin time).
+- Un 9-60 es MÁS BAJO que un 1-70 porque 60mm < 70mm de altura. El número de puntas NO afecta la altura.
+
 **S TIER:**
-- 4-50 — El más corto disponible. IDEAL para attack. Centro de gravedad bajo = más estabilidad en ataques. Sniping de ratchet. EL ratchet para Shark Scale.
-- 3-60 — Clásico competitivo. Sirve para TODO: attack, defense, stamina. El más versátil.
-- 1-60 — Excelente para attack. Alinea bien con blades que tienen puntos de contacto bajos (Tyranno Beat).
+- 4-50 — El más bajo del juego (50mm). IDEAL para attack. Centro de gravedad ultra bajo. Sniping de ratchet. EL ratchet para Shark Scale.
+- 3-60 — Clásico competitivo (60mm). Sirve para TODO: attack, defense, stamina. El más versátil.
+- 1-60 — Excelente para attack (60mm). Alinea bien con blades que tienen puntos de contacto bajos (Tyranno Beat).
 
 **A TIER:**
-- 4-60 — Sólido para attack y balance. Buen peso.
-- 5-60 — Buen peso y balance. Absorbe impactos. Versátil.
-- 7-60 — Mejora el endgame balance. Bueno para stamina/defense y blades que necesitan altura.
-- 9-60 — Top tier para STAMINA/DEFENSE. Altura ideal para evitar contacto agresivo.
+- 4-60 — Sólido para attack y balance (60mm). Buen peso con 4 puntas.
+- 5-60 — Buen peso y balance (60mm). Absorbe impactos. Versátil.
+- 7-60 — Bueno para stamina/defense (60mm). 7 puntas = buen burst resistance.
+- 9-60 — Top tier para STAMINA/DEFENSE (60mm pero 9 puntas = máximo burst resistance).
+- 3-70, 5-70 — Altura media (70mm). Balance entre attack y defense.
 
 **B TIER:**
-- 3-80 — Para defense pura. Altura excesiva para attack.
-- 4-80 — Similar a 3-80 pero con distinto peso.
+- 3-80 — Para defense pura (80mm, la más alta). Aleja el blade del suelo.
+- 4-80 — Similar a 3-80 pero con 4 puntas.
 - 5-80 — Defense/Stamina especializado.
 
-**BASURA (NO RECOMENDAR):**
-- 9-80, 12-80, cualquier ratchet -80 para attack = desastre. Pierden toda estabilidad.
-- Ratchets -80 solo sirven para defense muy específica.
+**NO RECOMENDAR para attack:**
+- Cualquier ratchet -80 (80mm) para attack = centro de gravedad alto, pierde estabilidad en impactos.
+- Cualquier ratchet -70 para attack agresivo tampoco es ideal, salvo excepciones.
 
 ### BITS — Tier List
 
@@ -313,20 +321,46 @@ export async function POST(request: Request) {
       + (statsContext ? "\n\n[DATOS DEL TORNEO]:" + statsContext : "")
       + (searchContext ? "\n\n" + searchContext + "\n\nUsá esta info actualizada para complementar tu respuesta, pero verificá que tenga sentido con lo que ya sabés. Si contradice tu base de conocimiento, mencionalo." : "");
 
-    const completion = await getGroq().chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: systemMessage },
-        ...trimmedMessages.map((m) => ({
-          role: m.role as "user" | "assistant",
-          content: m.content,
-        })),
-      ],
-      temperature: 0.7,
-      max_tokens: 1024,
-    });
+    // Keep last 20 messages to avoid context overflow
+    const contextMessages = trimmedMessages.slice(-20);
 
-    const reply = completion.choices[0]?.message?.content ?? "";
+    let reply = "";
+    try {
+      const completion = await getGroq().chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: systemMessage },
+          ...contextMessages.map((m) => ({
+            role: m.role as "user" | "assistant",
+            content: m.content,
+          })),
+        ],
+        temperature: 0.7,
+        max_tokens: 1024,
+      });
+      reply = completion.choices[0]?.message?.content ?? "No pude generar una respuesta. Intentá de nuevo.";
+    } catch (groqErr) {
+      console.error("Groq API error:", groqErr);
+      // Retry with shorter context
+      try {
+        const shortMessages = contextMessages.slice(-5);
+        const completion = await getGroq().chat.completions.create({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: systemMessage.slice(0, 4000) },
+            ...shortMessages.map((m) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            })),
+          ],
+          temperature: 0.7,
+          max_tokens: 512,
+        });
+        reply = completion.choices[0]?.message?.content ?? "Tuve un problema pero acá estoy. ¿Qué necesitás?";
+      } catch {
+        reply = "Estoy teniendo problemas técnicos. Intentá de nuevo en unos segundos.";
+      }
+    }
 
     // Save conversation to DB (upsert)
     const updatedMessages = [...trimmedMessages, { role: "assistant", content: reply }].slice(-30);
