@@ -53,18 +53,18 @@ export default function RegisterPage() {
       toast.success("Bienvenido a la arena, blader!");
       router.push("/dashboard");
     } catch {
-      toast.error("Error de conexión, intentá de nuevo");
+      toast.error("Error de conexion, intenta de nuevo");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-xl p-6 shadow-[0_0_40px_rgba(123,47,247,0.06)] space-y-6">
+    <div className="omega-card p-6 space-y-6">
       {/* Header */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-black neon-gold">SUMATE A LA COPA</h1>
-        <p className="text-sm text-omega-muted">Armá tu perfil de blader y empezá a competir</p>
+        <p className="text-sm text-omega-muted">Arma tu perfil de blader y empeza a competir</p>
       </div>
 
       {/* Form */}
@@ -81,7 +81,7 @@ export default function RegisterPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Tu nombre"
             maxLength={60}
-            className="w-full rounded-lg border border-omega-border bg-omega-dark/80 px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-purple focus:ring-2 focus:ring-omega-purple/20 transition-all"
+            className="omega-input py-3"
           />
         </div>
 
@@ -97,7 +97,7 @@ export default function RegisterPage() {
             onChange={(e) => setAlias(e.target.value)}
             placeholder="Ej: ShadowDranzer, StarBreaker"
             maxLength={30}
-            className="w-full rounded-lg border border-omega-border bg-omega-dark/80 px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-purple focus:ring-2 focus:ring-omega-purple/20 transition-all"
+            className="omega-input py-3"
           />
         </div>
 
@@ -112,13 +112,13 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="tu@email.com"
-            className="w-full rounded-lg border border-omega-border bg-omega-dark/80 px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-purple focus:ring-2 focus:ring-omega-purple/20 transition-all"
+            className="omega-input py-3"
           />
         </div>
 
         <div className="space-y-2">
           <label htmlFor="password" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
-            Contraseña
+            Contrasena
           </label>
           <input
             id="password"
@@ -127,15 +127,15 @@ export default function RegisterPage() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mínimo 6 caracteres"
-            className="w-full rounded-lg border border-omega-border bg-omega-dark/80 px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-purple focus:ring-2 focus:ring-omega-purple/20 transition-all"
+            placeholder="Minimo 6 caracteres"
+            className="omega-input py-3"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center justify-center gap-2 w-full rounded-lg bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-3 font-bold text-white shadow-[0_0_20px_rgba(123,47,247,0.3)] hover:shadow-[0_0_30px_rgba(123,47,247,0.5)] transition-all active:scale-[0.98] disabled:opacity-50"
+          className="omega-btn omega-btn-primary w-full py-3 text-sm"
         >
           {loading ? (
             <Loader2 className="size-5 animate-spin" />
@@ -151,7 +151,7 @@ export default function RegisterPage() {
       <p className="text-center text-sm text-omega-muted">
         Ya sos blader?{" "}
         <Link href="/auth/login" className="text-omega-blue hover:underline font-medium">
-          Entrá acá
+          Entra aca
         </Link>
       </p>
     </div>

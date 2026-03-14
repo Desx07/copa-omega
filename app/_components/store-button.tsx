@@ -20,7 +20,7 @@ export function StoreButton() {
   return (
     <Link
       href="/store"
-      className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-red/25 to-omega-red/5 p-5 shadow-md shadow-omega-red/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+      className="group flex flex-col omega-card-elevated !bg-gradient-to-br !from-omega-red/25 !to-omega-red/5 p-5 transition-all hover:scale-[1.02] active:scale-[0.98]"
     >
       <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
         <ShoppingBag className="size-6 text-white" />

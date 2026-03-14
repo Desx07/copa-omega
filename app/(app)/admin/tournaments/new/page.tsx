@@ -45,7 +45,7 @@ export default function NewTournamentPage() {
     }
 
     if (maxParticipants < 2) {
-      toast.error("Mínimo 2 participantes");
+      toast.error("Minimo 2 participantes");
       return;
     }
 
@@ -87,7 +87,7 @@ export default function NewTournamentPage() {
       <div className="flex items-center gap-3 mb-8">
         <Link
           href="/admin/tournaments"
-          className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-gold hover:border-omega-gold/50 transition-all"
+          className="omega-btn omega-btn-secondary size-10 !p-0"
           aria-label="Volver a torneos"
         >
           <ArrowLeft className="size-5" />
@@ -116,7 +116,7 @@ export default function NewTournamentPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Ej: Copa Omega Star #1"
             maxLength={100}
-            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all"
+            className="omega-input"
           />
         </div>
 
@@ -138,7 +138,7 @@ export default function NewTournamentPage() {
             placeholder="Reglas, premios, lugar del torneo..."
             maxLength={500}
             rows={3}
-            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all resize-none"
+            className="omega-input resize-none"
           />
         </div>
 
@@ -151,10 +151,10 @@ export default function NewTournamentPage() {
             {FORMAT_OPTIONS.map((opt) => (
               <label
                 key={opt.value}
-                className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-all ${
+                className={`flex items-start gap-3 omega-card p-4 cursor-pointer transition-all ${
                   format === opt.value
-                    ? "border-omega-gold/50 bg-omega-gold/5 shadow-sm shadow-omega-gold/10"
-                    : "border-omega-border bg-omega-card/40 hover:border-omega-border/80"
+                    ? "!border-omega-gold/50 aura-gold"
+                    : "hover:bg-omega-card-hover"
                 }`}
               >
                 <input
@@ -200,12 +200,12 @@ export default function NewTournamentPage() {
             max={256}
             value={maxParticipants}
             onChange={(e) => setMaxParticipants(Number(e.target.value))}
-            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all"
+            className="omega-input"
           />
           {format === "single_elimination" && (
-            <div className="flex items-start gap-2 rounded-lg bg-omega-blue/5 border border-omega-blue/20 px-3 py-2">
+            <div className="flex items-start gap-2 omega-badge omega-badge-blue !rounded-lg !px-3 !py-2 !text-[11px] !font-normal">
               <Info className="size-4 text-omega-blue shrink-0 mt-0.5" />
-              <p className="text-[11px] text-omega-blue/80">
+              <p>
                 Para eliminacion directa se recomienda potencia de 2 (4, 8, 16,
                 32, 64). Si no es potencia de 2, algunos jugadores tendran BYE
                 en la primera ronda.
@@ -214,7 +214,7 @@ export default function NewTournamentPage() {
           )}
         </div>
 
-        {/* Top Cut — only for Round Robin and Swiss */}
+        {/* Top Cut -- only for Round Robin and Swiss */}
         {showTopCut && (
           <div className="space-y-2">
             <label className="text-xs font-bold text-omega-muted uppercase tracking-wider">
@@ -223,7 +223,7 @@ export default function NewTournamentPage() {
             <select
               value={topCut ?? ""}
               onChange={(e) => setTopCut(e.target.value ? Number(e.target.value) : null)}
-              className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all"
+              className="omega-input"
             >
               <option value="">Sin top cut (solo grupo)</option>
               <option value="4">Top 4</option>
@@ -231,26 +231,26 @@ export default function NewTournamentPage() {
               <option value="16">Top 16</option>
               <option value="32">Top 32</option>
             </select>
-            <div className="flex items-start gap-2 rounded-lg bg-omega-gold/5 border border-omega-gold/20 px-3 py-2">
+            <div className="flex items-start gap-2 omega-badge omega-badge-gold !rounded-lg !px-3 !py-2 !text-[11px] !font-normal">
               <Info className="size-4 text-omega-gold shrink-0 mt-0.5" />
-              <p className="text-[11px] text-omega-gold/80">
-                Los mejores del grupo clasifican a un bracket de eliminación directa.
+              <p>
+                Los mejores del grupo clasifican a un bracket de eliminacion directa.
               </p>
             </div>
           </div>
         )}
 
         {/* Preview */}
-        <div className="rounded-xl bg-omega-card/60 border border-omega-border p-4 space-y-2">
+        <div className="omega-card p-4 space-y-2">
           <p className="text-xs text-omega-muted text-center">Vista previa</p>
           <div className="text-center space-y-1">
             <p className="text-base font-black text-omega-text">
               {name || "Nombre del torneo"}
             </p>
             <p className="text-[11px] text-omega-muted uppercase tracking-wider">
-              {FORMAT_OPTIONS.find((f) => f.value === format)?.label} — Max{" "}
+              {FORMAT_OPTIONS.find((f) => f.value === format)?.label} -- Max{" "}
               {maxParticipants} jugadores
-              {topCut && showTopCut && ` → Top ${topCut} a llaves`}
+              {topCut && showTopCut && ` -> Top ${topCut} a llaves`}
             </p>
             {description && (
               <p className="text-xs text-omega-muted/70 italic">
@@ -264,7 +264,7 @@ export default function NewTournamentPage() {
         <button
           type="submit"
           disabled={loading || !name.trim()}
-          className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-omega-gold/90 to-omega-gold px-4 py-3 font-bold text-omega-dark shadow-lg shadow-omega-gold/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+          className="omega-btn omega-btn-gold w-full px-4 py-3 text-base"
         >
           {loading ? (
             <Loader2 className="size-5 animate-spin" />

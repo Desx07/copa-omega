@@ -25,26 +25,26 @@ const FORMAT_LABELS: Record<string, string> = {
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; className: string; icon: React.ReactNode }
+  { label: string; badgeClass: string; icon: React.ReactNode }
 > = {
   registration: {
     label: "INSCRIPCION ABIERTA",
-    className: "bg-omega-blue/10 border-omega-blue/30 text-omega-blue",
+    badgeClass: "omega-badge omega-badge-blue",
     icon: <Users className="size-3.5" />,
   },
   in_progress: {
     label: "EN CURSO",
-    className: "bg-omega-gold/10 border-omega-gold/30 text-omega-gold",
+    badgeClass: "omega-badge omega-badge-gold",
     icon: <Clock className="size-3.5" />,
   },
   completed: {
     label: "FINALIZADO",
-    className: "bg-omega-green/10 border-omega-green/30 text-omega-green",
+    badgeClass: "omega-badge omega-badge-green",
     icon: <CheckCircle className="size-3.5" />,
   },
   cancelled: {
     label: "CANCELADO",
-    className: "bg-omega-red/10 border-omega-red/30 text-omega-red",
+    badgeClass: "omega-badge omega-badge-red",
     icon: <XCircle className="size-3.5" />,
   },
 };
@@ -131,7 +131,6 @@ export default async function TournamentDetailPage({ params }: PageProps) {
   let podium: { position: number; alias: string; avatar_url: string | null; playerId: string }[] = [];
   if (tournament.status === "completed") {
     if (tournament.format === "single_elimination") {
-      // 1st: winner of final, 2nd: loser of final, 3rd: losers of semis
       const finalMatch = matches.find((m) => m.bracket_position === "F");
       if (finalMatch?.winner_id) {
         const winnerId = finalMatch.winner_id;
@@ -149,7 +148,6 @@ export default async function TournamentDetailPage({ params }: PageProps) {
           }
         }
 
-        // Semi-final losers = 3rd place
         const semiMatches = matches.filter((m) => m.bracket_position?.startsWith("SF"));
         for (const sm of semiMatches) {
           if (sm.winner_id && sm.status === "completed") {
@@ -164,7 +162,6 @@ export default async function TournamentDetailPage({ params }: PageProps) {
         }
       }
     } else {
-      // Round robin / Swiss: sorted by points
       const sorted = [...participants].sort((a, b) => b.points - a.points);
       for (let i = 0; i < Math.min(3, sorted.length); i++) {
         podium.push({
@@ -181,24 +178,21 @@ export default async function TournamentDetailPage({ params }: PageProps) {
 
   const podiumColors = {
     1: {
-      border: "border-omega-gold/50",
-      bg: "bg-gradient-to-b from-omega-gold/15 to-omega-card/60",
+      aura: "aura-gold",
       text: "neon-gold",
       label: "1er Lugar",
       avatarBorder: "border-omega-gold",
       icon: <Crown className="size-6 text-omega-gold fill-omega-gold/30" />,
     },
     2: {
-      border: "border-omega-muted/40",
-      bg: "bg-gradient-to-b from-omega-muted/10 to-omega-card/60",
+      aura: "aura-silver",
       text: "text-omega-muted",
       label: "2do Lugar",
       avatarBorder: "border-omega-muted/50",
       icon: <Medal className="size-5 text-omega-muted/70" />,
     },
     3: {
-      border: "border-orange-700/40",
-      bg: "bg-gradient-to-b from-orange-900/10 to-omega-card/60",
+      aura: "aura-bronze",
       text: "text-orange-500",
       label: "3er Lugar",
       avatarBorder: "border-orange-500/50",
@@ -218,7 +212,7 @@ export default async function TournamentDetailPage({ params }: PageProps) {
       </Link>
 
       {/* Tournament header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-omega-gold/20 via-omega-card/60 to-omega-purple/10 p-5 shadow-lg shadow-omega-gold/10">
+      <div className="omega-card-elevated p-5 relative">
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-gold via-omega-purple to-omega-blue" />
 
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -230,9 +224,7 @@ export default async function TournamentDetailPage({ params }: PageProps) {
               {FORMAT_LABELS[tournament.format]}
             </p>
           </div>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold shrink-0 ${status.className}`}
-          >
+          <span className={`${status.badgeClass} gap-1.5 shrink-0`}>
             {status.icon}
             {status.label}
           </span>
@@ -274,16 +266,15 @@ export default async function TournamentDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Podium — completed tournaments */}
+      {/* Podium -- completed tournaments */}
       {tournament.status === "completed" && podium.length > 0 && (
-        <div className="rounded-2xl bg-gradient-to-r from-omega-gold/10 via-omega-card/40 to-omega-gold/10 border border-omega-gold/20 p-5 space-y-4 shadow-lg shadow-omega-gold/5">
-          <h2 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center justify-center gap-2">
+        <div className="omega-card-elevated p-5 space-y-4">
+          <div className="omega-section-header justify-center">
             <Trophy className="size-4 text-omega-gold" />
             Resultados Finales
-          </h2>
+          </div>
 
           <div className="grid grid-cols-3 gap-3">
-            {/* Show 2nd, 1st, 3rd for visual podium */}
             {[
               podium.find((p) => p.position === 2),
               podium.find((p) => p.position === 1),
@@ -297,7 +288,7 @@ export default async function TournamentDetailPage({ params }: PageProps) {
                   href={`/player/${entry.playerId}`}
                   className={`${
                     visualIndex === 1 ? "-mt-2" : "mt-4"
-                  } block rounded-2xl border ${config.border} ${config.bg} p-4 text-center space-y-2 backdrop-blur-sm transition-all hover:scale-[1.02] active:scale-[0.98]`}
+                  } block omega-card ${config.aura} p-4 text-center space-y-2 transition-all hover:scale-[1.02] active:scale-[0.98]`}
                 >
                   <div className="flex justify-center">{config.icon}</div>
                   <div
@@ -344,20 +335,18 @@ export default async function TournamentDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Points awarded — from tournament_points table */}
+      {/* Points awarded -- from tournament_points table */}
       {tournament.status === "completed" && tournamentPoints.length > 0 && (
-        <div className="rounded-2xl border border-omega-border/40 bg-omega-card/40 backdrop-blur-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-omega-border/40 bg-omega-card/60">
-            <h3 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center gap-2">
-              <Star className="size-4 text-omega-gold fill-omega-gold" />
-              Puntos Otorgados
-            </h3>
+        <div className="omega-card">
+          <div className="omega-section-header">
+            <Star className="size-4 text-omega-gold fill-omega-gold" />
+            Puntos Otorgados
           </div>
-          <div className="divide-y divide-omega-border/20">
+          <div>
             {tournamentPoints.map((tp, index) => (
               <div
                 key={tp.player_id}
-                className="flex items-center gap-3 px-4 py-3"
+                className="omega-row"
               >
                 <span className="text-sm font-black text-omega-muted/60 w-6 text-center shrink-0">
                   {tp.position ? `#${tp.position}` : index + 1}
@@ -390,18 +379,18 @@ export default async function TournamentDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Register button — only for registration phase */}
+      {/* Register button -- only for registration phase */}
       {tournament.status === "registration" && (
         <div className="space-y-2">
           {isRegistered ? (
-            <div className="rounded-xl bg-omega-green/10 border border-omega-green/30 px-4 py-3 text-center">
+            <div className="omega-card p-3 text-center">
               <p className="text-sm font-bold text-omega-green flex items-center justify-center gap-2">
                 <CheckCircle className="size-4" />
                 Ya estas inscripto en este torneo
               </p>
             </div>
           ) : isFull ? (
-            <div className="rounded-xl bg-omega-red/10 border border-omega-red/30 px-4 py-3 text-center">
+            <div className="omega-card p-3 text-center">
               <p className="text-sm font-bold text-omega-red">
                 El torneo esta lleno
               </p>
@@ -409,7 +398,7 @@ export default async function TournamentDetailPage({ params }: PageProps) {
           ) : (
             <Link
               href={`/tournaments/${tournament.id}/register`}
-              className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-3 font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="omega-btn omega-btn-primary w-full px-4 py-3 text-base"
             >
               <UserPlus className="size-5" />
               {user ? "Inscribirme" : "Registrarme e inscribirme"}
@@ -421,12 +410,12 @@ export default async function TournamentDetailPage({ params }: PageProps) {
       {/* Bracket / matches */}
       {matches.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center gap-2">
+          <div className="omega-section-header">
             <Trophy className="size-4 text-omega-gold" />
             {tournament.format === "single_elimination"
               ? "Bracket"
               : "Rondas"}
-          </h2>
+          </div>
           <BracketView
             matches={matches}
             format={

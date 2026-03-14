@@ -15,7 +15,6 @@ export default function PushToggle() {
   }, []);
 
   async function checkCurrentState() {
-    // Check browser support
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       setState("unsupported");
       return;
@@ -27,7 +26,6 @@ export default function PushToggle() {
       return;
     }
 
-    // Check if we already have an active subscription
     try {
       const registration = await navigator.serviceWorker.getRegistration("/sw.js");
       if (registration) {
@@ -44,13 +42,11 @@ export default function PushToggle() {
   async function handleEnable() {
     setBusy(true);
     try {
-      // 1. Register service worker
       const registration = await navigator.serviceWorker.register("/sw.js", {
         scope: "/",
       });
       await navigator.serviceWorker.ready;
 
-      // 2. Request notification permission
       const permission = await Notification.requestPermission();
       if (permission === "denied") {
         setState("denied");
@@ -62,7 +58,6 @@ export default function PushToggle() {
         return;
       }
 
-      // 3. Subscribe to Push API
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!vapidPublicKey) {
         toast.error("Error de configuracion: falta clave VAPID");
@@ -74,7 +69,6 @@ export default function PushToggle() {
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
       });
 
-      // 4. Send subscription to our API
       const subJson = subscription.toJSON();
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
@@ -110,11 +104,9 @@ export default function PushToggle() {
       if (registration) {
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
-          // Unsubscribe from Push API
           const endpoint = subscription.endpoint;
           await subscription.unsubscribe();
 
-          // Remove from our backend
           await fetch("/api/push/unsubscribe", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -137,11 +129,9 @@ export default function PushToggle() {
 
   if (state === "loading") {
     return (
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Bell className="size-4 text-omega-muted" />
-          <span className="text-sm text-omega-muted">Notificaciones push</span>
-        </div>
+      <div className="omega-row !border-0">
+        <Bell className="size-4 text-omega-muted" />
+        <span className="text-sm text-omega-muted flex-1">Notificaciones push</span>
         <Loader2 className="size-4 animate-spin text-omega-muted" />
       </div>
     );
@@ -149,26 +139,22 @@ export default function PushToggle() {
 
   if (state === "unsupported") {
     return (
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <BellOff className="size-4 text-omega-muted" />
-          <span className="text-sm text-omega-muted">
-            Tu navegador no soporta notificaciones push
-          </span>
-        </div>
+      <div className="omega-row !border-0">
+        <BellOff className="size-4 text-omega-muted" />
+        <span className="text-sm text-omega-muted flex-1">
+          Tu navegador no soporta notificaciones push
+        </span>
       </div>
     );
   }
 
   if (state === "denied") {
     return (
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <BellOff className="size-4 text-omega-red" />
-          <span className="text-sm text-omega-muted">
-            Notificaciones bloqueadas en el navegador
-          </span>
-        </div>
+      <div className="omega-row !border-0">
+        <BellOff className="size-4 text-omega-red" />
+        <span className="text-sm text-omega-muted flex-1">
+          Notificaciones bloqueadas en el navegador
+        </span>
       </div>
     );
   }
@@ -176,19 +162,17 @@ export default function PushToggle() {
   const isEnabled = state === "enabled";
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        {isEnabled ? (
-          <Bell className="size-4 text-omega-green" />
-        ) : (
-          <BellOff className="size-4 text-omega-muted" />
-        )}
-        <span className="text-sm text-omega-muted">
-          {isEnabled
-            ? "Notificaciones push activadas"
-            : "Notificaciones push desactivadas"}
-        </span>
-      </div>
+    <div className="omega-row !border-0">
+      {isEnabled ? (
+        <Bell className="size-4 text-omega-green" />
+      ) : (
+        <BellOff className="size-4 text-omega-muted" />
+      )}
+      <span className="text-sm text-omega-muted flex-1">
+        {isEnabled
+          ? "Notificaciones push activadas"
+          : "Notificaciones push desactivadas"}
+      </span>
       <button
         onClick={isEnabled ? handleDisable : handleEnable}
         disabled={busy}

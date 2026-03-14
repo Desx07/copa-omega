@@ -22,24 +22,24 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
-        toast.error("Email o contraseña incorrectos");
+        toast.error("Email o contrasena incorrectos");
         return;
       }
 
       router.push("/dashboard");
     } catch {
-      toast.error("Error de conexión, intentá de nuevo");
+      toast.error("Error de conexion, intenta de nuevo");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-xl p-6 shadow-[0_0_40px_rgba(123,47,247,0.06)] space-y-6">
+    <div className="omega-card p-6 space-y-6">
       {/* Header */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-black neon-gold">COPA OMEGA STAR</h1>
-        <p className="text-sm text-omega-muted">Tu próximo combate te está esperando</p>
+        <p className="text-sm text-omega-muted">Tu proximo combate te esta esperando</p>
       </div>
 
       {/* Form */}
@@ -55,13 +55,13 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="tu@email.com"
-            className="w-full rounded-lg border border-omega-border bg-omega-dark/80 px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-purple focus:ring-2 focus:ring-omega-purple/20 transition-all"
+            className="omega-input py-3"
           />
         </div>
 
         <div className="space-y-2">
           <label htmlFor="password" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
-            Contraseña
+            Contrasena
           </label>
           <input
             id="password"
@@ -69,15 +69,15 @@ export default function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Tu contraseña"
-            className="w-full rounded-lg border border-omega-border bg-omega-dark/80 px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-purple focus:ring-2 focus:ring-omega-purple/20 transition-all"
+            placeholder="Tu contrasena"
+            className="omega-input py-3"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center justify-center gap-2 w-full rounded-lg bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-3 font-bold text-white shadow-[0_0_20px_rgba(123,47,247,0.3)] hover:shadow-[0_0_30px_rgba(123,47,247,0.5)] transition-all active:scale-[0.98] disabled:opacity-50"
+          className="omega-btn omega-btn-primary w-full py-3 text-sm"
         >
           {loading ? (
             <Loader2 className="size-5 animate-spin" />

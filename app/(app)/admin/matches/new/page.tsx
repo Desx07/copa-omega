@@ -71,7 +71,7 @@ export default function NewMatchPage() {
     e.preventDefault();
 
     if (!player1Id || !player2Id) {
-      toast.error("Seleccioná ambos jugadores");
+      toast.error("Selecciona ambos jugadores");
       return;
     }
 
@@ -108,7 +108,7 @@ export default function NewMatchPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        toast.error("No estás autenticado");
+        toast.error("No estas autenticado");
         setLoading(false);
         return;
       }
@@ -136,19 +136,19 @@ export default function NewMatchPage() {
 
   if (loadingPlayers) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <Loader2 className="size-8 text-omega-blue animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen px-4 py-6 max-w-lg mx-auto">
+    <div className="px-4 py-6 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <Link
           href="/admin/matches"
-          className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
+          className="omega-btn omega-btn-secondary size-10"
           aria-label="Volver a partidas"
         >
           <ArrowLeft className="size-5" />
@@ -171,7 +171,7 @@ export default function NewMatchPage() {
             required
             value={player1Id}
             onChange={(e) => setPlayer1Id(e.target.value)}
-            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text outline-none focus:border-omega-blue focus:ring-2 focus:ring-omega-blue/20 transition-all appearance-none"
+            className="omega-input py-3"
           >
             <option value="" className="bg-omega-card text-omega-muted">
               Seleccionar jugador...
@@ -194,7 +194,7 @@ export default function NewMatchPage() {
             required
             value={player2Id}
             onChange={(e) => setPlayer2Id(e.target.value)}
-            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text outline-none focus:border-omega-blue focus:ring-2 focus:ring-omega-blue/20 transition-all appearance-none"
+            className="omega-input py-3"
           >
             <option value="" className="bg-omega-card text-omega-muted">
               Seleccionar jugador...
@@ -224,7 +224,7 @@ export default function NewMatchPage() {
               max={5}
               value={starsBet}
               onChange={(e) => setStarsBet(Number(e.target.value))}
-              className="w-full rounded-xl border border-omega-border bg-omega-card pl-10 pr-4 py-3 text-sm text-omega-text outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all"
+              className="omega-input pl-10 py-3"
             />
           </div>
           <p className="text-[11px] text-omega-muted">
@@ -234,16 +234,16 @@ export default function NewMatchPage() {
 
         {/* Preview */}
         {player1Id && player2Id && (
-          <div className="rounded-xl bg-omega-card/60 border border-omega-border p-4">
+          <div className="omega-card p-4">
             <p className="text-xs text-omega-muted mb-3 text-center">Vista previa</p>
             <div className="flex items-center gap-3 justify-center">
               <span className="text-sm font-bold text-omega-text">
                 {players.find((p) => p.id === player1Id)?.alias}
               </span>
-              <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-omega-gold/10 border border-omega-gold/30">
-                <Star className="size-3 text-omega-gold fill-omega-gold" />
-                <span className="text-xs font-black text-omega-gold">{starsBet}</span>
-              </div>
+              <span className="omega-badge omega-badge-gold">
+                <Star className="size-3 text-omega-gold fill-omega-gold mr-0.5" />
+                {starsBet}
+              </span>
               <span className="text-sm font-bold text-omega-text">
                 {players.find((p) => p.id === player2Id)?.alias}
               </span>
@@ -255,7 +255,7 @@ export default function NewMatchPage() {
         <button
           type="submit"
           disabled={loading || !player1Id || !player2Id}
-          className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-3 font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+          className="omega-btn omega-btn-primary w-full py-3 text-sm"
         >
           {loading ? (
             <Loader2 className="size-5 animate-spin" />

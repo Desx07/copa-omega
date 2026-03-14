@@ -48,18 +48,16 @@ export function StoreToggle() {
   const config = statusConfig[status];
 
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4">
-      <div className="flex items-center gap-3">
-        <Store className={`size-5 ${config.color}`} />
-        <div>
-          <p className="text-sm font-bold text-omega-text">Tienda: <span className={config.color}>{config.label}</span></p>
-          <p className="text-xs text-omega-muted">{config.desc}</p>
-        </div>
+    <div className="omega-row omega-card !rounded-2xl !p-4">
+      <Store className={`size-5 ${config.color}`} />
+      <div className="flex-1">
+        <p className="text-sm font-bold text-omega-text">Tienda: <span className={config.color}>{config.label}</span></p>
+        <p className="text-xs text-omega-muted">{config.desc}</p>
       </div>
       <button
         onClick={handleCycle}
         disabled={toggling}
-        className="px-3 py-1.5 rounded-lg border border-omega-border text-xs font-bold text-omega-muted hover:text-omega-text hover:border-omega-purple/50 transition-all disabled:opacity-50"
+        className="omega-btn omega-btn-secondary px-3 py-1.5 text-xs"
       >
         {toggling ? <Loader2 className="size-3 animate-spin" /> : "Cambiar"}
       </button>
@@ -67,7 +65,6 @@ export function StoreToggle() {
   );
 }
 
-// Export for dashboard to check if store button should be shown
 export function useStoreStatus() {
   const [status, setStatus] = useState<StoreStatus>("open");
   const [loading, setLoading] = useState(true);

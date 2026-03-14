@@ -33,7 +33,7 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
       toast.success(isHidden ? `${alias} visible en ranking` : `${alias} oculto del ranking`);
       router.refresh();
     } catch {
-      toast.error("Error de conexión");
+      toast.error("Error de conexion");
     } finally {
       setLoading(null);
     }
@@ -73,7 +73,7 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
       toast.success(`${alias} eliminado`);
       router.refresh();
     } catch {
-      toast.error("Error de conexión");
+      toast.error("Error de conexion");
     } finally {
       setLoading(null);
       setShowConfirm(false);
@@ -126,7 +126,7 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
           <button
             onClick={handleDelete}
             disabled={loading !== null}
-            className="rounded-lg bg-omega-red/20 border border-omega-red/50 px-2 py-1 text-[10px] font-bold text-omega-red hover:bg-omega-red/30 transition-all disabled:opacity-50"
+            className="omega-btn omega-btn-red px-2 py-1 text-[10px]"
           >
             {loading === "delete" ? (
               <Loader2 className="size-3 animate-spin" />
@@ -136,7 +136,7 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
           </button>
           <button
             onClick={() => setShowConfirm(false)}
-            className="rounded-lg px-2 py-1 text-[10px] font-bold text-omega-muted hover:text-omega-text transition-all"
+            className="omega-btn omega-btn-secondary px-2 py-1 text-[10px]"
           >
             NO
           </button>

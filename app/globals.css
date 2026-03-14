@@ -1,12 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  /* Copa Omega Star — Beyblade X palette */
-  --color-omega-black: #0a0a0f;
-  --color-omega-dark: #12121a;
-  --color-omega-card: #1a1a2e;
-  --color-omega-border: #2a2a4a;
+  /* ═══ Copa Omega Star — Complete Design System ═══ */
 
+  /* Surface elevation system (Material Dark adapted) */
+  --color-omega-black: #0a0a0f;
+  --color-omega-dark: #101018;
+  --color-omega-surface: #16162b;
+  --color-omega-card: #1e1e38;
+  --color-omega-card-hover: #26264a;
+  --color-omega-elevated: #2e2e52;
+  --color-omega-border: #3d3d5c;
+
+  /* Accent colors */
   --color-omega-blue: #00b4d8;
   --color-omega-blue-glow: #0096c7;
   --color-omega-purple: #7b2ff7;
@@ -16,6 +22,7 @@
   --color-omega-red: #ff4757;
   --color-omega-green: #2ed573;
 
+  /* Text */
   --color-omega-text: #e8e8f0;
   --color-omega-muted: #8888aa;
 
@@ -27,97 +34,228 @@ body {
   color: var(--color-omega-text);
 }
 
-/* Star glow animation */
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════ */
+
 @keyframes star-pulse {
   0%, 100% { filter: drop-shadow(0 0 4px var(--color-omega-gold)); }
   50% { filter: drop-shadow(0 0 12px var(--color-omega-gold-glow)); }
 }
+.star-glow { animation: star-pulse 2s ease-in-out infinite; }
 
-.star-glow {
-  animation: star-pulse 2s ease-in-out infinite;
-}
-
-/* Neon text glow */
-.neon-blue {
-  text-shadow: 0 0 10px var(--color-omega-blue), 0 0 40px var(--color-omega-blue-glow);
-}
-
-.neon-purple {
-  text-shadow: 0 0 10px var(--color-omega-purple), 0 0 40px var(--color-omega-purple-glow);
-}
-
-.neon-gold {
-  text-shadow: 0 0 10px var(--color-omega-gold), 0 0 30px var(--color-omega-gold-glow);
-}
-
-/* Float animation — smoother than bounce */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-14px); }
 }
-
 .animate-float { animation: float 4s ease-in-out infinite; }
 .animate-float-d1 { animation: float 3.5s ease-in-out infinite 0.5s; }
 .animate-float-d2 { animation: float 5s ease-in-out infinite 1s; }
 .animate-float-d3 { animation: float 4.5s ease-in-out infinite 0.7s; }
 
-/* Hexagonal clip-path */
-.hex-clip {
-  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
-}
-
-/* Subtle grid bg for hero */
-.hero-grid {
-  background-image:
-    linear-gradient(rgba(123,47,247,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(123,47,247,0.04) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
-
-/* Energy line divider */
-.energy-line {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(123,47,247,0.3), rgba(0,180,216,0.3), transparent);
-}
-
-/* Text glows */
-.text-glow-gold {
-  text-shadow: 0 0 30px rgba(255,214,10,0.3), 0 0 60px rgba(255,214,10,0.1);
-}
-
-/* Animated background orbs */
 @keyframes orb-drift-1 {
   0%, 100% { transform: translate(0, 0) scale(1); }
   25% { transform: translate(30px, -40px) scale(1.1); }
   50% { transform: translate(-20px, 20px) scale(0.95); }
   75% { transform: translate(15px, 30px) scale(1.05); }
 }
-
 @keyframes orb-drift-2 {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33% { transform: translate(-40px, 30px) scale(1.08); }
   66% { transform: translate(25px, -25px) scale(0.92); }
 }
-
 @keyframes orb-drift-3 {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(35px, 35px) scale(1.12); }
 }
-
 .orb-1 { animation: orb-drift-1 20s ease-in-out infinite; }
 .orb-2 { animation: orb-drift-2 25s ease-in-out infinite; }
 .orb-3 { animation: orb-drift-3 18s ease-in-out infinite; }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-float, .animate-float-d1, .animate-float-d2, .animate-float-d3,
-  .orb-1, .orb-2, .orb-3 { animation: none; }
+/* ═══════════════════════════════════════════
+   TEXT EFFECTS
+   ═══════════════════════════════════════════ */
+
+.neon-blue { text-shadow: 0 0 10px var(--color-omega-blue), 0 0 40px var(--color-omega-blue-glow); }
+.neon-purple { text-shadow: 0 0 10px var(--color-omega-purple), 0 0 40px var(--color-omega-purple-glow); }
+.neon-gold { text-shadow: 0 0 10px var(--color-omega-gold), 0 0 30px var(--color-omega-gold-glow); }
+.text-glow-gold { text-shadow: 0 0 30px rgba(255,214,10,0.3), 0 0 60px rgba(255,214,10,0.1); }
+
+/* ═══════════════════════════════════════════
+   BACKGROUND TEXTURES
+   ═══════════════════════════════════════════ */
+
+/* SVG noise grain — breaks flat void */
+.bg-noise::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ═══════════════════════════════════════════════════
-   SECTION BACKGROUNDS — visual continuity below hero
-   ═══════════════════════════════════════════════════ */
+/* Grid pattern at visible opacity */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(123,47,247,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123,47,247,0.07) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
 
-/* "Como funciona" — grid continuation fading to transparent + purple glow top-left */
+.hex-clip { clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); }
+
+.energy-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(123,47,247,0.3), rgba(0,180,216,0.3), transparent);
+}
+
+/* ═══════════════════════════════════════════
+   CARD SYSTEM — Material elevation adapted
+   ═══════════════════════════════════════════ */
+
+.omega-card {
+  background: var(--color-omega-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.omega-card-elevated {
+  background: var(--color-omega-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-top-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Section header inside cards */
+.omega-section-header {
+  padding: 12px 20px;
+  background: var(--color-omega-surface);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-omega-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* List row */
+.omega-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  transition: background 0.15s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.omega-row:hover { background: var(--color-omega-surface); }
+.omega-row:last-child { border-bottom: none; }
+
+/* ═══════════════════════════════════════════
+   BUTTON SYSTEM
+   ═══════════════════════════════════════════ */
+
+.omega-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  border-radius: 10px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.omega-btn:active { transform: scale(0.97); }
+.omega-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.omega-btn-primary {
+  background: linear-gradient(135deg, var(--color-omega-purple), var(--color-omega-blue));
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(123,47,247,0.35);
+}
+.omega-btn-primary:hover { box-shadow: 0 6px 25px rgba(123,47,247,0.5); transform: scale(1.02); }
+
+.omega-btn-secondary {
+  background: var(--color-omega-card);
+  color: var(--color-omega-muted);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.omega-btn-secondary:hover { background: var(--color-omega-card-hover); color: var(--color-omega-text); }
+
+.omega-btn-gold { background: linear-gradient(135deg, #d4a017, #b8860b); color: white; border: none; box-shadow: 0 4px 15px rgba(255,214,10,0.3); }
+.omega-btn-gold:hover { box-shadow: 0 6px 20px rgba(255,214,10,0.45); transform: scale(1.03); }
+
+.omega-btn-purple { background: linear-gradient(135deg, #7b2ff7, #5a1dbf); color: white; border: none; box-shadow: 0 4px 15px rgba(123,47,247,0.35); }
+.omega-btn-purple:hover { box-shadow: 0 6px 20px rgba(123,47,247,0.5); transform: scale(1.03); }
+
+.omega-btn-green { background: linear-gradient(135deg, #2ed573, #1ea55a); color: white; border: none; box-shadow: 0 4px 15px rgba(46,213,115,0.3); }
+.omega-btn-green:hover { box-shadow: 0 6px 20px rgba(46,213,115,0.45); transform: scale(1.03); }
+
+.omega-btn-blue { background: linear-gradient(135deg, #00b4d8, #0096c7); color: white; border: none; box-shadow: 0 4px 15px rgba(0,180,216,0.3); }
+.omega-btn-blue:hover { box-shadow: 0 6px 20px rgba(0,180,216,0.45); transform: scale(1.03); }
+
+.omega-btn-red { background: linear-gradient(135deg, #ff4757, #c0392b); color: white; border: none; box-shadow: 0 4px 15px rgba(255,71,87,0.3); }
+.omega-btn-red:hover { box-shadow: 0 6px 20px rgba(255,71,87,0.45); transform: scale(1.03); }
+
+/* ═══════════════════════════════════════════
+   BADGES
+   ═══════════════════════════════════════════ */
+
+.omega-badge { display: inline-flex; align-items: center; padding: 2px 10px; font-size: 10px; font-weight: 700; border-radius: 6px; }
+.omega-badge-gold { background: rgba(255,214,10,0.15); color: var(--color-omega-gold); border: 1px solid rgba(255,214,10,0.3); }
+.omega-badge-green { background: rgba(46,213,115,0.15); color: var(--color-omega-green); border: 1px solid rgba(46,213,115,0.3); }
+.omega-badge-red { background: rgba(255,71,87,0.15); color: var(--color-omega-red); border: 1px solid rgba(255,71,87,0.3); }
+.omega-badge-purple { background: rgba(123,47,247,0.15); color: var(--color-omega-purple); border: 1px solid rgba(123,47,247,0.3); }
+.omega-badge-blue { background: rgba(0,180,216,0.15); color: var(--color-omega-blue); border: 1px solid rgba(0,180,216,0.3); }
+
+/* ═══════════════════════════════════════════
+   FORM INPUTS
+   ═══════════════════════════════════════════ */
+
+.omega-input {
+  width: 100%;
+  background: var(--color-omega-dark);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  color: var(--color-omega-text);
+  transition: all 0.2s;
+  outline: none;
+}
+.omega-input::placeholder { color: rgba(136,136,170,0.5); }
+.omega-input:focus { border-color: var(--color-omega-purple); box-shadow: 0 0 0 3px rgba(123,47,247,0.15); }
+
+/* ═══════════════════════════════════════════
+   PODIUM AURAS
+   ═══════════════════════════════════════════ */
+
+.aura-gold { box-shadow: 0 0 0 1px rgba(255,214,10,0.3), 0 0 25px rgba(255,214,10,0.15), 0 0 60px rgba(255,214,10,0.05); }
+.aura-silver { box-shadow: 0 0 0 1px rgba(192,192,192,0.25), 0 0 20px rgba(192,192,192,0.1); }
+.aura-bronze { box-shadow: 0 0 0 1px rgba(205,127,50,0.25), 0 0 20px rgba(205,127,50,0.1); }
+
+/* ═══════════════════════════════════════════
+   LANDING PAGE SPECIFIC
+   ═══════════════════════════════════════════ */
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(123,47,247,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123,47,247,0.07) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
 .section-bg-steps {
   background-image:
     radial-gradient(ellipse 60% 50% at 15% 20%, rgba(123,47,247,0.07) 0%, transparent 70%),
@@ -127,49 +265,34 @@ body {
   background-size: 100% 100%, 100% 100%, 60px 60px, 60px 60px;
 }
 
-/* "Funcionalidades" — diagonal energy lines + blue glow right side */
 .section-bg-features {
   background-image:
     radial-gradient(ellipse 50% 60% at 80% 40%, rgba(0,180,216,0.06) 0%, transparent 70%),
     radial-gradient(ellipse 40% 50% at 10% 70%, rgba(123,47,247,0.04) 0%, transparent 60%),
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 80px,
-      rgba(0,180,216,0.015) 80px,
-      rgba(0,180,216,0.015) 81px
-    );
+    repeating-linear-gradient(-45deg, transparent, transparent 80px, rgba(0,180,216,0.015) 80px, rgba(0,180,216,0.015) 81px);
 }
 
-/* "Torneo activo / Leaderboard" — gold glow from bottom center + arena rings */
 .section-bg-leaderboard {
   background-image:
     radial-gradient(ellipse 70% 60% at 50% 90%, rgba(255,214,10,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(123,47,247,0.03) 0%, transparent 50%),
-    radial-gradient(circle at 50% 70%, transparent 200px, rgba(255,214,10,0.012) 200px, rgba(255,214,10,0.012) 201px, transparent 201px),
-    radial-gradient(circle at 50% 70%, transparent 320px, rgba(255,214,10,0.01) 320px, rgba(255,214,10,0.01) 321px, transparent 321px),
-    radial-gradient(circle at 50% 70%, transparent 440px, rgba(255,214,10,0.008) 440px, rgba(255,214,10,0.008) 441px, transparent 441px);
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(123,47,247,0.03) 0%, transparent 50%);
 }
 
-/* Horizontal energy divider between sections — wider and color-shifting */
 .section-divider {
   height: 1px;
-  background: linear-gradient(90deg,
-    transparent 5%,
-    rgba(123,47,247,0.2) 20%,
-    rgba(0,180,216,0.25) 50%,
-    rgba(123,47,247,0.2) 80%,
-    transparent 95%
-  );
+  background: linear-gradient(90deg, transparent 5%, rgba(123,47,247,0.2) 20%, rgba(0,180,216,0.25) 50%, rgba(123,47,247,0.2) 80%, transparent 95%);
 }
 
 .section-divider-gold {
   height: 1px;
-  background: linear-gradient(90deg,
-    transparent 5%,
-    rgba(0,180,216,0.15) 20%,
-    rgba(255,214,10,0.2) 50%,
-    rgba(0,180,216,0.15) 80%,
-    transparent 95%
-  );
+  background: linear-gradient(90deg, transparent 5%, rgba(0,180,216,0.15) 20%, rgba(255,214,10,0.2) 50%, rgba(0,180,216,0.15) 80%, transparent 95%);
+}
+
+/* ═══════════════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float, .animate-float-d1, .animate-float-d2, .animate-float-d3,
+  .orb-1, .orb-2, .orb-3, .star-glow { animation: none; }
 }

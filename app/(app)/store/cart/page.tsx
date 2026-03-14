@@ -67,7 +67,7 @@ export default function CartPage() {
     }
 
     if (paymentMethod === "transfer" && !proofFile) {
-      toast.error("Subí el comprobante de transferencia");
+      toast.error("Subi el comprobante de transferencia");
       return;
     }
 
@@ -77,7 +77,6 @@ export default function CartPage() {
       const supabase = createClient();
       let paymentProofUrl: string | null = null;
 
-      // Upload payment proof if transfer
       if (paymentMethod === "transfer" && proofFile) {
         const {
           data: { user },
@@ -114,7 +113,6 @@ export default function CartPage() {
         paymentProofUrl = publicUrl;
       }
 
-      // Create order via API
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -150,7 +148,7 @@ export default function CartPage() {
   if (orderCreated) {
     return (
       <div className="px-4 py-6 max-w-lg mx-auto">
-        <div className="rounded-2xl bg-omega-card/40 border border-omega-green/30 backdrop-blur-sm p-8 text-center space-y-4 mt-10">
+        <div className="omega-card-elevated p-8 text-center space-y-4 mt-10">
           <div className="size-16 rounded-full bg-omega-green/10 border border-omega-green/30 flex items-center justify-center mx-auto">
             <CheckCircle className="size-8 text-omega-green" />
           </div>
@@ -164,7 +162,7 @@ export default function CartPage() {
           <div className="flex flex-col gap-2 pt-2">
             <Link
               href="/store"
-              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-3 text-sm font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="omega-btn omega-btn-primary w-full px-4 py-3 text-sm"
             >
               <ShoppingBag className="size-4" />
               Seguir comprando
@@ -187,7 +185,7 @@ export default function CartPage() {
       <div className="flex items-center gap-3 mb-6">
         <Link
           href="/store"
-          className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-purple hover:border-omega-purple/50 transition-all"
+          className="omega-btn omega-btn-secondary size-10 !p-0"
           aria-label="Volver a la tienda"
         >
           <ArrowLeft className="size-5" />
@@ -199,7 +197,7 @@ export default function CartPage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl bg-omega-card/40 border border-omega-border backdrop-blur-sm p-8 text-center space-y-3">
+        <div className="omega-card p-8 text-center space-y-3">
           <ShoppingCart className="size-10 text-omega-muted/20 mx-auto" />
           <p className="text-omega-muted text-sm">Tu carrito esta vacio</p>
           <Link
@@ -213,18 +211,16 @@ export default function CartPage() {
       ) : (
         <div className="space-y-4">
           {/* Cart items */}
-          <div className="rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-sm overflow-hidden shadow-lg">
-            <div className="px-4 py-3 border-b border-omega-border/30 bg-omega-card/60">
-              <p className="text-xs font-bold text-omega-muted uppercase tracking-wider">
-                {items.length} {items.length === 1 ? "producto" : "productos"}
-              </p>
+          <div className="omega-card">
+            <div className="omega-section-header">
+              {items.length} {items.length === 1 ? "producto" : "productos"}
             </div>
 
-            <div className="divide-y divide-omega-border/20">
+            <div>
               {items.map((item) => (
                 <div
                   key={item.product_id}
-                  className="flex items-center gap-3 p-4"
+                  className="omega-row"
                 >
                   {/* Image */}
                   <div className="size-14 rounded-xl bg-omega-dark border border-omega-border/30 overflow-hidden shrink-0">
@@ -257,7 +253,7 @@ export default function CartPage() {
                       onClick={() =>
                         updateQuantity(item.product_id, item.quantity - 1)
                       }
-                      className="size-8 rounded-lg bg-omega-dark/60 border border-omega-border/30 flex items-center justify-center text-omega-muted hover:text-omega-text hover:border-omega-border transition-all"
+                      className="omega-btn omega-btn-secondary size-8 !p-0 !rounded-lg"
                     >
                       <Minus className="size-3.5" />
                     </button>
@@ -268,7 +264,7 @@ export default function CartPage() {
                       onClick={() =>
                         updateQuantity(item.product_id, item.quantity + 1)
                       }
-                      className="size-8 rounded-lg bg-omega-dark/60 border border-omega-border/30 flex items-center justify-center text-omega-muted hover:text-omega-text hover:border-omega-border transition-all"
+                      className="omega-btn omega-btn-secondary size-8 !p-0 !rounded-lg"
                     >
                       <Plus className="size-3.5" />
                     </button>
@@ -292,10 +288,8 @@ export default function CartPage() {
             </div>
 
             {/* Total */}
-            <div className="px-4 py-3 border-t border-omega-border/30 bg-omega-card/60 flex items-center justify-between">
-              <span className="text-sm font-bold text-omega-muted uppercase tracking-wider">
-                Total
-              </span>
+            <div className="omega-section-header justify-between">
+              <span>Total</span>
               <span className="text-xl font-black text-omega-gold">
                 ${totalPrice.toFixed(2)}
               </span>
@@ -303,7 +297,7 @@ export default function CartPage() {
           </div>
 
           {/* Payment method */}
-          <div className="rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-sm p-4 space-y-3">
+          <div className="omega-card p-4 space-y-3">
             <p className="text-xs font-bold text-omega-muted uppercase tracking-wider">
               Metodo de pago
             </p>
@@ -311,10 +305,10 @@ export default function CartPage() {
               <button
                 type="button"
                 onClick={() => setPaymentMethod("cash")}
-                className={`flex items-center gap-2 rounded-xl border p-3 transition-all ${
+                className={`flex items-center gap-2 omega-card p-3 transition-all cursor-pointer ${
                   paymentMethod === "cash"
-                    ? "border-omega-green/50 bg-omega-green/5 shadow-sm shadow-omega-green/10"
-                    : "border-omega-border bg-omega-card/40 hover:border-omega-border/80"
+                    ? "!border-omega-green/50 aura-gold"
+                    : "hover:bg-omega-card-hover"
                 }`}
               >
                 <Banknote
@@ -337,10 +331,10 @@ export default function CartPage() {
               <button
                 type="button"
                 onClick={() => setPaymentMethod("transfer")}
-                className={`flex items-center gap-2 rounded-xl border p-3 transition-all ${
+                className={`flex items-center gap-2 omega-card p-3 transition-all cursor-pointer ${
                   paymentMethod === "transfer"
-                    ? "border-omega-blue/50 bg-omega-blue/5 shadow-sm shadow-omega-blue/10"
-                    : "border-omega-border bg-omega-card/40 hover:border-omega-border/80"
+                    ? "!border-omega-blue/50 aura-silver"
+                    : "hover:bg-omega-card-hover"
                 }`}
               >
                 <CreditCard
@@ -388,7 +382,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2 w-full rounded-xl border-2 border-dashed border-omega-border hover:border-omega-blue/50 bg-omega-card/30 px-4 py-5 text-sm text-omega-muted hover:text-omega-blue transition-all"
+                    className="omega-btn omega-btn-secondary w-full px-4 py-5 border-dashed !border-2"
                   >
                     <Upload className="size-5" />
                     <span>Subir comprobante</span>
@@ -407,7 +401,7 @@ export default function CartPage() {
           </div>
 
           {/* Notes */}
-          <div className="rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-sm p-4 space-y-2">
+          <div className="omega-card p-4 space-y-2">
             <label
               htmlFor="notes"
               className="text-xs font-bold text-omega-muted uppercase tracking-wider"
@@ -424,7 +418,7 @@ export default function CartPage() {
               placeholder="Instrucciones especiales, aclaraciones..."
               maxLength={500}
               rows={2}
-              className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-purple focus:ring-2 focus:ring-omega-purple/20 transition-all resize-none"
+              className="omega-input resize-none"
             />
           </div>
 
@@ -436,14 +430,14 @@ export default function CartPage() {
               items.length === 0 ||
               (paymentMethod === "transfer" && !proofFile)
             }
-            className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-omega-green/90 to-omega-green px-4 py-3.5 font-bold text-omega-dark shadow-lg shadow-omega-green/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+            className="omega-btn omega-btn-green w-full px-4 py-3.5 text-base"
           >
             {loading ? (
               <Loader2 className="size-5 animate-spin" />
             ) : (
               <>
                 <CheckCircle className="size-5" />
-                Confirmar pedido — ${totalPrice.toFixed(2)}
+                Confirmar pedido -- ${totalPrice.toFixed(2)}
               </>
             )}
           </button>

@@ -52,7 +52,7 @@ export default async function AdminPlayersPage() {
         </div>
         <Link
           href="/admin/matches"
-          className="flex items-center gap-1.5 rounded-lg border border-omega-border bg-omega-card/60 px-3 py-1.5 text-xs font-medium text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
+          className="omega-btn omega-btn-secondary px-3 py-1.5 text-xs"
         >
           Partidas
         </Link>
@@ -60,22 +60,22 @@ export default async function AdminPlayersPage() {
 
       {/* Stats bar */}
       <div className="grid grid-cols-4 gap-3 mb-6">
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <Users className="size-4 text-omega-blue mx-auto mb-1" />
           <p className="text-xl font-black text-omega-blue">{totalPlayers}</p>
           <p className="text-[11px] text-omega-muted">total</p>
         </div>
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <UserCheck className="size-4 text-omega-green mx-auto mb-1" />
           <p className="text-xl font-black text-omega-green">{activePlayers}</p>
           <p className="text-[11px] text-omega-muted">visibles</p>
         </div>
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <EyeOff className="size-4 text-omega-gold mx-auto mb-1" />
           <p className="text-xl font-black text-omega-gold">{hiddenPlayers}</p>
           <p className="text-[11px] text-omega-muted">ocultos</p>
         </div>
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <Scale className="size-4 text-omega-purple mx-auto mb-1" />
           <p className="text-xl font-black text-omega-purple">{judgePlayers}</p>
           <p className="text-[11px] text-omega-muted">jueces</p>
@@ -85,7 +85,7 @@ export default async function AdminPlayersPage() {
       {/* Players list */}
       <div className="space-y-3">
         {allPlayers.length === 0 ? (
-          <div className="rounded-xl bg-omega-card border border-omega-border p-8 text-center">
+          <div className="omega-card p-8 text-center">
             <Users className="size-8 text-omega-muted mx-auto mb-3" />
             <p className="text-omega-muted text-sm">No hay jugadores registrados</p>
           </div>
@@ -98,12 +98,12 @@ export default async function AdminPlayersPage() {
             return (
               <div
                 key={player.id}
-                className={`rounded-xl bg-omega-card border p-4 transition-all ${
+                className={`omega-card p-4 transition-all ${
                   player.is_hidden
-                    ? "border-omega-gold/30 opacity-60"
+                    ? "opacity-60"
                     : isEliminated
-                      ? "border-omega-border opacity-50"
-                      : "border-omega-border hover:border-omega-blue/30"
+                      ? "opacity-50"
+                      : "hover:bg-omega-card-hover"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -116,7 +116,7 @@ export default async function AdminPlayersPage() {
                           ? "bg-omega-blue/20 text-omega-blue"
                           : rank === 3
                             ? "bg-omega-purple/20 text-omega-purple"
-                            : "bg-omega-card border border-omega-border text-omega-muted"
+                            : "bg-omega-surface border border-omega-border text-omega-muted"
                     }`}
                   >
                     #{rank}

@@ -23,26 +23,26 @@ const FORMAT_LABELS: Record<string, string> = {
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; className: string; icon: React.ReactNode }
+  { label: string; badgeClass: string; icon: React.ReactNode }
 > = {
   registration: {
     label: "INSCRIPCION ABIERTA",
-    className: "bg-omega-blue/10 border-omega-blue/30 text-omega-blue",
+    badgeClass: "omega-badge omega-badge-blue",
     icon: <Users className="size-3.5" />,
   },
   in_progress: {
     label: "EN CURSO",
-    className: "bg-omega-gold/10 border-omega-gold/30 text-omega-gold",
+    badgeClass: "omega-badge omega-badge-gold",
     icon: <Clock className="size-3.5" />,
   },
   completed: {
     label: "FINALIZADO",
-    className: "bg-omega-green/10 border-omega-green/30 text-omega-green",
+    badgeClass: "omega-badge omega-badge-green",
     icon: <CheckCircle className="size-3.5" />,
   },
   cancelled: {
     label: "CANCELADO",
-    className: "bg-omega-red/10 border-omega-red/30 text-omega-red",
+    badgeClass: "omega-badge omega-badge-red",
     icon: <XCircle className="size-3.5" />,
   },
 };
@@ -63,7 +63,6 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
     redirect("/auth/login");
   }
 
-  // Verify admin + fetch tournament data in parallel
   const [profileResult, tournamentResult, participantsResult, matchesResult] =
     await Promise.all([
       supabase.from("players").select("is_admin").eq("id", user.id).single(),
@@ -113,7 +112,6 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
 
   const status = STATUS_CONFIG[tournament.status];
 
-  // Build QR URL for registration
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://copaomega.ar";
   const registerUrl = `${baseUrl}/tournaments/${tournament.id}/register`;
 
@@ -132,7 +130,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
       </Link>
 
       {/* Tournament header card */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-omega-gold/20 via-omega-card/60 to-omega-purple/10 p-5 shadow-lg shadow-omega-gold/10">
+      <div className="omega-card-elevated p-5 relative">
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-gold via-omega-purple to-omega-blue" />
 
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -144,9 +142,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
               {FORMAT_LABELS[tournament.format]}
             </p>
           </div>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold shrink-0 ${status.className}`}
-          >
+          <span className={`${status.badgeClass} gap-1.5 shrink-0`}>
             {status.icon}
             {status.label}
           </span>
@@ -197,7 +193,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
         format={tournament.format}
       />
 
-      {/* QR Code — show during registration */}
+      {/* QR Code -- show during registration */}
       {tournament.status === "registration" && (
         <QrDisplay
           url={registerUrl}
@@ -206,15 +202,15 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
         />
       )}
 
-      {/* Bracket / matches — show when tournament has started */}
+      {/* Bracket / matches */}
       {matches.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center gap-2">
+          <div className="omega-section-header">
             <Trophy className="size-4 text-omega-gold" />
             {tournament.format === "single_elimination"
               ? "Bracket"
               : "Rondas"}
-          </h2>
+          </div>
           <BracketView
             matches={matches}
             format={tournament.format as "single_elimination" | "round_robin" | "swiss"}

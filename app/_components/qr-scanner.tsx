@@ -12,7 +12,7 @@ export function QrScannerButton() {
     <>
       <button
         onClick={() => setScanning(true)}
-        className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-blue/25 to-omega-purple/10 p-5 shadow-md shadow-omega-blue/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+        className="group flex flex-col omega-card-elevated !bg-gradient-to-br !from-omega-blue/25 !to-omega-purple/10 p-5 transition-all hover:scale-[1.02] active:scale-[0.98]"
       >
         <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
           <ScanLine className="size-6 text-white" />
@@ -48,31 +48,28 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
             qrbox: { width: 250, height: 250 },
           },
           (decodedText) => {
-            // Check if it's a valid tournament registration URL
             if (decodedText.includes("/tournaments/") && decodedText.includes("/register")) {
               html5QrCode.stop().then(() => {
                 toast.success("QR escaneado!");
-                // Extract the path from the URL
                 try {
                   const url = new URL(decodedText);
                   router.push(url.pathname);
                 } catch {
-                  // If it's a relative path
                   router.push(decodedText);
                 }
                 onClose();
               });
             } else {
-              toast.error("QR no válido para un torneo");
+              toast.error("QR no valido para un torneo");
             }
           },
           () => {
-            // Ignore scan errors (happens every frame without QR)
+            // Ignore scan errors
           }
         );
       } catch (err) {
         console.error("Scanner error:", err);
-        toast.error("No se pudo acceder a la cámara");
+        toast.error("No se pudo acceder a la camara");
         onClose();
       }
     }
@@ -97,7 +94,7 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
         </div>
         <button
           onClick={onClose}
-          className="size-10 rounded-xl flex items-center justify-center text-omega-muted hover:text-omega-text hover:bg-omega-card transition-all"
+          className="omega-btn omega-btn-secondary size-10 !p-0 !rounded-xl"
         >
           <X className="size-5" />
         </button>
@@ -112,7 +109,7 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
             className="rounded-2xl overflow-hidden"
           />
           <p className="text-center text-xs text-omega-muted mt-4">
-            Apuntá la cámara al código QR del torneo
+            Apunta la camara al codigo QR del torneo
           </p>
         </div>
       </div>

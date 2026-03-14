@@ -79,7 +79,7 @@ export default async function TournamentsPage() {
       </Link>
 
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-omega-gold/20 via-omega-card/60 to-omega-purple/10 p-5 shadow-lg shadow-omega-gold/10">
+      <div className="omega-card-elevated p-5 relative">
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-gold via-omega-purple to-omega-blue" />
         <div className="text-center space-y-1">
           <h1 className="text-2xl font-black tracking-tight neon-gold">
@@ -94,10 +94,10 @@ export default async function TournamentsPage() {
       {/* Active tournaments */}
       {active.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center gap-2">
+          <div className="omega-section-header">
             <Clock className="size-4 text-omega-blue" />
             Torneos activos
-          </h2>
+          </div>
           {active.map((tournament) => (
             <TournamentCard key={tournament.id} tournament={tournament} />
           ))}
@@ -107,10 +107,10 @@ export default async function TournamentsPage() {
       {/* Past tournaments */}
       {past.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center gap-2">
+          <div className="omega-section-header">
             <Calendar className="size-4 text-omega-muted" />
             Torneos anteriores
-          </h2>
+          </div>
           {past.map((tournament) => {
             const champion = championsMap.get(tournament.id);
             return (
@@ -130,7 +130,7 @@ export default async function TournamentsPage() {
 
       {/* Empty state */}
       {tournaments.length === 0 && (
-        <div className="rounded-2xl border border-omega-border bg-omega-card/50 p-12 text-center space-y-4 backdrop-blur-sm">
+        <div className="omega-card p-12 text-center space-y-4">
           <Trophy className="size-16 text-omega-muted/30 mx-auto" />
           <div className="space-y-2">
             <p className="text-lg font-bold text-omega-muted">

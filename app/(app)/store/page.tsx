@@ -37,7 +37,6 @@ export default function StorePage() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      // Check store toggle
       const settingsRes = await fetch("/api/settings/store");
       if (settingsRes.ok) {
         const settingsData = await settingsRes.json();
@@ -84,10 +83,10 @@ export default function StorePage() {
           <ArrowLeft className="size-4" />
           Dashboard
         </Link>
-        <div className="rounded-2xl border border-omega-border bg-omega-card/40 p-10 text-center space-y-3 mt-4">
+        <div className="omega-card p-10 text-center space-y-3 mt-4">
           <Package className="size-12 text-omega-muted/30 mx-auto" />
           <h2 className="text-xl font-black text-omega-text">Tienda cerrada</h2>
-          <p className="text-sm text-omega-muted">La tienda está en mantenimiento. Volvé pronto!</p>
+          <p className="text-sm text-omega-muted">La tienda esta en mantenimiento. Volve pronto!</p>
         </div>
       </div>
     );
@@ -112,7 +111,7 @@ export default function StorePage() {
         </div>
         <Link
           href="/store/cart"
-          className="relative flex items-center gap-2 rounded-xl bg-omega-card border border-omega-border px-4 py-2.5 text-sm font-bold text-omega-text hover:border-omega-purple/50 hover:text-omega-purple transition-all"
+          className="relative omega-btn omega-btn-secondary px-4 py-2.5 text-sm"
         >
           <ShoppingCart className="size-4" />
           Carrito
@@ -130,7 +129,7 @@ export default function StorePage() {
           <Loader2 className="size-8 text-omega-purple animate-spin" />
         </div>
       ) : products.length === 0 ? (
-        <div className="rounded-2xl bg-omega-card border border-omega-border p-8 text-center space-y-3">
+        <div className="omega-card p-8 text-center space-y-3">
           <Package className="size-10 text-omega-muted/20 mx-auto" />
           <p className="text-omega-muted text-sm">
             No hay productos disponibles todavia
@@ -145,7 +144,7 @@ export default function StorePage() {
             return (
               <div
                 key={product.id}
-                className="group rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-sm overflow-hidden shadow-md hover:shadow-lg hover:shadow-omega-purple/10 hover:border-omega-purple/30 transition-all hover:-translate-y-0.5"
+                className="group omega-card hover:bg-omega-card-hover transition-all hover:-translate-y-0.5"
               >
                 {/* Image */}
                 <div className="relative aspect-square bg-omega-dark overflow-hidden">
@@ -164,11 +163,11 @@ export default function StorePage() {
                   {/* Stock badge */}
                   <div className="absolute top-2 right-2">
                     <span
-                      className={`text-[10px] font-bold px-2 py-1 rounded-full backdrop-blur-sm ${
+                      className={
                         inStock
-                          ? "bg-omega-green/20 text-omega-green border border-omega-green/30"
-                          : "bg-omega-red/20 text-omega-red border border-omega-red/30"
-                      }`}
+                          ? "omega-badge omega-badge-green"
+                          : "omega-badge omega-badge-red"
+                      }
                     >
                       {inStock ? "En stock" : "Agotado"}
                     </span>
@@ -195,11 +194,11 @@ export default function StorePage() {
                     <button
                       onClick={() => handleAdd(product)}
                       disabled={!inStock}
-                      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+                      className={
                         inStock
-                          ? "bg-gradient-to-r from-omega-purple to-omega-blue text-white shadow-lg shadow-omega-purple/20 hover:scale-[1.05] active:scale-[0.95]"
-                          : "bg-omega-dark/50 text-omega-muted/50 cursor-not-allowed"
-                      }`}
+                          ? "omega-btn omega-btn-primary px-3 py-2 text-xs"
+                          : "omega-btn omega-btn-secondary px-3 py-2 text-xs opacity-50 cursor-not-allowed"
+                      }
                     >
                       <Plus className="size-3.5" />
                       Agregar

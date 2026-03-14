@@ -39,7 +39,8 @@
       "Bash(mkdir:*)",
       "WebFetch(domain:www.beycase.com)",
       "WebFetch(domain:beybase.com)",
-      "WebFetch(domain:challonge.com)"
+      "WebFetch(domain:challonge.com)",
+      "Bash(npx playwright:*)"
     ]
   }
 }

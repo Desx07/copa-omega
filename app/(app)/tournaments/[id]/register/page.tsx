@@ -39,10 +39,8 @@ export default function TournamentRegisterPage() {
 
   useEffect(() => {
     async function load() {
-      // Check auth
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Fetch tournament
       const res = await fetch(`/api/tournaments/${tournamentId}`);
       if (!res.ok) {
         toast.error("Torneo no encontrado");
@@ -55,7 +53,6 @@ export default function TournamentRegisterPage() {
 
       if (user) {
         setIsLoggedIn(true);
-        // Fetch player profile
         const { data: playerData } = await supabase
           .from("players")
           .select("id, alias, avatar_url, stars")
@@ -63,7 +60,6 @@ export default function TournamentRegisterPage() {
           .single();
         setPlayer(playerData);
 
-        // Check if already registered
         const already = data.participants?.some((p: { player_id: string }) => p.player_id === user.id);
         setAlreadyRegistered(!!already);
       }
@@ -86,11 +82,11 @@ export default function TournamentRegisterPage() {
         toast.error(data.error || "Error al inscribirse");
         return;
       }
-      toast.success("¡Te inscribiste al torneo! 🏆");
+      toast.success("Te inscribiste al torneo!");
       setAlreadyRegistered(true);
       setParticipantCount((c) => c + 1);
     } catch {
-      toast.error("Error de conexión");
+      toast.error("Error de conexion");
     } finally {
       setRegistering(false);
     }
@@ -139,11 +135,11 @@ export default function TournamentRegisterPage() {
       </Link>
 
       {/* Tournament info */}
-      <div className="rounded-2xl border border-omega-border/40 bg-omega-card/40 p-5 text-center space-y-3">
+      <div className="omega-card p-5 text-center space-y-3">
         <Trophy className="size-10 text-omega-gold mx-auto" />
         <h1 className="text-xl font-black text-omega-text">{tournament.name}</h1>
         <p className="text-sm text-omega-muted">
-          {tournament.format === "single_elimination" ? "Eliminación directa" :
+          {tournament.format === "single_elimination" ? "Eliminacion directa" :
            tournament.format === "round_robin" ? "Round Robin" : "Suizo"}
           {" · "}
           {participantCount}/{tournament.max_participants} inscriptos
@@ -152,20 +148,20 @@ export default function TournamentRegisterPage() {
 
       {/* Not logged in */}
       {!isLoggedIn && (
-        <div className="rounded-2xl border border-omega-border/40 bg-omega-card/40 p-6 text-center space-y-4">
+        <div className="omega-card p-6 text-center space-y-4">
           <LogIn className="size-8 text-omega-blue mx-auto" />
-          <p className="text-sm font-bold text-omega-text">Necesitás una cuenta para inscribirte</p>
-          <p className="text-xs text-omega-muted">Iniciá sesión o creá tu cuenta de blader para participar.</p>
+          <p className="text-sm font-bold text-omega-text">Necesitas una cuenta para inscribirte</p>
+          <p className="text-xs text-omega-muted">Inicia sesion o crea tu cuenta de blader para participar.</p>
           <div className="flex flex-col gap-2">
             <Link
               href={`/auth/login?redirect=/tournaments/${tournamentId}/register`}
-              className="flex items-center justify-center gap-2 w-full rounded-lg bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-3 font-bold text-white transition-all active:scale-95"
+              className="omega-btn omega-btn-primary w-full px-4 py-3"
             >
-              Iniciar sesión
+              Iniciar sesion
             </Link>
             <Link
               href={`/auth/register?redirect=/tournaments/${tournamentId}/register`}
-              className="flex items-center justify-center gap-2 w-full rounded-lg border border-omega-border px-4 py-3 text-sm font-medium text-omega-muted hover:text-omega-text transition-all"
+              className="omega-btn omega-btn-secondary w-full px-4 py-3 text-sm"
             >
               Crear cuenta
             </Link>
@@ -173,9 +169,9 @@ export default function TournamentRegisterPage() {
         </div>
       )}
 
-      {/* Logged in — show profile + register button */}
+      {/* Logged in -- show profile + register button */}
       {isLoggedIn && player && (
-        <div className="rounded-2xl border border-omega-border/40 bg-omega-card/40 p-6 space-y-4">
+        <div className="omega-card p-6 space-y-4">
           {/* Player preview */}
           <div className="flex items-center gap-4">
             <div className="size-14 rounded-full border-2 border-omega-purple overflow-hidden bg-omega-dark">
@@ -198,20 +194,20 @@ export default function TournamentRegisterPage() {
 
           {/* Action */}
           {alreadyRegistered ? (
-            <div className="flex items-center justify-center gap-2 rounded-xl bg-omega-green/10 border border-omega-green/30 py-3 px-4">
-              <CheckCircle className="size-5 text-omega-green" />
-              <span className="text-sm font-bold text-omega-green">Ya estás inscripto!</span>
+            <div className="flex items-center justify-center gap-2 omega-badge omega-badge-green px-4 py-3 text-sm">
+              <CheckCircle className="size-5" />
+              <span className="font-bold">Ya estas inscripto!</span>
             </div>
           ) : isFull ? (
-            <div className="flex items-center justify-center gap-2 rounded-xl bg-omega-red/10 border border-omega-red/30 py-3 px-4">
-              <XCircle className="size-5 text-omega-red" />
-              <span className="text-sm font-bold text-omega-red">Torneo completo</span>
+            <div className="flex items-center justify-center gap-2 omega-badge omega-badge-red px-4 py-3 text-sm">
+              <XCircle className="size-5" />
+              <span className="font-bold">Torneo completo</span>
             </div>
           ) : (
             <button
               onClick={handleRegister}
               disabled={registering}
-              className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-3 font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              className="omega-btn omega-btn-primary w-full px-4 py-3 text-base"
             >
               {registering ? (
                 <Loader2 className="size-5 animate-spin" />

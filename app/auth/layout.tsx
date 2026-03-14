@@ -18,14 +18,7 @@ export default async function AuthLayout({
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-omega-black text-omega-text overflow-hidden">
-      {/* Ambient bg */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-[15%] right-[10%] w-[500px] h-[500px] rounded-full bg-omega-purple/[0.10] blur-[120px]" />
-        <div className="absolute bottom-[20%] left-[10%] w-[400px] h-[400px] rounded-full bg-omega-blue/[0.07] blur-[100px]" />
-      </div>
-      <div className="fixed inset-0 -z-10 pointer-events-none hero-grid opacity-50" />
-
+    <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-8">
       {/* Logo */}
       <Link href="/" className="mb-8 flex flex-col items-center gap-3">
         <Image

@@ -15,7 +15,6 @@ export default async function AdminTournamentsPage() {
     redirect("/auth/login");
   }
 
-  // Verify admin + fetch tournaments in parallel
   const [profileResult, tournamentsResult] = await Promise.all([
     supabase.from("players").select("is_admin").eq("id", user.id).single(),
     supabase
@@ -30,7 +29,6 @@ export default async function AdminTournamentsPage() {
 
   const rawTournaments = tournamentsResult.data ?? [];
 
-  // Normalize participant_count from Supabase aggregate
   const tournaments = rawTournaments.map((t) => ({
     ...t,
     participant_count:
@@ -62,7 +60,7 @@ export default async function AdminTournamentsPage() {
         </div>
         <Link
           href="/admin/tournaments/new"
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          className="omega-btn omega-btn-primary px-4 py-2.5 text-sm"
         >
           <Plus className="size-4" />
           Nuevo torneo
@@ -71,21 +69,21 @@ export default async function AdminTournamentsPage() {
 
       {/* Stats bar */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <Users className="size-4 text-omega-blue mx-auto mb-1" />
           <p className="text-xl font-black text-omega-blue">
             {registration.length}
           </p>
           <p className="text-[11px] text-omega-muted">inscripcion</p>
         </div>
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <Clock className="size-4 text-omega-gold mx-auto mb-1" />
           <p className="text-xl font-black text-omega-gold">
             {inProgress.length}
           </p>
           <p className="text-[11px] text-omega-muted">en curso</p>
         </div>
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <CheckCircle className="size-4 text-omega-green mx-auto mb-1" />
           <p className="text-xl font-black text-omega-green">
             {completed.length}
@@ -97,7 +95,7 @@ export default async function AdminTournamentsPage() {
       {/* Tournament list */}
       <div className="space-y-3">
         {tournaments.length === 0 ? (
-          <div className="rounded-2xl bg-omega-card border border-omega-border p-8 text-center space-y-3">
+          <div className="omega-card p-8 text-center space-y-3">
             <Trophy className="size-10 text-omega-muted/20 mx-auto" />
             <p className="text-omega-muted text-sm">
               No hay torneos creados todavia

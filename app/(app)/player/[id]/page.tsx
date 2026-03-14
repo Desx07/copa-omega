@@ -113,7 +113,7 @@ export default async function PlayerProfilePage({
         </Link>
 
         {/* Player card */}
-        <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">
+        <div className="omega-card-elevated p-6 text-center space-y-4">
           {/* Avatar */}
           {(() => {
             const ac = ACCENT_COLORS[(player as unknown as { accent_color: string }).accent_color] || ACCENT_COLORS.purple;
@@ -144,7 +144,7 @@ export default async function PlayerProfilePage({
               </p>
             )}
             {player.is_judge && (
-              <span className="inline-flex items-center gap-1.5 mt-2 rounded-full bg-omega-gold/10 border border-omega-gold/30 px-3 py-1 text-xs font-bold text-omega-gold">
+              <span className="omega-badge omega-badge-gold mt-2 inline-flex gap-1.5">
                 <Scale className="size-3.5 text-omega-gold" />
                 Juez Oficial
               </span>
@@ -158,14 +158,14 @@ export default async function PlayerProfilePage({
 
           {/* Stats grid */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl bg-omega-dark/50 p-3 text-center">
+            <div className="rounded-xl bg-omega-surface p-3 text-center">
               <div className="flex items-center justify-center gap-1">
                 <Star className="size-3.5 text-omega-gold fill-omega-gold" />
                 <span className="text-xl font-black text-omega-gold">{player.stars}</span>
               </div>
               <p className="text-[10px] text-omega-muted">estrellas</p>
             </div>
-            <div className="rounded-xl bg-omega-dark/50 p-3 text-center">
+            <div className="rounded-xl bg-omega-surface p-3 text-center">
               <p className="text-xl font-black">
                 <span className="text-omega-green">{player.wins}</span>
                 <span className="text-omega-muted/40">/</span>
@@ -173,7 +173,7 @@ export default async function PlayerProfilePage({
               </p>
               <p className="text-[10px] text-omega-muted">W / L</p>
             </div>
-            <div className="rounded-xl bg-omega-dark/50 p-3 text-center">
+            <div className="rounded-xl bg-omega-surface p-3 text-center">
               <p className="text-xl font-black text-omega-blue">{winRate}%</p>
               <p className="text-[10px] text-omega-muted">win rate</p>
             </div>
@@ -183,18 +183,18 @@ export default async function PlayerProfilePage({
           {(currentStreak > 0 || bestStreak > 0) && (
             <div className="flex items-center justify-center gap-4 text-sm">
               {currentStreak > 0 && (
-                <div className="flex items-center gap-1.5 rounded-full bg-omega-green/10 border border-omega-green/30 px-3 py-1">
+                <span className="omega-badge omega-badge-green gap-1.5 px-3 py-1">
                   <Flame className="size-3.5 text-omega-green" />
-                  <span className="font-bold text-omega-green">{currentStreak}</span>
+                  <span className="font-bold">{currentStreak}</span>
                   <span className="text-omega-muted text-xs">racha actual</span>
-                </div>
+                </span>
               )}
               {bestStreak > 1 && (
-                <div className="flex items-center gap-1.5 rounded-full bg-omega-gold/10 border border-omega-gold/30 px-3 py-1">
+                <span className="omega-badge omega-badge-gold gap-1.5 px-3 py-1">
                   <Crown className="size-3.5 text-omega-gold" />
-                  <span className="font-bold text-omega-gold">{bestStreak}</span>
+                  <span className="font-bold">{bestStreak}</span>
                   <span className="text-omega-muted text-xs">mejor racha</span>
-                </div>
+                </span>
               )}
             </div>
           )}
@@ -206,9 +206,7 @@ export default async function PlayerProfilePage({
           </p>
 
           {player.is_eliminated && (
-            <span className="inline-flex items-center rounded-full bg-omega-red/10 border border-omega-red/30 px-3 py-1 text-xs font-bold text-omega-red">
-              ELIMINADO
-            </span>
+            <span className="omega-badge omega-badge-red">ELIMINADO</span>
           )}
         </div>
 
@@ -217,21 +215,19 @@ export default async function PlayerProfilePage({
           <BadgesDisplay earnedBadgeIds={earnedBadgeIds} />
         )}
 
-        {/* Beys — hidden if player chose to hide */}
+        {/* Beys -- hidden if player chose to hide */}
         {!(player as unknown as { hide_beys: boolean }).hide_beys && beys.length > 0 && (
-          <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
-              <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
-                <Swords className="size-4 text-omega-purple" />
-                Beys
-              </h2>
+          <div className="omega-card">
+            <div className="omega-section-header">
+              <Swords className="size-4 text-omega-purple" />
+              Beys
             </div>
-            <div className="divide-y divide-omega-border/30">
+            <div>
               {beys.map((bey) => {
                 const config = beyTypeConfig[bey.type as keyof typeof beyTypeConfig];
                 const Icon = config.icon;
                 return (
-                  <div key={bey.id} className="flex items-center gap-3 px-4 py-3">
+                  <div key={bey.id} className="omega-row">
                     <div className={`size-8 rounded-lg border flex items-center justify-center ${config.bg}`}>
                       <Icon className={`size-4 ${config.color}`} />
                     </div>
@@ -248,14 +244,12 @@ export default async function PlayerProfilePage({
 
         {/* Match history */}
         {matches.length > 0 && (
-          <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
-              <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
-                <Trophy className="size-4 text-omega-purple" />
-                Historial de partidas
-              </h2>
+          <div className="omega-card">
+            <div className="omega-section-header">
+              <Trophy className="size-4 text-omega-purple" />
+              Historial de partidas
             </div>
-            <div className="divide-y divide-omega-border/30">
+            <div>
               {matches.map((match) => {
                 const won = match.winner_id === id;
                 const isPlayer1 = match.player1_id === id;
@@ -265,7 +259,7 @@ export default async function PlayerProfilePage({
                 return (
                   <div
                     key={match.id}
-                    className="flex items-center gap-3 px-4 py-3"
+                    className="omega-row"
                   >
                     {/* Result indicator */}
                     <div

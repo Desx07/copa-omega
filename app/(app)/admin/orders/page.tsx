@@ -44,22 +44,22 @@ const STATUS_CONFIG = {
   pending: {
     label: "Pendiente",
     icon: Clock,
-    className: "bg-omega-gold/10 text-omega-gold border-omega-gold/20",
+    badgeClass: "omega-badge omega-badge-gold",
   },
   confirmed: {
     label: "Confirmado",
     icon: CheckCircle,
-    className: "bg-omega-blue/10 text-omega-blue border-omega-blue/20",
+    badgeClass: "omega-badge omega-badge-blue",
   },
   delivered: {
     label: "Entregado",
     icon: Truck,
-    className: "bg-omega-green/10 text-omega-green border-omega-green/20",
+    badgeClass: "omega-badge omega-badge-green",
   },
   cancelled: {
     label: "Cancelado",
     icon: XCircle,
-    className: "bg-omega-red/10 text-omega-red border-omega-red/20",
+    badgeClass: "omega-badge omega-badge-red",
   },
 } as const;
 
@@ -142,19 +142,19 @@ export default function AdminOrdersPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <Clock className="size-4 text-omega-gold mx-auto mb-1" />
           <p className="text-xl font-black text-omega-gold">{pendingCount}</p>
           <p className="text-[11px] text-omega-muted">pendientes</p>
         </div>
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <CheckCircle className="size-4 text-omega-blue mx-auto mb-1" />
           <p className="text-xl font-black text-omega-blue">
             {confirmedCount}
           </p>
           <p className="text-[11px] text-omega-muted">confirmados</p>
         </div>
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <Truck className="size-4 text-omega-green mx-auto mb-1" />
           <p className="text-xl font-black text-omega-green">
             {deliveredCount}
@@ -169,7 +169,7 @@ export default function AdminOrdersPage() {
           <Loader2 className="size-8 text-omega-purple animate-spin" />
         </div>
       ) : orders.length === 0 ? (
-        <div className="rounded-2xl bg-omega-card border border-omega-border p-8 text-center space-y-3">
+        <div className="omega-card p-8 text-center space-y-3">
           <ShoppingBag className="size-10 text-omega-muted/20 mx-auto" />
           <p className="text-omega-muted text-sm">No hay pedidos todavia</p>
         </div>
@@ -185,18 +185,18 @@ export default function AdminOrdersPage() {
             return (
               <div
                 key={order.id}
-                className="rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-sm overflow-hidden shadow-md"
+                className="omega-card"
               >
                 {/* Order header */}
                 <button
                   onClick={() =>
                     setExpandedId(isExpanded ? null : order.id)
                   }
-                  className="w-full flex items-center gap-3 p-4 text-left hover:bg-omega-card/60 transition-colors"
+                  className="w-full flex items-center gap-3 p-4 text-left hover:bg-omega-surface transition-colors"
                 >
-                  {/* Status badge */}
+                  {/* Status badge icon */}
                   <div
-                    className={`size-10 rounded-xl flex items-center justify-center shrink-0 border ${statusCfg.className}`}
+                    className={`size-10 rounded-xl flex items-center justify-center shrink-0 ${statusCfg.badgeClass} !rounded-xl !p-0`}
                   >
                     <StatusIcon className="size-4" />
                   </div>
@@ -207,9 +207,7 @@ export default function AdminOrdersPage() {
                       <p className="text-sm font-bold text-omega-text">
                         #{order.id.slice(0, 8)}
                       </p>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusCfg.className}`}
-                      >
+                      <span className={statusCfg.badgeClass}>
                         {statusCfg.label}
                       </span>
                     </div>
@@ -273,17 +271,15 @@ export default function AdminOrdersPage() {
                         {order.items.map((item) => (
                           <div
                             key={item.id}
-                            className="flex items-center justify-between rounded-lg bg-omega-dark/40 px-3 py-2"
+                            className="omega-row !py-2 !px-3 rounded-lg bg-omega-dark/40"
                           >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <Package className="size-3.5 text-omega-muted shrink-0" />
-                              <span className="text-sm text-omega-text truncate">
-                                {item.product?.name ?? "Producto eliminado"}
-                              </span>
-                              <span className="text-xs text-omega-muted shrink-0">
-                                x{item.quantity}
-                              </span>
-                            </div>
+                            <Package className="size-3.5 text-omega-muted shrink-0" />
+                            <span className="text-sm text-omega-text truncate flex-1">
+                              {item.product?.name ?? "Producto eliminado"}
+                            </span>
+                            <span className="text-xs text-omega-muted shrink-0">
+                              x{item.quantity}
+                            </span>
                             <span className="text-sm font-medium text-omega-gold shrink-0 ml-2">
                               ${(
                                 Number(item.unit_price) * item.quantity
@@ -337,11 +333,11 @@ export default function AdminOrdersPage() {
                               key={ns}
                               onClick={() => updateStatus(order.id, ns)}
                               disabled={isUpdating}
-                              className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 ${
+                              className={
                                 isCancel
-                                  ? "bg-omega-red/10 text-omega-red border border-omega-red/30 hover:bg-omega-red/20"
-                                  : "bg-gradient-to-r from-omega-blue/90 to-omega-blue text-white shadow-lg shadow-omega-blue/20"
-                              }`}
+                                  ? "omega-btn omega-btn-red px-4 py-2 text-sm"
+                                  : "omega-btn omega-btn-blue px-4 py-2 text-sm"
+                              }
                             >
                               {isUpdating ? (
                                 <Loader2 className="size-4 animate-spin" />

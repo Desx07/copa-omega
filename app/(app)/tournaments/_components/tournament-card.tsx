@@ -23,37 +23,37 @@ interface TournamentCardProps {
 const FORMAT_LABELS: Record<string, string> = {
   round_robin: "Round Robin",
   swiss: "Suizo",
-  single_elimination: "Eliminación directa",
+  single_elimination: "Eliminacion directa",
 };
 
-const STATUS_CONFIG: Record<
+const STATUS_BADGES: Record<
   string,
-  { label: string; className: string; icon: React.ReactNode }
+  { label: string; badgeClass: string; icon: React.ReactNode }
 > = {
   registration: {
-    label: "INSCRIPCIÓN",
-    className: "bg-omega-blue/10 border-omega-blue/30 text-omega-blue",
+    label: "INSCRIPCION",
+    badgeClass: "omega-badge omega-badge-blue",
     icon: <Users className="size-3" />,
   },
   in_progress: {
     label: "EN CURSO",
-    className: "bg-omega-gold/10 border-omega-gold/30 text-omega-gold",
+    badgeClass: "omega-badge omega-badge-gold",
     icon: <Clock className="size-3" />,
   },
   completed: {
     label: "FINALIZADO",
-    className: "bg-omega-green/10 border-omega-green/30 text-omega-green",
+    badgeClass: "omega-badge omega-badge-green",
     icon: <CheckCircle className="size-3" />,
   },
   cancelled: {
     label: "CANCELADO",
-    className: "bg-omega-red/10 border-omega-red/30 text-omega-red",
+    badgeClass: "omega-badge omega-badge-red",
     icon: <XCircle className="size-3" />,
   },
 };
 
 export default function TournamentCard({ tournament, href }: TournamentCardProps) {
-  const status = STATUS_CONFIG[tournament.status];
+  const status = STATUS_BADGES[tournament.status];
   const participantCount = tournament.participant_count ?? 0;
   const isFull = participantCount >= tournament.max_participants;
   const linkHref = href ?? `/tournaments/${tournament.id}`;
@@ -61,10 +61,8 @@ export default function TournamentCard({ tournament, href }: TournamentCardProps
   return (
     <Link
       href={linkHref}
-      className={`block rounded-2xl border bg-omega-card/40 backdrop-blur-sm p-5 transition-all hover:border-omega-blue/30 hover:shadow-md hover:shadow-omega-blue/5 active:scale-[0.99] ${
-        tournament.status === "cancelled"
-          ? "opacity-50 border-omega-border/30"
-          : "border-omega-border/50"
+      className={`block omega-card p-5 transition-all hover:bg-omega-card-hover active:scale-[0.99] ${
+        tournament.status === "cancelled" ? "opacity-50" : ""
       }`}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -79,9 +77,7 @@ export default function TournamentCard({ tournament, href }: TournamentCardProps
         </div>
 
         {/* Status badge */}
-        <span
-          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold shrink-0 ${status.className}`}
-        >
+        <span className={`${status.badgeClass} gap-1 shrink-0`}>
           {status.icon}
           {status.label}
         </span>

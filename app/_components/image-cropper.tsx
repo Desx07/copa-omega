@@ -33,7 +33,7 @@ export function ImageCropper({ imageSrc, onCropDone, onCancel }: ImageCropperPro
       image.src = imageSrc;
     });
 
-    const size = 800; // Output 800x800 for crisp display
+    const size = 800;
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext("2d")!;
@@ -98,7 +98,7 @@ export function ImageCropper({ imageSrc, onCropDone, onCancel }: ImageCropperPro
         <div className="flex justify-center gap-3">
           <button
             onClick={onCancel}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-omega-border text-omega-muted hover:text-omega-text transition-all"
+            className="omega-btn omega-btn-secondary px-6 py-3"
           >
             <X className="size-4" />
             Cancelar
@@ -106,7 +106,7 @@ export function ImageCropper({ imageSrc, onCropDone, onCancel }: ImageCropperPro
           <button
             onClick={handleConfirm}
             disabled={processing}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue text-white font-bold shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            className="omega-btn omega-btn-primary px-6 py-3"
           >
             {processing ? (
               <Loader2 className="size-4 animate-spin" />

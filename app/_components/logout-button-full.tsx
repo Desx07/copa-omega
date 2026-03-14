@@ -13,10 +13,10 @@ export function LogoutButtonFull() {
   return (
     <button
       onClick={handleLogout}
-      className="w-full flex items-center justify-center gap-2 rounded-xl border border-omega-border/30 bg-omega-card/20 py-3 text-sm font-medium text-omega-muted hover:text-omega-red hover:border-omega-red/30 transition-all"
+      className="omega-btn omega-btn-secondary w-full py-3 text-sm hover:text-omega-red hover:border-omega-red/30"
     >
       <LogOut className="size-4" />
-      Cerrar sesión
+      Cerrar sesion
     </button>
   );
 }

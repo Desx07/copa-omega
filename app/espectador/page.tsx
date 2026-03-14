@@ -14,7 +14,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { BADGE_EMOJIS } from "@/lib/titles";
 
-/* ─── Types ─── */
+/* --- Types --- */
 
 interface Player {
   id: string;
@@ -79,14 +79,14 @@ interface RankedPlayer {
   badge: string | null;
 }
 
-/* ─── Supabase client (singleton) ─── */
+/* --- Supabase client (singleton) --- */
 
 const supabase = createClient();
 
-/* ═══════════════════════════════════════════════════
-   SPECTATOR MODE — /espectador
+/* ===================================================
+   SPECTATOR MODE -- /espectador
    Esports-style broadcast overlay for TV/projector
-   ═══════════════════════════════════════════════════ */
+   =================================================== */
 
 export default function EspectadorPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -99,13 +99,12 @@ export default function EspectadorPage() {
   const [clock, setClock] = useState(new Date());
   const [connected, setConnected] = useState(false);
 
-  // Flash animation trigger
   const [flashEvent, setFlashEvent] = useState<"battle_start" | "battle_end" | null>(null);
 
   const playersRef = useRef(players);
   playersRef.current = players;
 
-  /* ─── Fetch helpers ─── */
+  /* --- Fetch helpers --- */
 
   const fetchActiveTournament = useCallback(async () => {
     const { data } = await supabase
@@ -159,15 +158,13 @@ export default function EspectadorPage() {
     return (data ?? []) as RankedPlayer[];
   }, []);
 
-  /* ─── Build derived state ─── */
+  /* --- Build derived state --- */
 
   const deriveState = useCallback(
     (allMatches: TournamentMatch[], playerMap: Map<string, Player>) => {
-      // Find current battle (in_progress)
       const battle = allMatches.find((m) => m.status === "in_progress") ?? null;
       setCurrentBattle(battle);
 
-      // Recent completed battles (last 5)
       const completed = allMatches
         .filter((m) => m.status === "completed" && m.completed_at)
         .sort(
@@ -191,7 +188,7 @@ export default function EspectadorPage() {
     []
   );
 
-  /* ─── Initial data load ─── */
+  /* --- Initial data load --- */
 
   useEffect(() => {
     async function init() {
@@ -218,14 +215,14 @@ export default function EspectadorPage() {
     init();
   }, [fetchActiveTournament, fetchPlayers, fetchGlobalRanking, fetchMatches, fetchParticipants, deriveState]);
 
-  /* ─── Clock tick ─── */
+  /* --- Clock tick --- */
 
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  /* ─── Supabase Realtime subscription ─── */
+  /* --- Supabase Realtime subscription --- */
 
   useEffect(() => {
     const channel = supabase
@@ -241,7 +238,6 @@ export default function EspectadorPage() {
           const record = payload.new as TournamentMatch | undefined;
           if (!record) return;
 
-          // If we don't have a tournament or this match is for a different one, try to refresh
           if (!tournament || record.tournament_id !== tournament?.id) {
             const t = await fetchActiveTournament();
             if (t) {
@@ -259,7 +255,6 @@ export default function EspectadorPage() {
             return;
           }
 
-          // Flash event
           if (record.status === "in_progress") {
             setFlashEvent("battle_start");
             setTimeout(() => setFlashEvent(null), 2000);
@@ -268,7 +263,6 @@ export default function EspectadorPage() {
             setTimeout(() => setFlashEvent(null), 2000);
           }
 
-          // Refresh all data for this tournament
           const [m, p, pm, ranking] = await Promise.all([
             fetchMatches(record.tournament_id),
             fetchParticipants(record.tournament_id),
@@ -281,7 +275,6 @@ export default function EspectadorPage() {
           setGlobalRanking(ranking);
           deriveState(m, pm);
 
-          // Also refresh tournament info (current_round may have changed)
           const { data: tData } = await supabase
             .from("tournaments")
             .select("id, name, format, status, current_round")
@@ -299,7 +292,7 @@ export default function EspectadorPage() {
     };
   }, [tournament, fetchActiveTournament, fetchMatches, fetchParticipants, fetchPlayers, fetchGlobalRanking, deriveState]);
 
-  /* ─── Periodic poll fallback (every 15s) ─── */
+  /* --- Periodic poll fallback (every 15s) --- */
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -318,7 +311,6 @@ export default function EspectadorPage() {
         setGlobalRanking(ranking);
         deriveState(m, pm);
       } else {
-        // No active tournament, still refresh global ranking
         const [pm, ranking] = await Promise.all([
           fetchPlayers(),
           fetchGlobalRanking(),
@@ -335,7 +327,7 @@ export default function EspectadorPage() {
     return () => clearInterval(interval);
   }, [fetchActiveTournament, fetchMatches, fetchParticipants, fetchPlayers, fetchGlobalRanking, deriveState]);
 
-  /* ─── Compute top 3 from participants ─── */
+  /* --- Compute top 3 from participants --- */
 
   const top3 = [...participants]
     .sort((a, b) => {
@@ -349,7 +341,7 @@ export default function EspectadorPage() {
       player: players.get(p.player_id),
     }));
 
-  /* ─── Bracket data for display ─── */
+  /* --- Bracket data for display --- */
 
   const bracketRounds = new Map<number, TournamentMatch[]>();
   for (const m of matches) {
@@ -363,13 +355,13 @@ export default function EspectadorPage() {
   const completedMatchesCount = matches.filter((m) => m.status === "completed").length;
   const progressPercent = totalMatchesCount > 0 ? Math.round((completedMatchesCount / totalMatchesCount) * 100) : 0;
 
-  /* ═══════════════════════════════════════════════════
+  /* ===================================================
      RENDER
-     ═══════════════════════════════════════════════════ */
+     =================================================== */
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-omega-black hero-grid relative flex flex-col select-none">
-      {/* ── Flash overlay ── */}
+      {/* Flash overlay */}
       {flashEvent && (
         <div
           className={`absolute inset-0 z-50 pointer-events-none animate-pulse ${
@@ -381,18 +373,15 @@ export default function EspectadorPage() {
         />
       )}
 
-      {/* ── Background orbs ── */}
+      {/* Background orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-omega-purple/5 blur-3xl orb-1" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-omega-blue/5 blur-3xl orb-2" />
         <div className="absolute top-1/2 right-1/3 w-72 h-72 rounded-full bg-omega-gold/3 blur-3xl orb-3" />
       </div>
 
-      {/* ════════════════════════════════════════════════
-          HEADER
-          ════════════════════════════════════════════════ */}
+      {/* HEADER */}
       <header className="relative z-10 flex items-center justify-between px-8 py-4 border-b border-omega-border/30 bg-omega-dark/80 backdrop-blur-md shrink-0">
-        {/* Logo + Name */}
         <div className="flex items-center gap-4">
           <div className="relative">
             <Star className="size-10 text-omega-gold fill-omega-gold star-glow" />
@@ -408,7 +397,6 @@ export default function EspectadorPage() {
           </div>
         </div>
 
-        {/* EN VIVO badge + tournament name */}
         <div className="flex items-center gap-6">
           {tournament && (
             <div className="text-right">
@@ -421,20 +409,19 @@ export default function EspectadorPage() {
             </div>
           )}
 
-          <div className="flex items-center gap-2 rounded-full border border-omega-red/50 bg-omega-red/10 px-4 py-2">
+          <div className="omega-badge omega-badge-red !rounded-full !px-4 !py-2 gap-2">
             <div className="relative">
-              <Radio className="size-4 text-omega-red" />
+              <Radio className="size-4" />
               <div className="absolute inset-0 animate-ping">
                 <Radio className="size-4 text-omega-red opacity-40" />
               </div>
             </div>
-            <span className="text-sm font-black text-omega-red uppercase tracking-wider live-pulse">
+            <span className="text-sm font-black uppercase tracking-wider live-pulse">
               EN VIVO
             </span>
           </div>
         </div>
 
-        {/* Clock + connection */}
         <div className="flex items-center gap-4">
           <span className="text-2xl font-mono font-bold text-omega-muted/60 tabular-nums">
             {clock.toLocaleTimeString("es-AR", {
@@ -452,11 +439,8 @@ export default function EspectadorPage() {
         </div>
       </header>
 
-      {/* ════════════════════════════════════════════════
-          MAIN CONTENT
-          ════════════════════════════════════════════════ */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 flex relative z-10 overflow-hidden">
-        {/* ── Main area ── */}
         <main className="flex-1 flex items-center justify-center p-6 relative">
           {currentBattle ? (
             <VSScreen
@@ -477,12 +461,12 @@ export default function EspectadorPage() {
           )}
         </main>
 
-        {/* ── Sidebar ── */}
+        {/* Sidebar */}
         <aside className="w-80 border-l border-omega-border/30 bg-omega-dark/60 backdrop-blur-md flex flex-col shrink-0 overflow-hidden">
           {/* Top 3 */}
           {tournament && top3.length > 0 && (
             <div className="p-5 border-b border-omega-border/30">
-              <h3 className="text-[10px] font-black text-omega-gold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+              <h3 className="omega-section-header !p-0 !bg-transparent !border-0 !text-omega-gold !tracking-[0.2em] mb-4">
                 <Trophy className="size-4" />
                 TOP DEL TORNEO
               </h3>
@@ -504,7 +488,7 @@ export default function EspectadorPage() {
 
           {/* Recent battles feed */}
           <div className="flex-1 p-5 overflow-hidden">
-            <h3 className="text-[10px] font-black text-omega-blue uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+            <h3 className="omega-section-header !p-0 !bg-transparent !border-0 !text-omega-blue !tracking-[0.2em] mb-4">
               <Swords className="size-4" />
               BATALLAS RECIENTES
             </h3>
@@ -544,9 +528,7 @@ export default function EspectadorPage() {
         </aside>
       </div>
 
-      {/* ════════════════════════════════════════════════
-          BOTTOM RANKING STRIP
-          ════════════════════════════════════════════════ */}
+      {/* BOTTOM RANKING STRIP */}
       <footer className="relative z-10 border-t border-omega-border/30 bg-omega-dark/80 backdrop-blur-md shrink-0">
         <div className="flex items-center h-14 px-6 gap-2 overflow-x-auto">
           <div className="flex items-center gap-2 shrink-0 pr-4 border-r border-omega-border/30">
@@ -614,9 +596,9 @@ export default function EspectadorPage() {
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   VS SCREEN — Dramatic battle display
-   ═══════════════════════════════════════════════════ */
+/* ===================================================
+   VS SCREEN -- Dramatic battle display
+   =================================================== */
 
 function VSScreen({
   match,
@@ -642,13 +624,11 @@ function VSScreen({
             : `Ronda ${match.round} - Partida ${match.match_order}`}
         </span>
         <span className="text-omega-border">|</span>
-        <span className="text-xs font-bold uppercase tracking-widest text-omega-blue">
-          En juego
-        </span>
+        <span className="omega-badge omega-badge-blue">En juego</span>
         {judge && (
           <>
             <span className="text-omega-border">|</span>
-            <span className="text-xs font-bold uppercase tracking-widest text-omega-gold flex items-center gap-1.5">
+            <span className="omega-badge omega-badge-gold gap-1.5">
               <Scale className="size-3.5" />
               Juez: {judge.alias}
             </span>
@@ -658,12 +638,10 @@ function VSScreen({
 
       {/* VS Layout */}
       <div className="flex items-center justify-center gap-8 w-full">
-        {/* Player 1 */}
         <div className="flex-1 flex flex-col items-center animate-slide-left">
           <PlayerCard player={p1} side="left" score={match.player1_score} />
         </div>
 
-        {/* VS */}
         <div className="flex flex-col items-center gap-2 animate-scale-in opacity-0 shrink-0">
           <div className="relative">
             <Zap className="size-16 text-omega-red fill-omega-red/20" />
@@ -676,7 +654,6 @@ function VSScreen({
           </span>
         </div>
 
-        {/* Player 2 */}
         <div className="flex-1 flex flex-col items-center animate-slide-right">
           <PlayerCard player={p2} side="right" score={match.player2_score} />
         </div>
@@ -698,7 +675,7 @@ function VSScreen({
   );
 }
 
-/* ─── Player Card (VS screen) ─── */
+/* --- Player Card (VS screen) --- */
 
 function PlayerCard({
   player,
@@ -732,7 +709,6 @@ function PlayerCard({
 
   return (
     <div className="flex flex-col items-center gap-5 w-full max-w-xs">
-      {/* Avatar */}
       <div className={`relative size-36 rounded-full border-4 ${borderColor} shadow-lg overflow-hidden bg-omega-dark`}>
         {player.avatar_url ? (
           <img
@@ -747,11 +723,9 @@ function PlayerCard({
             </span>
           </div>
         )}
-        {/* Glow ring */}
         <div className={`absolute inset-0 rounded-full border-4 ${borderColor} animate-pulse opacity-50`} />
       </div>
 
-      {/* Badge + Alias */}
       <div className="text-center">
         <p className={`text-4xl font-black ${glowClass} tracking-tight`}>
           {player.badge && (
@@ -761,7 +735,6 @@ function PlayerCard({
         </p>
       </div>
 
-      {/* Stars */}
       <div className="flex items-center gap-2">
         <Star className="size-7 text-omega-gold fill-omega-gold star-glow" />
         <span className="text-3xl font-black neon-gold tabular-nums">
@@ -769,7 +742,6 @@ function PlayerCard({
         </span>
       </div>
 
-      {/* W/L stats */}
       <div className="flex items-center gap-3 rounded-full bg-omega-dark/80 border border-omega-border/30 px-5 py-2">
         <span className="text-lg font-black text-omega-green tabular-nums">
           {player.wins}W
@@ -783,9 +755,9 @@ function PlayerCard({
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   BRACKET DISPLAY — When no battle in progress
-   ═══════════════════════════════════════════════════ */
+/* ===================================================
+   BRACKET DISPLAY -- When no battle in progress
+   =================================================== */
 
 function BracketDisplay({
   roundKeys,
@@ -834,7 +806,6 @@ function BracketDisplay({
           const roundMatches = rounds.get(roundNum)!;
           return (
             <div key={roundNum} className="flex flex-col min-w-[220px]">
-              {/* Round label */}
               <div className="text-center mb-4">
                 <span
                   className={`text-[11px] font-black uppercase tracking-[0.15em] ${
@@ -847,7 +818,6 @@ function BracketDisplay({
                 </span>
               </div>
 
-              {/* Matches */}
               <div className="flex flex-col justify-around flex-1 gap-3">
                 {roundMatches.map((match) => (
                   <BracketMatchCard
@@ -884,12 +854,12 @@ function BracketMatchCard({
 
   return (
     <div
-      className={`rounded-xl border overflow-hidden transition-all ${
+      className={`omega-card transition-all ${
         isActive
-          ? "border-omega-blue/60 shadow-lg shadow-omega-blue/20 ring-1 ring-omega-blue/30"
+          ? "!border-omega-blue/60 !shadow-lg !shadow-omega-blue/20 ring-1 ring-omega-blue/30"
           : isBye
-          ? "border-omega-border/20 opacity-50"
-          : "border-omega-border/40"
+          ? "opacity-50"
+          : ""
       }`}
     >
       {/* Player 1 */}
@@ -899,7 +869,7 @@ function BracketMatchCard({
             ? "bg-omega-green/10"
             : isActive
             ? "bg-omega-blue/5"
-            : "bg-omega-card/50"
+            : "bg-omega-card"
         }`}
       >
         <div className="size-7 rounded-full bg-omega-dark border border-omega-border/40 flex items-center justify-center shrink-0 overflow-hidden">
@@ -935,7 +905,7 @@ function BracketMatchCard({
             ? "bg-omega-green/10"
             : isActive
             ? "bg-omega-blue/5"
-            : "bg-omega-card/50"
+            : "bg-omega-card"
         }`}
       >
         <div className="size-7 rounded-full bg-omega-dark border border-omega-border/40 flex items-center justify-center shrink-0 overflow-hidden">
@@ -975,9 +945,9 @@ function BracketMatchCard({
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   WAITING SCREEN — When no tournament is active
-   ═══════════════════════════════════════════════════ */
+/* ===================================================
+   WAITING SCREEN -- When no tournament is active
+   =================================================== */
 
 function WaitingScreen({
   globalRanking,
@@ -986,7 +956,6 @@ function WaitingScreen({
 }) {
   return (
     <div className="flex flex-col items-center gap-10">
-      {/* Animated logo */}
       <div className="relative animate-float">
         <Star className="size-28 text-omega-gold fill-omega-gold star-glow" />
         <div className="absolute inset-0 flex items-center justify-center">
@@ -1003,10 +972,9 @@ function WaitingScreen({
         </p>
       </div>
 
-      {/* Top 5 global ranking showcase */}
       {globalRanking.length > 0 && (
         <div className="w-full max-w-md">
-          <h3 className="text-[10px] font-black text-omega-gold uppercase tracking-[0.2em] text-center mb-4 flex items-center justify-center gap-2">
+          <h3 className="omega-section-header !bg-transparent !border-0 !text-omega-gold !tracking-[0.2em] justify-center mb-4">
             <Crown className="size-4" />
             TOP BLADERS
           </h3>
@@ -1014,7 +982,7 @@ function WaitingScreen({
             {globalRanking.slice(0, 5).map((p, i) => (
               <div
                 key={p.id}
-                className="flex items-center gap-3 rounded-xl bg-omega-card/40 border border-omega-border/30 px-4 py-3 backdrop-blur-sm"
+                className="omega-row omega-card !rounded-xl"
               >
                 <span
                   className={`text-lg font-black w-8 text-center tabular-nums ${
@@ -1059,9 +1027,9 @@ function WaitingScreen({
   );
 }
 
-/* ═══════════════════════════════════════════════════
+/* ===================================================
    SIDEBAR COMPONENTS
-   ═══════════════════════════════════════════════════ */
+   =================================================== */
 
 function Top3Row({
   rank,
@@ -1078,22 +1046,15 @@ function Top3Row({
   losses: number;
   eliminated: boolean;
 }) {
-  const rankColors = ["text-omega-gold", "text-omega-text/70", "text-amber-700"];
-  const rankBorders = [
-    "border-omega-gold/40 shadow-omega-gold/10",
-    "border-omega-text/20",
-    "border-amber-700/30",
-  ];
+  const auraClass = rank === 1 ? "aura-gold" : rank === 2 ? "aura-silver" : "aura-bronze";
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl border bg-omega-card/30 px-3 py-2.5 ${
-        rankBorders[rank - 1] ?? "border-omega-border/30"
-      } ${eliminated ? "opacity-40" : ""}`}
+      className={`omega-row omega-card !rounded-xl ${auraClass} ${eliminated ? "opacity-40" : ""}`}
     >
       <span
         className={`text-lg font-black w-6 text-center ${
-          rankColors[rank - 1] ?? "text-omega-muted"
+          rank === 1 ? "text-omega-gold" : rank === 2 ? "text-omega-text/70" : "text-amber-700"
         }`}
       >
         {rank === 1 ? (
@@ -1141,7 +1102,7 @@ function RecentBattleRow({ battle }: { battle: CompletedBattle }) {
   const timeAgo = getTimeAgo(battle.completedAt);
 
   return (
-    <div className="rounded-lg border border-omega-border/20 bg-omega-card/20 px-3 py-2.5 space-y-1.5">
+    <div className="omega-card !rounded-lg px-3 py-2.5 space-y-1.5">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span
@@ -1219,8 +1180,8 @@ function RankingChip({
     <div
       className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 shrink-0 transition-all ${
         isTop3
-          ? "bg-omega-card/60 border border-omega-gold/20"
-          : "bg-omega-card/30 border border-omega-border/20"
+          ? "bg-omega-elevated border border-omega-gold/30"
+          : "bg-omega-card border border-omega-border"
       }`}
     >
       <span className={`text-[10px] font-black ${rankColor} tabular-nums`}>
@@ -1251,7 +1212,7 @@ function RankingChip({
   );
 }
 
-/* ─── Utility ─── */
+/* --- Utility --- */
 
 function getTimeAgo(dateStr: string): string {
   const now = Date.now();

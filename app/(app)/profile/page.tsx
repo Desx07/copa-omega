@@ -171,7 +171,7 @@ export default function ProfilePage() {
       if (updateError) { toast.error("Error actualizando perfil"); return; }
       setPlayer({ ...player, avatar_url: avatarUrl });
       toast.success("Foto actualizada!");
-    } catch { toast.error("Error de conexión"); }
+    } catch { toast.error("Error de conexion"); }
     finally { setUploading(false); }
   }
 
@@ -188,7 +188,7 @@ export default function ProfilePage() {
       setBeys([...beys, data]);
       setNewBeyName("");
       toast.success("Bey agregado!");
-    } catch { toast.error("Error de conexión"); }
+    } catch { toast.error("Error de conexion"); }
     finally { setAddingBey(false); }
   }
 
@@ -222,7 +222,7 @@ export default function ProfilePage() {
         </Link>
 
         {/* Avatar + Stats card */}
-        <div className="relative overflow-hidden rounded-2xl border border-omega-purple/20 bg-gradient-to-br from-omega-card/60 to-omega-card/30 p-6 text-center space-y-4 backdrop-blur-sm">
+        <div className="omega-card-elevated p-6 text-center space-y-4">
           {/* Avatar */}
           <div className="relative inline-block">
             <div className={`size-32 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark mx-auto`}>
@@ -261,12 +261,12 @@ export default function ProfilePage() {
                 onChange={(e) => setTaglineInput(e.target.value)}
                 maxLength={60}
                 placeholder="Tu frase de batalla..."
-                className="flex-1 min-w-0 rounded-lg border border-omega-border bg-omega-dark px-3 py-2 text-sm text-omega-text text-center placeholder:text-omega-muted/50 outline-none focus:border-omega-purple"
+                className="omega-input flex-1 min-w-0 text-center"
                 autoFocus
               />
               <button
                 onClick={() => { updateField("tagline", taglineInput.trim() || null); setEditingTagline(false); }}
-                className="px-3 py-2 rounded-lg bg-omega-purple text-white text-xs font-bold"
+                className="omega-btn omega-btn-purple px-3 py-2 text-xs"
               >
                 {savingField === "tagline" ? <Loader2 className="size-3 animate-spin" /> : "OK"}
               </button>
@@ -311,19 +311,15 @@ export default function ProfilePage() {
           </p>
 
           {player.is_eliminated && (
-            <span className="inline-flex items-center rounded-full bg-omega-red/10 border border-omega-red/30 px-3 py-1 text-xs font-bold text-omega-red">
-              ELIMINADO
-            </span>
+            <span className="omega-badge omega-badge-red">ELIMINADO</span>
           )}
         </div>
 
-        {/* Personalización */}
-        <div className="rounded-2xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
-            <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
-              <Palette className="size-4 text-omega-gold" />
-              Personalizar
-            </h2>
+        {/* Personalizar */}
+        <div className="omega-card">
+          <div className="omega-section-header">
+            <Palette className="size-4 text-omega-gold" />
+            Personalizar
           </div>
 
           <div className="p-4 space-y-4">
@@ -391,25 +387,23 @@ export default function ProfilePage() {
         <BadgesDisplay earnedBadgeIds={earnedBadgeIds} />
 
         {/* Beys section */}
-        <div className="rounded-2xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
-            <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
-              <Swords className="size-4 text-omega-blue" />
-              Mis Beys
-            </h2>
+        <div className="omega-card">
+          <div className="omega-section-header">
+            <Swords className="size-4 text-omega-blue" />
+            Mis Beys
           </div>
 
           {beys.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-sm text-omega-muted/70">No tenés beys cargados todavía</p>
+              <p className="text-sm text-omega-muted/70">No tenes beys cargados todavia</p>
             </div>
           ) : (
-            <div className="divide-y divide-omega-border/30">
+            <div>
               {beys.map((bey) => {
                 const config = beyTypeConfig[bey.type];
                 const Icon = config.icon;
                 return (
-                  <div key={bey.id} className="flex items-center gap-3 px-4 py-3 hover:bg-omega-card/60 transition-colors">
+                  <div key={bey.id} className="omega-row">
                     <div className={`size-8 rounded-lg border flex items-center justify-center ${config.bg}`}>
                       <Icon className={`size-4 ${config.color}`} />
                     </div>
@@ -429,7 +423,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="p-4 border-t border-omega-border bg-omega-card/30">
+          <div className="p-4 border-t border-omega-border/30">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -437,12 +431,12 @@ export default function ProfilePage() {
                 onChange={(e) => setNewBeyName(e.target.value)}
                 placeholder="Nombre del bey"
                 maxLength={40}
-                className="flex-1 min-w-0 rounded-lg border border-omega-border bg-omega-dark px-3 py-2 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-purple focus:ring-1 focus:ring-omega-purple/30 transition-all"
+                className="omega-input flex-1 min-w-0"
               />
               <select
                 value={newBeyType}
                 onChange={(e) => setNewBeyType(e.target.value as Bey["type"])}
-                className="rounded-lg border border-omega-border bg-omega-dark px-2 py-2 text-sm text-omega-text outline-none focus:border-omega-purple transition-all"
+                className="omega-input w-auto"
               >
                 <option value="attack">Ataque</option>
                 <option value="defense">Defensa</option>
@@ -452,7 +446,7 @@ export default function ProfilePage() {
               <button
                 onClick={handleAddBey}
                 disabled={addingBey || !newBeyName.trim()}
-                className="flex items-center justify-center size-10 rounded-lg bg-omega-purple text-white hover:bg-omega-purple-glow transition-colors disabled:opacity-50 shrink-0"
+                className="omega-btn omega-btn-purple size-10 shrink-0"
               >
                 {addingBey ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-5" />}
               </button>
@@ -466,10 +460,10 @@ export default function ProfilePage() {
             await supabase.auth.signOut();
             window.location.href = "/";
           }}
-          className="w-full flex items-center justify-center gap-2 rounded-xl border border-omega-border bg-omega-card/40 py-3 text-sm font-medium text-omega-muted hover:text-omega-red hover:border-omega-red/30 transition-all"
+          className="omega-btn omega-btn-secondary w-full py-3 text-sm hover:text-omega-red hover:border-omega-red/30"
         >
           <LogOut className="size-4" />
-          Cerrar sesión
+          Cerrar sesion
         </button>
       </div>
 

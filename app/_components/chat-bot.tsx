@@ -21,7 +21,6 @@ export function ChatBot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load conversation history on first open
   useEffect(() => {
     if (open && !historyLoaded) {
       loadHistory();
@@ -32,7 +31,6 @@ export function ChatBot() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -51,7 +49,7 @@ export function ChatBot() {
         setNameInput(data.bot_name || "BeyBot");
       }
     } catch {
-      // No history yet, that's fine
+      // No history yet
     }
     setHistoryLoaded(true);
   }
@@ -70,7 +68,7 @@ export function ChatBot() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [userMessage], // Only send the new message, server merges with history
+          messages: [userMessage],
           botName,
         }),
       });
@@ -82,7 +80,7 @@ export function ChatBot() {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Uh, algo falló... Intentá de nuevo, blader. 🔧" },
+        { role: "assistant", content: "Uh, algo fallo... Intenta de nuevo, blader." },
       ]);
     } finally {
       setLoading(false);
@@ -107,7 +105,7 @@ export function ChatBot() {
           updated_at: new Date().toISOString(),
         }, { onConflict: "player_id" });
     } catch {
-      // Silent — name is already updated in state
+      // Silent
     }
   }
 
@@ -131,7 +129,7 @@ export function ChatBot() {
     <>
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-omega-border/60 bg-omega-dark/95 shadow-2xl shadow-omega-purple/20 backdrop-blur-xl sm:bottom-6 sm:right-6 sm:w-96">
+        <div className="fixed bottom-20 right-4 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col omega-card-elevated !rounded-2xl sm:bottom-6 sm:right-6 sm:w-96">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-omega-border/40 bg-gradient-to-r from-omega-purple/20 via-omega-card/80 to-omega-blue/20 px-4 py-3">
             <div className="flex items-center gap-2.5">
@@ -172,7 +170,7 @@ export function ChatBot() {
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="flex size-7 items-center justify-center rounded-lg text-omega-muted transition-colors hover:bg-omega-card hover:text-omega-text"
+                className="omega-btn omega-btn-secondary size-7 !p-0 !rounded-lg"
               >
                 <X className="size-4" />
               </button>
@@ -187,12 +185,12 @@ export function ChatBot() {
                   <Bot className="size-7 text-omega-purple-glow" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-omega-text">Hola, blader! 🌟</p>
+                  <p className="text-sm font-bold text-omega-text">Hola, blader!</p>
                   <p className="mt-1 text-xs text-omega-muted leading-relaxed max-w-[240px]">
-                    Soy {botName}, tu asistente de Copa Omega Star. Preguntame sobre el torneo, combos, estrategias, o decime contra quién vas a pelear!
+                    Soy {botName}, tu asistente de Copa Omega Star. Preguntame sobre el torneo, combos, estrategias, o decime contra quien vas a pelear!
                   </p>
                   <p className="mt-2 text-[10px] text-omega-muted/60">
-                    Tocá mi nombre para cambiarlo
+                    Toca mi nombre para cambiarlo
                   </p>
                 </div>
               </div>
@@ -242,7 +240,7 @@ export function ChatBot() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-omega-border/40 bg-omega-card/40 p-3">
+          <div className="border-t border-omega-border bg-omega-surface p-3">
             <form
               onSubmit={(e) => { e.preventDefault(); handleSend(); }}
               className="flex items-center gap-2"
@@ -254,12 +252,12 @@ export function ChatBot() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={`Preguntale a ${botName}...`}
                 disabled={loading}
-                className="flex-1 rounded-xl border border-omega-border/40 bg-omega-dark/80 px-3.5 py-2.5 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none transition-colors focus:border-omega-purple/60 focus:ring-1 focus:ring-omega-purple/30 disabled:opacity-50"
+                className="omega-input flex-1 !rounded-xl"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-omega-purple/80 text-white transition-all hover:bg-omega-purple active:scale-95 disabled:opacity-40"
+                className="omega-btn omega-btn-purple size-10 !p-0 !rounded-xl shrink-0"
               >
                 {loading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               </button>
@@ -273,8 +271,8 @@ export function ChatBot() {
         onClick={() => setOpen((prev) => !prev)}
         className={`fixed bottom-4 right-4 z-50 flex size-14 items-center justify-center rounded-full shadow-lg transition-all active:scale-90 sm:bottom-6 sm:right-6 ${
           open
-            ? "bg-omega-card border border-omega-border/60 text-omega-muted hover:text-omega-text shadow-omega-dark/50"
-            : "bg-gradient-to-br from-omega-purple to-omega-blue text-white shadow-omega-purple/30 hover:shadow-omega-purple/50 hover:scale-105"
+            ? "omega-btn omega-btn-secondary !rounded-full"
+            : "omega-btn omega-btn-primary !rounded-full hover:scale-105"
         }`}
         aria-label={open ? "Cerrar chat" : `Abrir ${botName}`}
       >

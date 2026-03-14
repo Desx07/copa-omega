@@ -135,7 +135,7 @@ export default function MatchDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <Loader2 className="size-8 text-omega-blue animate-spin" />
       </div>
     );
@@ -149,12 +149,12 @@ export default function MatchDetailPage() {
   const isCompleted = match.status === "completed";
 
   return (
-    <div className="min-h-screen px-4 py-6 max-w-lg mx-auto">
+    <div className="px-4 py-6 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <Link
           href="/admin/matches"
-          className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
+          className="omega-btn omega-btn-secondary size-10"
           aria-label="Volver a partidas"
         >
           <ArrowLeft className="size-5" />
@@ -176,23 +176,17 @@ export default function MatchDetailPage() {
       </div>
 
       {/* Match card */}
-      <div className="rounded-2xl bg-omega-card border border-omega-border p-6 space-y-6">
+      <div className="omega-card p-6 space-y-6">
         {/* Status */}
         <div className="text-center">
           {isPending && (
-            <span className="inline-flex items-center rounded-full bg-omega-gold/10 border border-omega-gold/30 px-3 py-1 text-xs font-bold text-omega-gold">
-              PENDIENTE
-            </span>
+            <span className="omega-badge omega-badge-gold px-3 py-1">PENDIENTE</span>
           )}
           {isCompleted && (
-            <span className="inline-flex items-center rounded-full bg-omega-green/10 border border-omega-green/30 px-3 py-1 text-xs font-bold text-omega-green">
-              COMPLETADA
-            </span>
+            <span className="omega-badge omega-badge-green px-3 py-1">COMPLETADA</span>
           )}
           {match.status === "cancelled" && (
-            <span className="inline-flex items-center rounded-full bg-omega-red/10 border border-omega-red/30 px-3 py-1 text-xs font-bold text-omega-red">
-              CANCELADA
-            </span>
+            <span className="omega-badge omega-badge-red px-3 py-1">CANCELADA</span>
           )}
         </div>
 
@@ -204,7 +198,7 @@ export default function MatchDetailPage() {
               className={`inline-flex items-center justify-center size-16 rounded-2xl text-2xl font-black ${
                 isCompleted && match.winner_id === player1.id
                   ? "bg-omega-gold/20 border-2 border-omega-gold text-omega-gold"
-                  : "bg-omega-card border-2 border-omega-border text-omega-text"
+                  : "bg-omega-elevated border-2 border-omega-border text-omega-text"
               }`}
             >
               {player1.alias.charAt(0).toUpperCase()}
@@ -230,10 +224,10 @@ export default function MatchDetailPage() {
           {/* VS */}
           <div className="shrink-0 text-center space-y-1">
             <Swords className="size-6 text-omega-muted mx-auto" />
-            <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-omega-gold/10 border border-omega-gold/30">
-              <Star className="size-3 text-omega-gold fill-omega-gold" />
-              <span className="text-xs font-black text-omega-gold">{match.stars_bet}</span>
-            </div>
+            <span className="omega-badge omega-badge-gold">
+              <Star className="size-3 text-omega-gold fill-omega-gold mr-0.5" />
+              {match.stars_bet}
+            </span>
           </div>
 
           {/* Player 2 */}
@@ -242,7 +236,7 @@ export default function MatchDetailPage() {
               className={`inline-flex items-center justify-center size-16 rounded-2xl text-2xl font-black ${
                 isCompleted && match.winner_id === player2.id
                   ? "bg-omega-gold/20 border-2 border-omega-gold text-omega-gold"
-                  : "bg-omega-card border-2 border-omega-border text-omega-text"
+                  : "bg-omega-elevated border-2 border-omega-border text-omega-text"
               }`}
             >
               {player2.alias.charAt(0).toUpperCase()}
@@ -307,28 +301,28 @@ export default function MatchDetailPage() {
               <button
                 onClick={() => handleResolve(player1.id)}
                 disabled={resolving}
-                className="flex flex-col items-center gap-2 rounded-xl bg-omega-blue/10 border border-omega-blue/30 p-4 font-bold text-omega-blue transition-all hover:bg-omega-blue/20 hover:border-omega-blue/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+                className="omega-btn omega-btn-blue flex-col gap-2 p-4 text-sm"
               >
                 {resolving ? (
                   <Loader2 className="size-5 animate-spin" />
                 ) : (
                   <>
                     <Trophy className="size-5" />
-                    <span className="text-sm">Gano {player1.alias}</span>
+                    <span>Gano {player1.alias}</span>
                   </>
                 )}
               </button>
               <button
                 onClick={() => handleResolve(player2.id)}
                 disabled={resolving}
-                className="flex flex-col items-center gap-2 rounded-xl bg-omega-purple/10 border border-omega-purple/30 p-4 font-bold text-omega-purple transition-all hover:bg-omega-purple/20 hover:border-omega-purple/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+                className="omega-btn omega-btn-purple flex-col gap-2 p-4 text-sm"
               >
                 {resolving ? (
                   <Loader2 className="size-5 animate-spin" />
                 ) : (
                   <>
                     <Trophy className="size-5" />
-                    <span className="text-sm">Gano {player2.alias}</span>
+                    <span>Gano {player2.alias}</span>
                   </>
                 )}
               </button>
@@ -337,7 +331,7 @@ export default function MatchDetailPage() {
         )}
 
         {/* Match metadata */}
-        <div className="pt-4 border-t border-omega-border/50 text-center">
+        <div className="pt-4 border-t border-omega-border/30 text-center">
           <p className="text-[11px] text-omega-muted">
             Creada el{" "}
             {new Date(match.created_at).toLocaleDateString("es-AR", {

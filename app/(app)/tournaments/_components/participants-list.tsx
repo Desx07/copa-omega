@@ -29,7 +29,7 @@ export default function ParticipantsList({
 }: ParticipantsListProps) {
   if (participants.length === 0) {
     return (
-      <div className="rounded-2xl border border-omega-border/40 bg-omega-card/40 p-8 text-center backdrop-blur-sm">
+      <div className="omega-card p-8 text-center">
         <Star className="size-8 text-omega-muted/20 mx-auto mb-3" />
         <p className="text-sm text-omega-muted/70">
           No hay participantes inscriptos todavia
@@ -38,7 +38,6 @@ export default function ParticipantsList({
     );
   }
 
-  // Sort: by points desc, then by wins desc, then by seed
   const sorted = [...participants].sort((a, b) => {
     if (showPoints) {
       if (b.points !== a.points) return b.points - a.points;
@@ -51,20 +50,18 @@ export default function ParticipantsList({
   });
 
   return (
-    <div className="rounded-2xl border border-omega-border/40 bg-omega-card/40 backdrop-blur-sm overflow-hidden">
-      <div className="px-4 py-3 border-b border-omega-border/40 bg-omega-card/60">
-        <h3 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center gap-2">
-          <Trophy className="size-4 text-omega-gold" />
-          Participantes ({participants.length})
-        </h3>
+    <div className="omega-card">
+      <div className="omega-section-header">
+        <Trophy className="size-4 text-omega-gold" />
+        Participantes ({participants.length})
       </div>
 
-      <div className="divide-y divide-omega-border/20">
+      <div>
         {sorted.map((p, index) => (
           <Link
             key={p.id}
             href={`/player/${p.player.id}`}
-            className={`flex items-center gap-3 px-4 py-3 hover:bg-omega-card/40 transition-colors ${
+            className={`omega-row ${
               p.is_eliminated ? "opacity-50" : ""
             }`}
           >

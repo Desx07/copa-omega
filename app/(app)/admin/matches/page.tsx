@@ -54,13 +54,13 @@ export default async function AdminMatchesPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/admin/players"
-            className="flex items-center gap-1.5 rounded-lg border border-omega-border bg-omega-card/60 px-3 py-1.5 text-xs font-medium text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
+            className="omega-btn omega-btn-secondary px-3 py-1.5 text-xs"
           >
             Jugadores
           </Link>
           <Link
             href="/admin/matches/new"
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="omega-btn omega-btn-primary px-4 py-2.5 text-sm"
           >
             <Plus className="size-4" />
             Nueva
@@ -70,17 +70,17 @@ export default async function AdminMatchesPage() {
 
       {/* Stats bar */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <Swords className="size-4 text-omega-blue mx-auto mb-1" />
           <p className="text-xl font-black text-omega-blue">{allMatches.length}</p>
           <p className="text-[11px] text-omega-muted">total</p>
         </div>
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <Star className="size-4 text-omega-gold mx-auto mb-1" />
           <p className="text-xl font-black text-omega-gold">{pendingMatches.length}</p>
           <p className="text-[11px] text-omega-muted">pendientes</p>
         </div>
-        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+        <div className="omega-card p-3 text-center">
           <Trophy className="size-4 text-omega-green mx-auto mb-1" />
           <p className="text-xl font-black text-omega-green">{completedMatches.length}</p>
           <p className="text-[11px] text-omega-muted">completadas</p>
@@ -90,7 +90,7 @@ export default async function AdminMatchesPage() {
       {/* Matches list */}
       <div className="space-y-3">
         {allMatches.length === 0 ? (
-          <div className="rounded-xl bg-omega-card border border-omega-border p-8 text-center">
+          <div className="omega-card p-8 text-center">
             <Swords className="size-8 text-omega-muted mx-auto mb-3" />
             <p className="text-omega-muted text-sm">No hay partidas registradas</p>
             <Link
@@ -111,26 +111,20 @@ export default async function AdminMatchesPage() {
               <Link
                 key={match.id}
                 href={`/admin/matches/${match.id}`}
-                className={`block rounded-xl bg-omega-card border border-omega-border p-4 transition-all hover:border-omega-blue/30 ${
+                className={`omega-card block p-4 transition-all hover:bg-omega-card-hover ${
                   isCancelled ? "opacity-50" : ""
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
                   {/* Status badge */}
                   {isPending && (
-                    <span className="inline-flex items-center rounded-full bg-omega-gold/10 border border-omega-gold/30 px-2.5 py-0.5 text-[10px] font-bold text-omega-gold">
-                      PENDIENTE
-                    </span>
+                    <span className="omega-badge omega-badge-gold">PENDIENTE</span>
                   )}
                   {isCompleted && (
-                    <span className="inline-flex items-center rounded-full bg-omega-green/10 border border-omega-green/30 px-2.5 py-0.5 text-[10px] font-bold text-omega-green">
-                      COMPLETADA
-                    </span>
+                    <span className="omega-badge omega-badge-green">COMPLETADA</span>
                   )}
                   {isCancelled && (
-                    <span className="inline-flex items-center rounded-full bg-omega-red/10 border border-omega-red/30 px-2.5 py-0.5 text-[10px] font-bold text-omega-red">
-                      CANCELADA
-                    </span>
+                    <span className="omega-badge omega-badge-red">CANCELADA</span>
                   )}
 
                   {/* Stars bet */}
@@ -180,7 +174,7 @@ export default async function AdminMatchesPage() {
                 </div>
 
                 {/* Footer: date + resolve button for pending */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-omega-border/50">
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-omega-border/30">
                   <p className="text-[11px] text-omega-muted">
                     {new Date(match.created_at).toLocaleDateString("es-AR", {
                       day: "numeric",

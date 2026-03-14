@@ -55,7 +55,6 @@ export default function NewProductPage() {
 
     setImages((prev) => [...prev, ...newImages]);
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -95,7 +94,6 @@ export default function NewProductPage() {
     try {
       const supabase = createClient();
 
-      // Upload images first
       const imageUrls: string[] = [];
 
       if (images.length > 0) {
@@ -131,7 +129,6 @@ export default function NewProductPage() {
 
       setUploadProgress("Creando producto...");
 
-      // Create product via API
       const res = await fetch("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -168,7 +165,7 @@ export default function NewProductPage() {
       <div className="flex items-center gap-3 mb-8">
         <Link
           href="/admin/products"
-          className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
+          className="omega-btn omega-btn-secondary size-10 !p-0"
           aria-label="Volver a productos"
         >
           <ArrowLeft className="size-5" />
@@ -197,7 +194,7 @@ export default function NewProductPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Ej: Beyblade X Dran Sword"
             maxLength={200}
-            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-blue focus:ring-2 focus:ring-omega-blue/20 transition-all"
+            className="omega-input"
           />
         </div>
 
@@ -219,7 +216,7 @@ export default function NewProductPage() {
             placeholder="Detalles del producto, estado, incluye..."
             maxLength={1000}
             rows={3}
-            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-blue focus:ring-2 focus:ring-omega-blue/20 transition-all resize-none"
+            className="omega-input resize-none"
           />
         </div>
 
@@ -241,7 +238,7 @@ export default function NewProductPage() {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
-              className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text outline-none focus:border-omega-blue focus:ring-2 focus:ring-omega-blue/20 transition-all"
+              className="omega-input"
             />
           </div>
           <div className="space-y-2">
@@ -260,7 +257,7 @@ export default function NewProductPage() {
               value={stock}
               onChange={(e) => setStock(e.target.value)}
               placeholder="0"
-              className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text outline-none focus:border-omega-blue focus:ring-2 focus:ring-omega-blue/20 transition-all"
+              className="omega-input"
             />
           </div>
         </div>
@@ -274,7 +271,6 @@ export default function NewProductPage() {
             </span>
           </label>
 
-          {/* Image previews */}
           {images.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               {images.map((img, idx) => (
@@ -295,7 +291,7 @@ export default function NewProductPage() {
                     <X className="size-3.5" />
                   </button>
                   {idx === 0 && (
-                    <span className="absolute bottom-1 left-1 text-[10px] font-bold bg-omega-blue/80 text-white px-1.5 py-0.5 rounded-md">
+                    <span className="absolute bottom-1 left-1 omega-badge omega-badge-blue !text-[10px]">
                       Principal
                     </span>
                   )}
@@ -304,11 +300,10 @@ export default function NewProductPage() {
             </div>
           )}
 
-          {/* Upload button */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center gap-2 w-full rounded-xl border-2 border-dashed border-omega-border hover:border-omega-blue/50 bg-omega-card/30 px-4 py-6 text-sm text-omega-muted hover:text-omega-blue transition-all"
+            className="omega-btn omega-btn-secondary w-full px-4 py-6 border-dashed !border-2"
           >
             <ImagePlus className="size-5" />
             <span>Agregar imagenes</span>
@@ -325,7 +320,7 @@ export default function NewProductPage() {
         </div>
 
         {/* Preview card */}
-        <div className="rounded-xl bg-omega-card/60 border border-omega-border p-4 space-y-2">
+        <div className="omega-card p-4 space-y-2">
           <p className="text-xs text-omega-muted text-center">Vista previa</p>
           <div className="flex items-center gap-3">
             {images.length > 0 ? (
@@ -361,7 +356,7 @@ export default function NewProductPage() {
         <button
           type="submit"
           disabled={loading || !name.trim() || !price}
-          className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-omega-blue/90 to-omega-blue px-4 py-3 font-bold text-white shadow-lg shadow-omega-blue/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+          className="omega-btn omega-btn-blue w-full px-4 py-3 text-base"
         >
           {loading ? (
             <>

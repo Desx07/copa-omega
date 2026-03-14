@@ -69,7 +69,7 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto max-w-lg px-4 pb-10 space-y-5">
       {/* Player hero card */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-omega-purple/30 via-omega-card/80 to-omega-blue/20 p-5 shadow-lg shadow-omega-purple/10 backdrop-blur-sm">
+      <div className="omega-card-elevated relative p-5">
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-blue via-omega-purple to-omega-gold" />
 
         <div className="flex items-center gap-4">
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Stats strip */}
-        <div className="flex items-center justify-around rounded-xl bg-omega-dark/60 border border-omega-border/30 py-2.5 px-2 mt-4">
+        <div className="flex items-center justify-around rounded-xl bg-omega-surface border border-omega-border/30 py-2.5 px-2 mt-4">
           {rank > 0 && (
             <>
               <div className="flex items-center gap-1.5 text-sm">
@@ -135,16 +135,16 @@ export default async function DashboardPage() {
 
       {/* Streak */}
       {currentStreak >= 2 && (
-        <div className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-omega-green/15 to-omega-green/5 border border-omega-green/30 py-3 px-5 shadow-sm shadow-omega-green/10">
+        <div className="omega-card flex items-center justify-center gap-2 py-3 px-5 border-omega-green/30 bg-gradient-to-r from-omega-green/15 to-omega-green/5">
           <Flame className="size-5 text-omega-green" />
           <span className="text-sm font-bold text-omega-green">Racha de {currentStreak} victorias!</span>
         </div>
       )}
 
       {/* Tournament progress */}
-      <div className="rounded-2xl border border-omega-border/40 bg-omega-card/40 backdrop-blur-sm p-5 space-y-2 shadow-md shadow-omega-purple/5">
+      <div className="omega-card p-5 space-y-2">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-omega-text/80 uppercase tracking-wider font-bold">Clasificación</span>
+          <span className="text-omega-text/80 uppercase tracking-wider font-bold">Clasificaci&oacute;n</span>
           <span className="text-omega-gold font-bold">Top 16</span>
         </div>
         <div className="h-2.5 rounded-full bg-omega-dark overflow-hidden">
@@ -154,12 +154,12 @@ export default async function DashboardPage() {
           />
         </div>
         <div className="flex items-center justify-between text-[11px] text-omega-muted">
-          <span>Posición <span className="text-omega-gold font-bold">#{rank}</span> de {allPlayers.length}</span>
+          <span>Posici&oacute;n <span className="text-omega-gold font-bold">#{rank}</span> de {allPlayers.length}</span>
           <span>{rank > 0 && rank <= 16 ? <span className="text-omega-green font-bold">Clasificado</span> : <span className="text-omega-red">Fuera del top 16</span>}</span>
         </div>
       </div>
 
-      {/* Quick actions — PawGo style vertical cards */}
+      {/* Quick actions — vertical cards */}
       <div className="grid grid-cols-2 gap-3">
         <Link
           href="/ranking"
@@ -193,7 +193,7 @@ export default async function DashboardPage() {
             <Trophy className="size-6 text-white" />
           </div>
           <p className="font-bold text-white text-sm">Torneos</p>
-          <p className="text-xs text-white/60 mt-0.5">Inscripción e historial</p>
+          <p className="text-xs text-white/60 mt-0.5">Inscripci&oacute;n e historial</p>
         </Link>
 
         <StoreButton />
@@ -230,7 +230,7 @@ export default async function DashboardPage() {
                 <Package className="size-6 text-white" />
               </div>
               <p className="font-bold text-white text-sm">Productos</p>
-              <p className="text-xs text-white/60 mt-0.5">Stock y catálogo</p>
+              <p className="text-xs text-white/60 mt-0.5">Stock y cat&aacute;logo</p>
             </Link>
 
             <Link
@@ -251,21 +251,19 @@ export default async function DashboardPage() {
       {player.is_admin && <StoreToggle />}
 
       {/* Recent matches */}
-      <div className="rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-sm overflow-hidden shadow-lg shadow-omega-dark/30">
-        <div className="px-5 py-3.5 border-b border-omega-border/50 bg-omega-card/60">
-          <h2 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center gap-2">
-            <Swords className="size-4 text-omega-blue" />
-            Mis últimas batallas
-          </h2>
+      <div className="omega-card">
+        <div className="omega-section-header">
+          <Swords className="size-4 text-omega-blue" />
+          Mis &uacute;ltimas batallas
         </div>
 
         {matches.length === 0 ? (
           <div className="p-10 text-center space-y-3">
             <Swords className="size-10 text-omega-muted/20 mx-auto" />
-            <p className="text-sm text-omega-muted/70">Todavía no tenés batallas</p>
+            <p className="text-sm text-omega-muted/70">Todav&iacute;a no ten&eacute;s batallas</p>
           </div>
         ) : (
-          <div className="divide-y divide-omega-border/20">
+          <div>
             {matches.map((match) => {
               const won = match.winner_id === user.id;
               const isPlayer1 = match.player1_id === user.id;
@@ -273,7 +271,7 @@ export default async function DashboardPage() {
               const opponentAlias = (opponent as unknown as { alias: string })?.alias ?? "???";
 
               return (
-                <div key={match.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-omega-card/40 transition-all">
+                <div key={match.id} className="omega-row">
                   <div
                     className={`size-10 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
                       won
