@@ -94,16 +94,21 @@ export function ChatBot() {
     setBotName(name);
     setEditingName(false);
 
-    // Save name to DB
-    const supabase = createClient();
-    await supabase
-      .from("bot_conversations")
-      .upsert({
-        player_id: (await supabase.auth.getUser()).data.user?.id,
-        bot_name: name,
-        messages: messages,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "player_id" });
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase
+        .from("bot_conversations")
+        .upsert({
+          player_id: user.id,
+          bot_name: name,
+          messages: messages,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "player_id" });
+    } catch {
+      // Silent — name is already updated in state
+    }
   }
 
   async function handleClearHistory() {

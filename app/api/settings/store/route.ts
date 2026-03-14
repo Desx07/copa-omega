@@ -35,7 +35,12 @@ export async function PATCH(request: Request) {
     return Response.json({ error: "Solo administradores" }, { status: 403 });
   }
 
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Body inválido" }, { status: 400 });
+  }
   const validStatuses = ["open", "closed", "hidden"];
   if (!validStatuses.includes(body.status)) {
     return Response.json({ error: "Estado inválido" }, { status: 400 });
