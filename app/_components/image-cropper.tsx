@@ -33,7 +33,7 @@ export function ImageCropper({ imageSrc, onCropDone, onCancel }: ImageCropperPro
       image.src = imageSrc;
     });
 
-    const size = 400; // Output 400x400
+    const size = 800; // Output 800x800 for crisp display
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext("2d")!;

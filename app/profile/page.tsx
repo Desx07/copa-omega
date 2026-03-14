@@ -263,7 +263,7 @@ export default function ProfilePage() {
         <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">
           {/* Avatar */}
           <div className="relative inline-block">
-            <div className={`size-24 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark mx-auto`}>
+            <div className={`size-32 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark mx-auto`}>
               {player.avatar_url ? (
                 <img src={player.avatar_url} alt={player.alias} className="size-full object-cover" />
               ) : (

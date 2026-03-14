@@ -120,7 +120,7 @@ export default async function PlayerProfilePage({
           {(() => {
             const ac = ACCENT_COLORS[(player as unknown as { accent_color: string }).accent_color] || ACCENT_COLORS.purple;
             return (
-              <div className={`size-24 rounded-full border-2 ${ac.border} overflow-hidden bg-omega-dark mx-auto`}>
+              <div className={`size-32 rounded-full border-2 ${ac.border} overflow-hidden bg-omega-dark mx-auto`}>
                 {player.avatar_url ? (
                   <img src={player.avatar_url} alt={player.alias} className="size-full object-cover" />
                 ) : (
