@@ -1,452 +1,249 @@
 import Link from "next/link";
-import { Star, Trophy, Crown, Shield, Swords, LogIn, User, Flame } from "lucide-react";
+import { redirect } from "next/navigation";
+import {
+  Star,
+  Trophy,
+  Swords,
+  Shield,
+  User,
+  Crown,
+  ArrowRight,
+  Flame,
+  TrendingUp,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "@/app/_components/logout-button";
+import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  // Fetch current user (may be null for public access)
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch admin check + leaderboard + recent matches in parallel
-  const playersQuery = supabase
-    .from("players")
-    .select("id, alias, full_name, stars, wins, losses, is_eliminated, avatar_url")
-    .eq("is_hidden", false)
-    .order("stars", { ascending: false })
-    .order("wins", { ascending: false })
-    .order("created_at", { ascending: true });
-
-  const matchesQuery = supabase
-    .from("matches")
-    .select("id, player1_id, player2_id, winner_id, stars_bet, completed_at, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)")
-    .eq("status", "completed")
-    .order("completed_at", { ascending: false })
-    .limit(10);
-
-  let isAdmin = false;
-  let players: Awaited<typeof playersQuery>["data"] = null;
-
-  if (user) {
-    const [adminResult, playersResult] = await Promise.all([
-      supabase.from("players").select("is_admin").eq("id", user.id).single(),
-      playersQuery,
-    ]);
-    isAdmin = adminResult.data?.is_admin ?? false;
-    players = playersResult.data;
-  } else {
-    const { data } = await playersQuery;
-    players = data;
+  if (!user) {
+    redirect("/auth/login");
   }
 
-  const { data: recentMatches } = await matchesQuery;
-
-  const leaderboard = players ?? [];
-  const matches = recentMatches ?? [];
-
-  // Calculate current win streaks for all players
-  const streaks = new Map<string, number>();
-  if (matches.length > 0) {
-    // Get all completed matches for streak calculation
-    const { data: allCompleted } = await supabase
+  // Fetch player, recent matches, and rank in parallel
+  const [playerResult, matchesResult, allPlayersResult] = await Promise.all([
+    supabase
+      .from("players")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at")
+      .eq("id", user.id)
+      .single(),
+    supabase
       .from("matches")
-      .select("player1_id, player2_id, winner_id, completed_at")
+      .select("id, player1_id, player2_id, winner_id, stars_bet, completed_at, player1:players!player1_id(alias), player2:players!player2_id(alias)")
+      .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
       .eq("status", "completed")
-      .order("completed_at", { ascending: false });
+      .order("completed_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("players")
+      .select("id")
+      .eq("is_hidden", false)
+      .order("stars", { ascending: false })
+      .order("wins", { ascending: false })
+      .order("created_at", { ascending: true }),
+  ]);
 
-    if (allCompleted) {
-      for (const player of leaderboard) {
-        let streak = 0;
-        for (const m of allCompleted) {
-          if (m.player1_id !== player.id && m.player2_id !== player.id) continue;
-          if (m.winner_id === player.id) {
-            streak++;
-          } else {
-            break;
-          }
-        }
-        if (streak >= 2) streaks.set(player.id, streak);
-      }
-    }
+  const player = playerResult.data;
+  if (!player) redirect("/auth/login");
+
+  const matches = matchesResult.data ?? [];
+  const allPlayers = allPlayersResult.data ?? [];
+  const rank = allPlayers.findIndex((p) => p.id === user.id) + 1;
+  const isAdmin = player.is_admin;
+
+  // Current streak
+  let currentStreak = 0;
+  for (const m of matches) {
+    if (m.winner_id === user.id) currentStreak++;
+    else break;
   }
+
+  const winRate = player.wins + player.losses > 0
+    ? Math.round((player.wins / (player.wins + player.losses)) * 100)
+    : 0;
+
+  const accentConfig = ACCENT_COLORS[player.accent_color] || ACCENT_COLORS.purple;
 
   return (
     <div className="min-h-screen bg-omega-black">
-      {/* Background effects */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-omega-purple)_0%,_transparent_60%)] opacity-10 pointer-events-none" />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--color-omega-blue)_0%,_transparent_50%)] opacity-5 pointer-events-none" />
 
-      <div className="relative z-10 mx-auto max-w-3xl px-4 py-8 space-y-6">
+      <div className="relative z-10 mx-auto max-w-lg px-4 py-8 space-y-5">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-3">
-            <Star className="size-8 text-omega-gold star-glow fill-omega-gold" />
-            <h1 className="text-3xl font-black tracking-tight neon-gold">
-              RANKING
-            </h1>
-            <Star className="size-8 text-omega-gold star-glow fill-omega-gold" />
-          </div>
-          <p className="text-sm text-omega-muted">
-            Copa Omega Star — Bladers Santa Fe
-          </p>
-        </div>
-
-        {/* Navigation bar */}
         <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="text-sm text-omega-muted hover:text-omega-text transition-colors"
-          >
-            &larr; Inicio
-          </Link>
-          <div className="flex items-center gap-3">
+          <h1 className="text-xl font-black neon-gold">COPA OMEGA STAR</h1>
+          <div className="flex items-center gap-2">
             {isAdmin && (
-              <>
-                <Link
-                  href="/admin/matches"
-                  className="flex items-center gap-1.5 rounded-lg border border-omega-border bg-omega-card/60 px-3 py-1.5 text-xs font-medium text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
-                >
-                  <Shield className="size-3.5" />
-                  Admin
-                </Link>
-                <Link
-                  href="/admin/matches/new"
-                  className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-omega-purple to-omega-blue px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Swords className="size-3.5" />
-                  Nuevo Partido
-                </Link>
-              </>
-            )}
-            {user && (
-              <>
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-1.5 rounded-lg border border-omega-border bg-omega-card/60 px-3 py-1.5 text-xs font-medium text-omega-muted hover:text-omega-purple hover:border-omega-purple/50 transition-all"
-                >
-                  <User className="size-3.5" />
-                  Mi Perfil
-                </Link>
-                <LogoutButton />
-              </>
-            )}
-            {!user && (
               <Link
-                href="/auth/login"
+                href="/admin/matches"
                 className="flex items-center gap-1.5 rounded-lg border border-omega-border bg-omega-card/60 px-3 py-1.5 text-xs font-medium text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
               >
-                <LogIn className="size-3.5" />
-                Iniciar sesion
+                <Shield className="size-3.5" />
+                Admin
               </Link>
             )}
+            <LogoutButton />
           </div>
         </div>
 
-        {/* Empty state */}
-        {leaderboard.length === 0 && (
-          <div className="rounded-2xl border border-omega-border bg-omega-card/50 p-12 text-center space-y-4 backdrop-blur-sm">
-            <Trophy className="size-16 text-omega-muted/30 mx-auto" />
-            <div className="space-y-2">
-              <p className="text-lg font-bold text-omega-muted">
-                No hay jugadores todavia
-              </p>
-              <p className="text-sm text-omega-muted/70">
-                Registrate para ser el primero en la tabla
-              </p>
-            </div>
-            <Link
-              href="/auth/register"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue px-6 py-3 font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Star className="size-4" />
-              Registrarme
+        {/* Player card */}
+        <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-5 backdrop-blur-sm">
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <Link href="/profile" className={`size-16 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark shrink-0`}>
+              {player.avatar_url ? (
+                <img src={player.avatar_url} alt={player.alias} className="size-full object-cover" />
+              ) : (
+                <div className="size-full flex items-center justify-center text-2xl font-black text-omega-purple">
+                  {player.alias.charAt(0).toUpperCase()}
+                </div>
+              )}
             </Link>
-          </div>
-        )}
 
-        {/* Top 3 podium */}
-        {leaderboard.length >= 3 && (
-          <div className="grid grid-cols-3 gap-3">
-            <PodiumCard player={leaderboard[1]} rank={2} streak={streaks.get(leaderboard[1].id)} />
-            <PodiumCard player={leaderboard[0]} rank={1} streak={streaks.get(leaderboard[0].id)} />
-            <PodiumCard player={leaderboard[2]} rank={3} streak={streaks.get(leaderboard[2].id)} />
-          </div>
-        )}
-
-        {/* If only 1 or 2 players, show them inline */}
-        {leaderboard.length > 0 && leaderboard.length < 3 && (
-          <div className="flex justify-center gap-4">
-            {leaderboard.slice(0, 3).map((player, i) => (
-              <div key={player.id} className="w-48">
-                <PodiumCard player={player} rank={(i + 1) as 1 | 2 | 3} streak={streaks.get(player.id)} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Full leaderboard table — skip top 3 if podium is shown */}
-        {leaderboard.length > 0 && (() => {
-          const hasPodium = leaderboard.length >= 3;
-          const tableStart = hasPodium ? 3 : 0;
-          const tablePlayers = leaderboard.slice(tableStart);
-          if (tablePlayers.length === 0) return null;
-
-          return (
-            <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
-                <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
-                  <Trophy className="size-4 text-omega-purple" />
-                  Tabla completa
-                </h2>
-              </div>
-
-              {/* Table rows */}
-              <div className="divide-y divide-omega-border/30">
-                {tablePlayers.map((player, index) => {
-                  const rank = tableStart + index + 1;
-                  const streak = streaks.get(player.id);
-                  return (
-                    <Link
-                      href={`/player/${player.id}`}
-                      key={player.id}
-                      className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-omega-card/60 ${
-                        player.is_eliminated ? "opacity-60" : ""
-                      }`}
-                    >
-                      {/* Rank */}
-                      <span className="text-sm font-black text-omega-muted/70 w-6 text-center shrink-0">
-                        {rank}
-                      </span>
-
-                      {/* Avatar */}
-                      <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
-                        {player.avatar_url ? (
-                          <img src={player.avatar_url} alt="" className="size-full object-cover" />
-                        ) : (
-                          <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
-                            {player.alias.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Player info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`text-sm font-bold truncate ${
-                              player.is_eliminated
-                                ? "text-omega-muted line-through"
-                                : "text-omega-text"
-                            }`}
-                          >
-                            {player.alias}
-                          </span>
-                          {player.is_eliminated && (
-                            <span className="size-1.5 rounded-full bg-omega-red shrink-0" />
-                          )}
-                          {streak && (
-                            <span className="flex items-center gap-0.5 text-omega-green shrink-0">
-                              <Flame className="size-3" />
-                              <span className="text-[10px] font-bold">{streak}</span>
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[11px] text-omega-muted">
-                          <span className="text-omega-green">{player.wins}W</span>
-                          <span className="text-omega-muted/40"> / </span>
-                          <span className="text-omega-red">{player.losses}L</span>
-                        </span>
-                      </div>
-
-                      {/* Stars */}
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Star className="size-3.5 text-omega-gold fill-omega-gold" />
-                        <span className="text-sm font-black text-omega-gold">
-                          {player.stars}
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-lg font-black text-omega-text truncate">
+                {player.badge && <span className="mr-1">{BADGE_EMOJIS[player.badge]}</span>}
+                {player.alias}
+              </p>
+              {player.tagline && (
+                <p className="text-xs text-omega-muted/80 italic truncate">&ldquo;{player.tagline}&rdquo;</p>
+              )}
+              <div className="flex items-center gap-3 mt-1">
+                {rank > 0 && (
+                  <span className="text-xs text-omega-gold font-bold">#{rank}</span>
+                )}
+                <span className="text-xs text-omega-muted">
+                  <span className="text-omega-green font-bold">{player.wins}W</span>
+                  {" / "}
+                  <span className="text-omega-red font-bold">{player.losses}L</span>
+                </span>
+                {winRate > 0 && (
+                  <span className="text-xs text-omega-blue font-bold">{winRate}%</span>
+                )}
               </div>
             </div>
-          );
-        })()}
+
+            {/* Stars */}
+            <div className="text-center shrink-0">
+              <div className="flex items-center gap-1">
+                <Star className="size-5 text-omega-gold fill-omega-gold star-glow" />
+                <span className="text-2xl font-black text-omega-gold">{player.stars}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick stats */}
+        {currentStreak >= 2 && (
+          <div className="flex items-center justify-center gap-2 rounded-xl bg-omega-green/10 border border-omega-green/20 py-2 px-4">
+            <Flame className="size-4 text-omega-green" />
+            <span className="text-sm font-bold text-omega-green">Racha de {currentStreak} victorias!</span>
+          </div>
+        )}
+
+        {/* Quick actions */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href="/ranking"
+            className="flex items-center gap-3 rounded-xl border border-omega-border bg-omega-card/40 p-4 hover:border-omega-gold/40 hover:bg-omega-card/60 transition-all group"
+          >
+            <div className="size-10 rounded-lg bg-omega-gold/10 flex items-center justify-center">
+              <Trophy className="size-5 text-omega-gold" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-omega-text">Ranking</p>
+              <p className="text-[11px] text-omega-muted">Ver tabla</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/profile"
+            className="flex items-center gap-3 rounded-xl border border-omega-border bg-omega-card/40 p-4 hover:border-omega-purple/40 hover:bg-omega-card/60 transition-all group"
+          >
+            <div className="size-10 rounded-lg bg-omega-purple/10 flex items-center justify-center">
+              <User className="size-5 text-omega-purple" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-omega-text">Mi Perfil</p>
+              <p className="text-[11px] text-omega-muted">Editar</p>
+            </div>
+          </Link>
+        </div>
 
         {/* Recent matches */}
-        {matches.length > 0 && (
-          <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
-              <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
-                <Swords className="size-4 text-omega-blue" />
-                Ultimas partidas
-              </h2>
+        <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
+              <Swords className="size-4 text-omega-blue" />
+              Mis ultimas batallas
+            </h2>
+          </div>
+
+          {matches.length === 0 ? (
+            <div className="p-8 text-center">
+              <Swords className="size-8 text-omega-muted/30 mx-auto mb-2" />
+              <p className="text-sm text-omega-muted/70">Todavia no tenes batallas</p>
             </div>
+          ) : (
             <div className="divide-y divide-omega-border/30">
               {matches.map((match) => {
-                const p1 = match.player1 as unknown as { alias: string } | null;
-                const p2 = match.player2 as unknown as { alias: string } | null;
-                const p1Won = match.winner_id === match.player1_id;
+                const won = match.winner_id === user.id;
+                const isPlayer1 = match.player1_id === user.id;
+                const opponent = isPlayer1 ? match.player2 : match.player1;
+                const opponentAlias = (opponent as unknown as { alias: string })?.alias ?? "???";
 
                 return (
                   <div key={match.id} className="flex items-center gap-3 px-4 py-3">
-                    {/* Player 1 */}
-                    <span className={`text-sm font-bold truncate flex-1 text-right ${p1Won ? "text-omega-green" : "text-omega-muted"}`}>
-                      {p1Won && <Crown className="size-3 text-omega-gold inline mr-1" />}
-                      {p1?.alias ?? "???"}
-                    </span>
-
-                    {/* VS + stars */}
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <div className="flex items-center gap-0.5 rounded-full bg-omega-gold/10 border border-omega-gold/30 px-2 py-0.5">
-                        <Star className="size-3 text-omega-gold fill-omega-gold" />
-                        <span className="text-[11px] font-black text-omega-gold">{match.stars_bet}</span>
-                      </div>
+                    <div
+                      className={`size-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                        won
+                          ? "bg-omega-green/10 border border-omega-green/30 text-omega-green"
+                          : "bg-omega-red/10 border border-omega-red/30 text-omega-red"
+                      }`}
+                    >
+                      {won ? "W" : "L"}
                     </div>
-
-                    {/* Player 2 */}
-                    <span className={`text-sm font-bold truncate flex-1 ${!p1Won ? "text-omega-green" : "text-omega-muted"}`}>
-                      {p2?.alias ?? "???"}
-                      {!p1Won && <Crown className="size-3 text-omega-gold inline ml-1" />}
-                    </span>
-
-                    {/* Date */}
-                    <span className="text-[10px] text-omega-muted/60 shrink-0">
-                      {match.completed_at
-                        ? new Date(match.completed_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
-                        : ""}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-omega-text truncate">vs {opponentAlias}</p>
+                      <p className="text-[11px] text-omega-muted">
+                        {match.completed_at
+                          ? new Date(match.completed_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
+                          : ""}
+                      </p>
+                    </div>
+                    <div className={`flex items-center gap-1 shrink-0 ${won ? "text-omega-green" : "text-omega-red"}`}>
+                      <span className="text-sm font-black">{won ? "+" : "-"}{match.stars_bet}</span>
+                      <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                    </div>
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Footer */}
-        <footer className="text-center py-4 text-xs text-omega-muted/50">
-          Copa Omega Star &copy; 2026 — Bladers Santa Fe
-        </footer>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Helper components                                                          */
-/* -------------------------------------------------------------------------- */
-
-interface PodiumPlayer {
-  id: string;
-  alias: string;
-  stars: number;
-  wins: number;
-  losses: number;
-  is_eliminated: boolean;
-  avatar_url: string | null;
-}
-
-interface PodiumCardProps {
-  player: PodiumPlayer;
-  rank: 1 | 2 | 3;
-  streak?: number;
-}
-
-const podiumConfig = {
-  1: {
-    border: "border-omega-gold/50",
-    bg: "bg-gradient-to-b from-omega-gold/10 to-omega-card/80",
-    shadow: "shadow-lg shadow-omega-gold/10",
-    starClass: "text-omega-gold",
-    label: "neon-gold",
-    height: "pt-2",
-    avatarBorder: "border-omega-gold",
-    icon: <Crown className="size-6 text-omega-gold fill-omega-gold/30" />,
-  },
-  2: {
-    border: "border-omega-muted/30",
-    bg: "bg-gradient-to-b from-omega-muted/10 to-omega-card/80",
-    shadow: "",
-    starClass: "text-omega-muted",
-    label: "text-omega-muted",
-    height: "pt-6",
-    avatarBorder: "border-omega-muted/50",
-    icon: <Crown className="size-5 text-omega-muted/70" />,
-  },
-  3: {
-    border: "border-orange-700/30",
-    bg: "bg-gradient-to-b from-orange-900/10 to-omega-card/80",
-    shadow: "",
-    starClass: "text-orange-500",
-    label: "text-orange-500",
-    height: "pt-8",
-    avatarBorder: "border-orange-500/50",
-    icon: <Crown className="size-5 text-orange-500/70" />,
-  },
-} as const;
-
-function PodiumCard({ player, rank, streak }: PodiumCardProps) {
-  const config = podiumConfig[rank];
-
-  return (
-    <div
-      className={`${config.height} ${rank === 1 ? "order-2 -mt-2" : rank === 2 ? "order-1 mt-2" : "order-3 mt-2"}`}
-    >
-      <Link
-        href={`/player/${player.id}`}
-        className={`block rounded-2xl border ${config.border} ${config.bg} ${config.shadow} p-4 text-center space-y-2 backdrop-blur-sm transition-all hover:scale-[1.02] active:scale-[0.98]`}
-      >
-        {/* Crown */}
-        <div className="flex justify-center">{config.icon}</div>
-
-        {/* Avatar */}
-        <div className={`size-12 rounded-full border-2 ${config.avatarBorder} overflow-hidden bg-omega-dark mx-auto`}>
-          {player.avatar_url ? (
-            <img src={player.avatar_url} alt="" className="size-full object-cover" />
-          ) : (
-            <div className="size-full flex items-center justify-center text-lg font-black text-omega-purple">
-              {player.alias.charAt(0).toUpperCase()}
+        {/* Top 3 preview */}
+        {allPlayers.length >= 3 && (
+          <Link
+            href="/ranking"
+            className="flex items-center justify-between rounded-xl border border-omega-border bg-omega-card/40 p-4 hover:border-omega-gold/30 transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <Crown className="size-5 text-omega-gold" />
+              <span className="text-sm font-bold text-omega-text">Ver ranking completo</span>
             </div>
-          )}
-        </div>
-
-        {/* Alias */}
-        <p
-          className={`text-sm font-black truncate ${
-            player.is_eliminated ? "text-omega-muted line-through" : "text-omega-text"
-          }`}
-        >
-          {player.alias}
-        </p>
-
-        {/* Stars */}
-        <div className="flex items-center justify-center gap-1">
-          <Star
-            className={`size-4 ${config.starClass} ${rank === 1 ? "star-glow fill-omega-gold" : ""}`}
-          />
-          <span className={`text-xl font-black ${config.label}`}>
-            {player.stars}
-          </span>
-        </div>
-
-        {/* W/L + streak */}
-        <div className="space-y-1">
-          <p className="text-[11px] text-omega-muted">
-            <span className="text-omega-green font-bold">{player.wins}W</span>
-            {" "}
-            <span className="text-omega-red font-bold">{player.losses}L</span>
-          </p>
-          {streak && (
-            <p className="flex items-center justify-center gap-1 text-[10px] text-omega-green font-bold">
-              <Flame className="size-3" />
-              {streak} racha
-            </p>
-          )}
-        </div>
-      </Link>
+            <ArrowRight className="size-4 text-omega-muted group-hover:text-omega-gold group-hover:translate-x-1 transition-all" />
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

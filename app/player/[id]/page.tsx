@@ -13,7 +13,7 @@ import {
   Crown,
   Calendar,
 } from "lucide-react";
-import { getTitle, BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
+import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 
 const beyTypeConfig = {
   attack: { label: "Ataque", icon: Swords, color: "text-omega-red", bg: "bg-omega-red/10 border-omega-red/30" },
@@ -140,10 +140,6 @@ export default async function PlayerProfilePage({
               )}
               {player.alias}
             </p>
-            <p className={`text-xs font-bold ${getTitle(player.wins, player.losses, currentStreak).color}`}>
-              {getTitle(player.wins, player.losses, currentStreak).label}
-            </p>
-            <p className="text-sm text-omega-muted">{player.full_name}</p>
             {rank > 0 && (
               <p className="text-xs text-omega-muted mt-1">
                 Ranking <span className="text-omega-gold font-bold">#{rank}</span>

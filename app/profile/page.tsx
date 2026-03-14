@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { getTitle, BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
+import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 
 interface Player {
   id: string;
@@ -223,7 +223,6 @@ export default function ProfilePage() {
 
   if (!player) return null;
 
-  const title = getTitle(player.wins, player.losses, 0);
   const accentConfig = ACCENT_COLORS[player.accent_color] || ACCENT_COLORS.purple;
   const memberSince = new Date(player.created_at).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
 
@@ -278,8 +277,6 @@ export default function ProfilePage() {
               {player.badge && <span className="mr-1">{BADGE_EMOJIS[player.badge]}</span>}
               {player.alias}
             </p>
-            <p className={`text-xs font-bold ${title.color}`}>{title.label}</p>
-            <p className="text-sm text-omega-muted">{player.full_name}</p>
           </div>
 
           {/* Tagline */}
@@ -404,7 +401,9 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {player.hide_beys ? <EyeOff className="size-4 text-omega-muted" /> : <Eye className="size-4 text-omega-green" />}
-                <span className="text-sm text-omega-muted">Mostrar beys en perfil publico</span>
+                <span className="text-sm text-omega-muted">
+                  {player.hide_beys ? "Beys ocultos en tu perfil" : "Beys visibles en tu perfil"}
+                </span>
               </div>
               <button
                 onClick={() => updateField("hide_beys", !player.hide_beys)}

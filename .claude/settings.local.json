@@ -18,7 +18,8 @@
       "WebFetch(domain:beyblade.com)",
       "WebFetch(domain:copa-omega-rho.vercel.app)",
       "WebFetch(domain:instagram.com)",
-      "Read(//c/Users/ariel/**)"
+      "Read(//c/Users/ariel/**)",
+      "Bash(cp:*)"
     ]
   }
 }
