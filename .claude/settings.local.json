@@ -36,7 +36,9 @@
       "WebFetch(domain:www.color-hex.com)",
       "WebFetch(domain:www.dorkaholics.com)",
       "WebFetch(domain:www.media.io)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "WebFetch(domain:www.beycase.com)",
+      "WebFetch(domain:beybase.com)"
     ]
   }
 }

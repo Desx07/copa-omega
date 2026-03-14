@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Loader2, Bot, User } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Bot, User, Pencil } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface Message {
   role: "user" | "assistant";
@@ -13,28 +14,54 @@ export function ChatBot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [botName, setBotName] = useState("BeyBot");
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load conversation history on first open
+  useEffect(() => {
+    if (open && !historyLoaded) {
+      loadHistory();
+    }
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Focus input when opening
-  useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+  async function loadHistory() {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("bot_conversations")
+        .select("messages, bot_name")
+        .single();
+
+      if (data) {
+        setMessages(data.messages || []);
+        setBotName(data.bot_name || "BeyBot");
+        setNameInput(data.bot_name || "BeyBot");
+      }
+    } catch {
+      // No history yet, that's fine
     }
-  }, [open]);
+    setHistoryLoaded(true);
+  }
 
   async function handleSend() {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
 
     const userMessage: Message = { role: "user", content: trimmed };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
@@ -42,29 +69,56 @@ export function ChatBot() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({
+          messages: [userMessage], // Only send the new message, server merges with history
+          botName,
+        }),
       });
 
-      if (!res.ok) {
-        throw new Error("Error en la respuesta");
-      }
+      if (!res.ok) throw new Error("Error");
 
       const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.message },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content:
-            "Uh, algo falló... Intentá de nuevo en unos segundos, blader. 🔧",
-        },
+        { role: "assistant", content: "Uh, algo falló... Intentá de nuevo, blader. 🔧" },
       ]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleRenamBot() {
+    const name = nameInput.trim() || "BeyBot";
+    setBotName(name);
+    setEditingName(false);
+
+    // Save name to DB
+    const supabase = createClient();
+    await supabase
+      .from("bot_conversations")
+      .upsert({
+        player_id: (await supabase.auth.getUser()).data.user?.id,
+        bot_name: name,
+        messages: messages,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "player_id" });
+  }
+
+  async function handleClearHistory() {
+    setMessages([]);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase
+        .from("bot_conversations")
+        .upsert({
+          player_id: user.id,
+          messages: [],
+          bot_name: botName,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "player_id" });
     }
   }
 
@@ -80,18 +134,44 @@ export function ChatBot() {
                 <Bot className="size-4 text-omega-purple-glow" />
               </div>
               <div>
-                <p className="text-sm font-bold text-omega-text">BeyBot</p>
-                <p className="text-[10px] text-omega-muted">
-                  Asistente Copa Omega Star
-                </p>
+                {editingName ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleRenamBot()}
+                      onBlur={handleRenamBot}
+                      maxLength={20}
+                      autoFocus
+                      className="w-24 bg-transparent border-b border-omega-purple text-sm font-bold text-omega-text outline-none"
+                    />
+                  </div>
+                ) : (
+                  <button onClick={() => { setNameInput(botName); setEditingName(true); }} className="flex items-center gap-1 group">
+                    <p className="text-sm font-bold text-omega-text">{botName}</p>
+                    <Pencil className="size-2.5 text-omega-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                )}
+                <p className="text-[10px] text-omega-muted">Asistente Copa Omega Star</p>
               </div>
             </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="flex size-7 items-center justify-center rounded-lg text-omega-muted transition-colors hover:bg-omega-card hover:text-omega-text"
-            >
-              <X className="size-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && (
+                <button
+                  onClick={handleClearHistory}
+                  className="px-2 py-1 rounded text-[10px] text-omega-muted hover:text-omega-red transition-colors"
+                >
+                  Limpiar
+                </button>
+              )}
+              <button
+                onClick={() => setOpen(false)}
+                className="flex size-7 items-center justify-center rounded-lg text-omega-muted transition-colors hover:bg-omega-card hover:text-omega-text"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
@@ -102,13 +182,12 @@ export function ChatBot() {
                   <Bot className="size-7 text-omega-purple-glow" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-omega-text">
-                    Hola, blader! 🌟
-                  </p>
+                  <p className="text-sm font-bold text-omega-text">Hola, blader! 🌟</p>
                   <p className="mt-1 text-xs text-omega-muted leading-relaxed max-w-[240px]">
-                    Soy BeyBot, tu asistente de Copa Omega Star. Preguntame
-                    sobre el torneo, estrategias, o decime contra quién vas a
-                    pelear!
+                    Soy {botName}, tu asistente de Copa Omega Star. Preguntame sobre el torneo, combos, estrategias, o decime contra quién vas a pelear!
+                  </p>
+                  <p className="mt-2 text-[10px] text-omega-muted/60">
+                    Tocá mi nombre para cambiarlo
                   </p>
                 </div>
               </div>
@@ -131,9 +210,7 @@ export function ChatBot() {
                       : "rounded-bl-sm bg-omega-card/80 border border-omega-border/30 text-omega-text/90"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap break-words">
-                    {msg.content}
-                  </p>
+                  <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                 </div>
                 {msg.role === "user" && (
                   <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-omega-blue/20 mt-0.5">
@@ -150,14 +227,8 @@ export function ChatBot() {
                 </div>
                 <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-omega-card/80 border border-omega-border/30 px-4 py-3">
                   <span className="size-1.5 rounded-full bg-omega-purple animate-pulse" />
-                  <span
-                    className="size-1.5 rounded-full bg-omega-purple animate-pulse"
-                    style={{ animationDelay: "0.2s" }}
-                  />
-                  <span
-                    className="size-1.5 rounded-full bg-omega-purple animate-pulse"
-                    style={{ animationDelay: "0.4s" }}
-                  />
+                  <span className="size-1.5 rounded-full bg-omega-purple animate-pulse" style={{ animationDelay: "0.2s" }} />
+                  <span className="size-1.5 rounded-full bg-omega-purple animate-pulse" style={{ animationDelay: "0.4s" }} />
                 </div>
               </div>
             )}
@@ -168,10 +239,7 @@ export function ChatBot() {
           {/* Input */}
           <div className="border-t border-omega-border/40 bg-omega-card/40 p-3">
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSend();
-              }}
+              onSubmit={(e) => { e.preventDefault(); handleSend(); }}
               className="flex items-center gap-2"
             >
               <input
@@ -179,20 +247,16 @@ export function ChatBot() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Preguntale a BeyBot..."
+                placeholder={`Preguntale a ${botName}...`}
                 disabled={loading}
                 className="flex-1 rounded-xl border border-omega-border/40 bg-omega-dark/80 px-3.5 py-2.5 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none transition-colors focus:border-omega-purple/60 focus:ring-1 focus:ring-omega-purple/30 disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-omega-purple/80 text-white transition-all hover:bg-omega-purple active:scale-95 disabled:opacity-40 disabled:hover:bg-omega-purple/80"
+                className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-omega-purple/80 text-white transition-all hover:bg-omega-purple active:scale-95 disabled:opacity-40"
               >
-                {loading ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Send className="size-4" />
-                )}
+                {loading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               </button>
             </form>
           </div>
@@ -207,13 +271,9 @@ export function ChatBot() {
             ? "bg-omega-card border border-omega-border/60 text-omega-muted hover:text-omega-text shadow-omega-dark/50"
             : "bg-gradient-to-br from-omega-purple to-omega-blue text-white shadow-omega-purple/30 hover:shadow-omega-purple/50 hover:scale-105"
         }`}
-        aria-label={open ? "Cerrar chat" : "Abrir BeyBot"}
+        aria-label={open ? "Cerrar chat" : `Abrir ${botName}`}
       >
-        {open ? (
-          <X className="size-5" />
-        ) : (
-          <MessageCircle className="size-6" />
-        )}
+        {open ? <X className="size-5" /> : <MessageCircle className="size-6" />}
       </button>
     </>
   );
