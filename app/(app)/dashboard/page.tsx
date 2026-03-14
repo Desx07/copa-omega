@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
+import { LogoutButtonFull } from "@/app/_components/logout-button-full";
 import { StoreToggle } from "@/app/_components/store-toggle";
 import { StoreButton } from "@/app/_components/store-button";
 
@@ -297,6 +298,9 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Logout */}
+      <LogoutButtonFull />
     </div>
   );
 }
