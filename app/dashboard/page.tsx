@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Star, Trophy, Crown, Shield, Swords, LogIn } from "lucide-react";
+import { Star, Trophy, Crown, Shield, Swords, LogIn, User, Flame } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { LogoutButton } from "@/app/_components/logout-button";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -10,12 +11,21 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch admin check + leaderboard in parallel (queries independientes)
+  // Fetch admin check + leaderboard + recent matches in parallel
   const playersQuery = supabase
     .from("players")
     .select("id, alias, full_name, stars, wins, losses, is_eliminated, avatar_url")
+    .eq("is_hidden", false)
     .order("stars", { ascending: false })
-    .order("wins", { ascending: false });
+    .order("wins", { ascending: false })
+    .order("created_at", { ascending: true });
+
+  const matchesQuery = supabase
+    .from("matches")
+    .select("id, player1_id, player2_id, winner_id, stars_bet, completed_at, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)")
+    .eq("status", "completed")
+    .order("completed_at", { ascending: false })
+    .limit(10);
 
   let isAdmin = false;
   let players: Awaited<typeof playersQuery>["data"] = null;
@@ -32,7 +42,36 @@ export default async function DashboardPage() {
     players = data;
   }
 
+  const { data: recentMatches } = await matchesQuery;
+
   const leaderboard = players ?? [];
+  const matches = recentMatches ?? [];
+
+  // Calculate current win streaks for all players
+  const streaks = new Map<string, number>();
+  if (matches.length > 0) {
+    // Get all completed matches for streak calculation
+    const { data: allCompleted } = await supabase
+      .from("matches")
+      .select("player1_id, player2_id, winner_id, completed_at")
+      .eq("status", "completed")
+      .order("completed_at", { ascending: false });
+
+    if (allCompleted) {
+      for (const player of leaderboard) {
+        let streak = 0;
+        for (const m of allCompleted) {
+          if (m.player1_id !== player.id && m.player2_id !== player.id) continue;
+          if (m.winner_id === player.id) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+        if (streak >= 2) streaks.set(player.id, streak);
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen bg-omega-black">
@@ -40,7 +79,7 @@ export default async function DashboardPage() {
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-omega-purple)_0%,_transparent_60%)] opacity-10 pointer-events-none" />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--color-omega-blue)_0%,_transparent_50%)] opacity-5 pointer-events-none" />
 
-      <div className="relative z-10 mx-auto max-w-2xl px-4 py-8 space-y-6">
+      <div className="relative z-10 mx-auto max-w-3xl px-4 py-8 space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-3">
@@ -51,7 +90,7 @@ export default async function DashboardPage() {
             <Star className="size-8 text-omega-gold star-glow fill-omega-gold" />
           </div>
           <p className="text-sm text-omega-muted">
-            Copa Omega Star — Tabla de posiciones
+            Copa Omega Star — Bladers Santa Fe
           </p>
         </div>
 
@@ -80,6 +119,18 @@ export default async function DashboardPage() {
                   <Swords className="size-3.5" />
                   Nuevo Partido
                 </Link>
+              </>
+            )}
+            {user && (
+              <>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-1.5 rounded-lg border border-omega-border bg-omega-card/60 px-3 py-1.5 text-xs font-medium text-omega-muted hover:text-omega-purple hover:border-omega-purple/50 transition-all"
+                >
+                  <User className="size-3.5" />
+                  Mi Perfil
+                </Link>
+                <LogoutButton />
               </>
             )}
             {!user && (
@@ -119,12 +170,9 @@ export default async function DashboardPage() {
         {/* Top 3 podium */}
         {leaderboard.length >= 3 && (
           <div className="grid grid-cols-3 gap-3">
-            {/* 2nd place */}
-            <PodiumCard player={leaderboard[1]} rank={2} />
-            {/* 1st place */}
-            <PodiumCard player={leaderboard[0]} rank={1} />
-            {/* 3rd place */}
-            <PodiumCard player={leaderboard[2]} rank={3} />
+            <PodiumCard player={leaderboard[1]} rank={2} streak={streaks.get(leaderboard[1].id)} />
+            <PodiumCard player={leaderboard[0]} rank={1} streak={streaks.get(leaderboard[0].id)} />
+            <PodiumCard player={leaderboard[2]} rank={3} streak={streaks.get(leaderboard[2].id)} />
           </div>
         )}
 
@@ -133,91 +181,143 @@ export default async function DashboardPage() {
           <div className="flex justify-center gap-4">
             {leaderboard.slice(0, 3).map((player, i) => (
               <div key={player.id} className="w-48">
-                <PodiumCard player={player} rank={(i + 1) as 1 | 2 | 3} />
+                <PodiumCard player={player} rank={(i + 1) as 1 | 2 | 3} streak={streaks.get(player.id)} />
               </div>
             ))}
           </div>
         )}
 
-        {/* Full leaderboard table */}
-        {leaderboard.length > 0 && (
+        {/* Full leaderboard table — skip top 3 if podium is shown */}
+        {leaderboard.length > 0 && (() => {
+          const hasPodium = leaderboard.length >= 3;
+          const tableStart = hasPodium ? 3 : 0;
+          const tablePlayers = leaderboard.slice(tableStart);
+          if (tablePlayers.length === 0) return null;
+
+          return (
+            <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
+                <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
+                  <Trophy className="size-4 text-omega-purple" />
+                  Tabla completa
+                </h2>
+              </div>
+
+              {/* Table rows */}
+              <div className="divide-y divide-omega-border/30">
+                {tablePlayers.map((player, index) => {
+                  const rank = tableStart + index + 1;
+                  const streak = streaks.get(player.id);
+                  return (
+                    <Link
+                      href={`/player/${player.id}`}
+                      key={player.id}
+                      className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-omega-card/60 ${
+                        player.is_eliminated ? "opacity-60" : ""
+                      }`}
+                    >
+                      {/* Rank */}
+                      <span className="text-sm font-black text-omega-muted/70 w-6 text-center shrink-0">
+                        {rank}
+                      </span>
+
+                      {/* Avatar */}
+                      <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
+                        {player.avatar_url ? (
+                          <img src={player.avatar_url} alt="" className="size-full object-cover" />
+                        ) : (
+                          <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                            {player.alias.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Player info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`text-sm font-bold truncate ${
+                              player.is_eliminated
+                                ? "text-omega-muted line-through"
+                                : "text-omega-text"
+                            }`}
+                          >
+                            {player.alias}
+                          </span>
+                          {player.is_eliminated && (
+                            <span className="size-1.5 rounded-full bg-omega-red shrink-0" />
+                          )}
+                          {streak && (
+                            <span className="flex items-center gap-0.5 text-omega-green shrink-0">
+                              <Flame className="size-3" />
+                              <span className="text-[10px] font-bold">{streak}</span>
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-omega-muted">
+                          <span className="text-omega-green">{player.wins}W</span>
+                          <span className="text-omega-muted/40"> / </span>
+                          <span className="text-omega-red">{player.losses}L</span>
+                        </span>
+                      </div>
+
+                      {/* Stars */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                        <span className="text-sm font-black text-omega-gold">
+                          {player.stars}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Recent matches */}
+        {matches.length > 0 && (
           <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
               <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
-                <Trophy className="size-4 text-omega-purple" />
-                Tabla completa
+                <Swords className="size-4 text-omega-blue" />
+                Ultimas partidas
               </h2>
             </div>
-
-            {/* Table header */}
-            <div className="grid grid-cols-[3rem_1fr_5rem_5rem_5.5rem] gap-1 px-4 py-2.5 text-[11px] font-bold text-omega-muted uppercase tracking-wider border-b border-omega-border/50">
-              <span>#</span>
-              <span>Jugador</span>
-              <span className="text-center">Estrellas</span>
-              <span className="text-center">W/L</span>
-              <span className="text-center">Estado</span>
-            </div>
-
-            {/* Table rows */}
             <div className="divide-y divide-omega-border/30">
-              {leaderboard.map((player, index) => {
-                const rank = index + 1;
+              {matches.map((match) => {
+                const p1 = match.player1 as unknown as { alias: string } | null;
+                const p2 = match.player2 as unknown as { alias: string } | null;
+                const p1Won = match.winner_id === match.player1_id;
+
                 return (
-                  <div
-                    key={player.id}
-                    className={`grid grid-cols-[3rem_1fr_5rem_5rem_5.5rem] gap-1 px-4 py-3 items-center transition-colors hover:bg-omega-card/60 ${
-                      rank <= 3 ? "bg-omega-card/30" : ""
-                    } ${player.is_eliminated ? "opacity-60" : ""}`}
-                  >
-                    {/* Rank */}
-                    <span className={`text-sm font-black ${getRankColor(rank)}`}>
-                      {rank <= 3 ? (
-                        <span className="flex items-center gap-1">
-                          {getRankIcon(rank)}
-                          {rank}
-                        </span>
-                      ) : (
-                        rank
-                      )}
+                  <div key={match.id} className="flex items-center gap-3 px-4 py-3">
+                    {/* Player 1 */}
+                    <span className={`text-sm font-bold truncate flex-1 text-right ${p1Won ? "text-omega-green" : "text-omega-muted"}`}>
+                      {p1Won && <Crown className="size-3 text-omega-gold inline mr-1" />}
+                      {p1?.alias ?? "???"}
                     </span>
 
-                    {/* Player alias */}
-                    <span
-                      className={`text-sm font-bold truncate ${
-                        player.is_eliminated
-                          ? "text-omega-muted line-through"
-                          : "text-omega-text"
-                      }`}
-                    >
-                      {player.alias}
+                    {/* VS + stars */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-0.5 rounded-full bg-omega-gold/10 border border-omega-gold/30 px-2 py-0.5">
+                        <Star className="size-3 text-omega-gold fill-omega-gold" />
+                        <span className="text-[11px] font-black text-omega-gold">{match.stars_bet}</span>
+                      </div>
+                    </div>
+
+                    {/* Player 2 */}
+                    <span className={`text-sm font-bold truncate flex-1 ${!p1Won ? "text-omega-green" : "text-omega-muted"}`}>
+                      {p2?.alias ?? "???"}
+                      {!p1Won && <Crown className="size-3 text-omega-gold inline ml-1" />}
                     </span>
 
-                    {/* Stars */}
-                    <span className="flex items-center justify-center gap-1">
-                      <Star className="size-3.5 text-omega-gold fill-omega-gold" />
-                      <span className="text-sm font-black text-omega-gold">
-                        {player.stars}
-                      </span>
-                    </span>
-
-                    {/* W/L */}
-                    <span className="text-center text-sm text-omega-muted">
-                      <span className="text-omega-green font-bold">{player.wins}</span>
-                      <span className="text-omega-muted/50">/</span>
-                      <span className="text-omega-red font-bold">{player.losses}</span>
-                    </span>
-
-                    {/* Status */}
-                    <span className="flex justify-center">
-                      {player.is_eliminated ? (
-                        <span className="inline-flex items-center rounded-full bg-omega-red/10 border border-omega-red/30 px-2 py-0.5 text-[10px] font-bold text-omega-red uppercase tracking-wider">
-                          Eliminado
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-omega-green/10 border border-omega-green/30 px-2 py-0.5 text-[10px] font-bold text-omega-green uppercase tracking-wider">
-                          Activo
-                        </span>
-                      )}
+                    {/* Date */}
+                    <span className="text-[10px] text-omega-muted/60 shrink-0">
+                      {match.completed_at
+                        ? new Date(match.completed_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
+                        : ""}
                     </span>
                   </div>
                 );
@@ -228,7 +328,7 @@ export default async function DashboardPage() {
 
         {/* Footer */}
         <footer className="text-center py-4 text-xs text-omega-muted/50">
-          Copa Omega Star &copy; 2026 — Beyblade X
+          Copa Omega Star &copy; 2026 — Bladers Santa Fe
         </footer>
       </div>
     </div>
@@ -236,7 +336,7 @@ export default async function DashboardPage() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Helper components & functions                                              */
+/*  Helper components                                                          */
 /* -------------------------------------------------------------------------- */
 
 interface PodiumPlayer {
@@ -246,11 +346,13 @@ interface PodiumPlayer {
   wins: number;
   losses: number;
   is_eliminated: boolean;
+  avatar_url: string | null;
 }
 
 interface PodiumCardProps {
   player: PodiumPlayer;
   rank: 1 | 2 | 3;
+  streak?: number;
 }
 
 const podiumConfig = {
@@ -261,6 +363,7 @@ const podiumConfig = {
     starClass: "text-omega-gold",
     label: "neon-gold",
     height: "pt-2",
+    avatarBorder: "border-omega-gold",
     icon: <Crown className="size-6 text-omega-gold fill-omega-gold/30" />,
   },
   2: {
@@ -270,6 +373,7 @@ const podiumConfig = {
     starClass: "text-omega-muted",
     label: "text-omega-muted",
     height: "pt-6",
+    avatarBorder: "border-omega-muted/50",
     icon: <Crown className="size-5 text-omega-muted/70" />,
   },
   3: {
@@ -279,22 +383,35 @@ const podiumConfig = {
     starClass: "text-orange-500",
     label: "text-orange-500",
     height: "pt-8",
+    avatarBorder: "border-orange-500/50",
     icon: <Crown className="size-5 text-orange-500/70" />,
   },
 } as const;
 
-function PodiumCard({ player, rank }: PodiumCardProps) {
+function PodiumCard({ player, rank, streak }: PodiumCardProps) {
   const config = podiumConfig[rank];
 
   return (
     <div
       className={`${config.height} ${rank === 1 ? "order-2 -mt-2" : rank === 2 ? "order-1 mt-2" : "order-3 mt-2"}`}
     >
-      <div
-        className={`rounded-2xl border ${config.border} ${config.bg} ${config.shadow} p-4 text-center space-y-2 backdrop-blur-sm`}
+      <Link
+        href={`/player/${player.id}`}
+        className={`block rounded-2xl border ${config.border} ${config.bg} ${config.shadow} p-4 text-center space-y-2 backdrop-blur-sm transition-all hover:scale-[1.02] active:scale-[0.98]`}
       >
         {/* Crown */}
         <div className="flex justify-center">{config.icon}</div>
+
+        {/* Avatar */}
+        <div className={`size-12 rounded-full border-2 ${config.avatarBorder} overflow-hidden bg-omega-dark mx-auto`}>
+          {player.avatar_url ? (
+            <img src={player.avatar_url} alt="" className="size-full object-cover" />
+          ) : (
+            <div className="size-full flex items-center justify-center text-lg font-black text-omega-purple">
+              {player.alias.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
 
         {/* Alias */}
         <p
@@ -315,27 +432,21 @@ function PodiumCard({ player, rank }: PodiumCardProps) {
           </span>
         </div>
 
-        {/* W/L */}
-        <p className="text-[11px] text-omega-muted">
-          <span className="text-omega-green font-bold">{player.wins}W</span>
-          {" "}
-          <span className="text-omega-red font-bold">{player.losses}L</span>
-        </p>
-      </div>
+        {/* W/L + streak */}
+        <div className="space-y-1">
+          <p className="text-[11px] text-omega-muted">
+            <span className="text-omega-green font-bold">{player.wins}W</span>
+            {" "}
+            <span className="text-omega-red font-bold">{player.losses}L</span>
+          </p>
+          {streak && (
+            <p className="flex items-center justify-center gap-1 text-[10px] text-omega-green font-bold">
+              <Flame className="size-3" />
+              {streak} racha
+            </p>
+          )}
+        </div>
+      </Link>
     </div>
   );
-}
-
-function getRankColor(rank: number): string {
-  if (rank === 1) return "text-omega-gold";
-  if (rank === 2) return "text-omega-muted";
-  if (rank === 3) return "text-orange-500";
-  return "text-omega-muted/70";
-}
-
-function getRankIcon(rank: number) {
-  if (rank === 1) return <Crown className="size-3.5 text-omega-gold inline" />;
-  if (rank === 2) return <Crown className="size-3 text-omega-muted/70 inline" />;
-  if (rank === 3) return <Crown className="size-3 text-orange-500/70 inline" />;
-  return null;
 }

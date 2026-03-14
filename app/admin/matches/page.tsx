@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Star, Swords, Trophy, ArrowLeft, Plus, Crown } from "lucide-react";
+import { LogoutButton } from "@/app/_components/logout-button";
 
 export default async function AdminMatchesPage() {
   const supabase = await createClient();
@@ -43,9 +44,9 @@ export default async function AdminMatchesPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Link
-            href="/admin/players"
+            href="/dashboard"
             className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
-            aria-label="Ver jugadores"
+            aria-label="Volver al ranking"
           >
             <ArrowLeft className="size-5" />
           </Link>
@@ -54,13 +55,22 @@ export default async function AdminMatchesPage() {
             <h1 className="text-2xl font-black neon-blue">PARTIDAS</h1>
           </div>
         </div>
-        <Link
-          href="/admin/matches/new"
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <Plus className="size-4" />
-          Nueva
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/players"
+            className="flex items-center gap-1.5 rounded-lg border border-omega-border bg-omega-card/60 px-3 py-1.5 text-xs font-medium text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
+          >
+            Jugadores
+          </Link>
+          <Link
+            href="/admin/matches/new"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-omega-purple to-omega-blue px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-omega-purple/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Plus className="size-4" />
+            Nueva
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
 
       {/* Stats bar */}

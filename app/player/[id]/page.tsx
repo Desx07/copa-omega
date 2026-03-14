@@ -1,0 +1,285 @@
+import { createClient } from "@/lib/supabase/server";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import {
+  Star,
+  ArrowLeft,
+  Swords,
+  ShieldHalf,
+  Timer,
+  Scale,
+  Trophy,
+  Flame,
+  Crown,
+} from "lucide-react";
+
+const beyTypeConfig = {
+  attack: { label: "Ataque", icon: Swords, color: "text-omega-red", bg: "bg-omega-red/10 border-omega-red/30" },
+  defense: { label: "Defensa", icon: ShieldHalf, color: "text-omega-blue", bg: "bg-omega-blue/10 border-omega-blue/30" },
+  stamina: { label: "Stamina", icon: Timer, color: "text-omega-green", bg: "bg-omega-green/10 border-omega-green/30" },
+  balance: { label: "Balance", icon: Scale, color: "text-omega-purple", bg: "bg-omega-purple/10 border-omega-purple/30" },
+} as const;
+
+export default async function PlayerProfilePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const [playerResult, beysResult, matchesResult] = await Promise.all([
+    supabase
+      .from("players")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, created_at")
+      .eq("id", id)
+      .eq("is_hidden", false)
+      .single(),
+    supabase
+      .from("beys")
+      .select("id, name, type")
+      .eq("player_id", id)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("matches")
+      .select("id, player1_id, player2_id, winner_id, stars_bet, status, completed_at, player1:players!player1_id(alias, avatar_url), player2:players!player2_id(alias, avatar_url)")
+      .or(`player1_id.eq.${id},player2_id.eq.${id}`)
+      .eq("status", "completed")
+      .order("completed_at", { ascending: false })
+      .limit(20),
+  ]);
+
+  if (!playerResult.data) {
+    notFound();
+  }
+
+  const player = playerResult.data;
+  const beys = beysResult.data ?? [];
+  const matches = matchesResult.data ?? [];
+
+  // Calculate win streak
+  let currentStreak = 0;
+  for (const match of matches) {
+    if (match.winner_id === id) {
+      currentStreak++;
+    } else {
+      break;
+    }
+  }
+
+  // Calculate best streak ever
+  let bestStreak = 0;
+  let tempStreak = 0;
+  // Reverse to go chronologically
+  const chronological = [...matches].reverse();
+  for (const match of chronological) {
+    if (match.winner_id === id) {
+      tempStreak++;
+      if (tempStreak > bestStreak) bestStreak = tempStreak;
+    } else {
+      tempStreak = 0;
+    }
+  }
+
+  const winRate = player.wins + player.losses > 0
+    ? Math.round((player.wins / (player.wins + player.losses)) * 100)
+    : 0;
+
+  // Rank among visible players
+  const { data: allPlayers } = await supabase
+    .from("players")
+    .select("id")
+    .eq("is_hidden", false)
+    .order("stars", { ascending: false })
+    .order("wins", { ascending: false })
+    .order("created_at", { ascending: true });
+
+  const rank = allPlayers ? allPlayers.findIndex((p) => p.id === id) + 1 : 0;
+
+  return (
+    <div className="min-h-screen bg-omega-black">
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-omega-purple)_0%,_transparent_60%)] opacity-10 pointer-events-none" />
+
+      <div className="relative z-10 mx-auto max-w-md px-4 py-8 space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
+          >
+            <ArrowLeft className="size-5" />
+          </Link>
+          <h1 className="text-xl font-black neon-purple">PERFIL</h1>
+        </div>
+
+        {/* Player card */}
+        <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">
+          {/* Avatar */}
+          <div className="size-24 rounded-full border-2 border-omega-purple overflow-hidden bg-omega-dark mx-auto">
+            {player.avatar_url ? (
+              <img
+                src={player.avatar_url}
+                alt={player.alias}
+                className="size-full object-cover"
+              />
+            ) : (
+              <div className="size-full flex items-center justify-center text-3xl font-black text-omega-purple">
+                {player.alias.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+
+          {/* Name */}
+          <div>
+            <p className="text-lg font-black text-omega-text">{player.alias}</p>
+            <p className="text-sm text-omega-muted">{player.full_name}</p>
+            {rank > 0 && (
+              <p className="text-xs text-omega-muted mt-1">
+                Ranking <span className="text-omega-gold font-bold">#{rank}</span>
+              </p>
+            )}
+          </div>
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-xl bg-omega-dark/50 p-3 text-center">
+              <div className="flex items-center justify-center gap-1">
+                <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                <span className="text-xl font-black text-omega-gold">{player.stars}</span>
+              </div>
+              <p className="text-[10px] text-omega-muted">estrellas</p>
+            </div>
+            <div className="rounded-xl bg-omega-dark/50 p-3 text-center">
+              <p className="text-xl font-black">
+                <span className="text-omega-green">{player.wins}</span>
+                <span className="text-omega-muted/40">/</span>
+                <span className="text-omega-red">{player.losses}</span>
+              </p>
+              <p className="text-[10px] text-omega-muted">W / L</p>
+            </div>
+            <div className="rounded-xl bg-omega-dark/50 p-3 text-center">
+              <p className="text-xl font-black text-omega-blue">{winRate}%</p>
+              <p className="text-[10px] text-omega-muted">win rate</p>
+            </div>
+          </div>
+
+          {/* Streaks */}
+          {(currentStreak > 0 || bestStreak > 0) && (
+            <div className="flex items-center justify-center gap-4 text-sm">
+              {currentStreak > 0 && (
+                <div className="flex items-center gap-1.5 rounded-full bg-omega-green/10 border border-omega-green/30 px-3 py-1">
+                  <Flame className="size-3.5 text-omega-green" />
+                  <span className="font-bold text-omega-green">{currentStreak}</span>
+                  <span className="text-omega-muted text-xs">racha actual</span>
+                </div>
+              )}
+              {bestStreak > 1 && (
+                <div className="flex items-center gap-1.5 rounded-full bg-omega-gold/10 border border-omega-gold/30 px-3 py-1">
+                  <Crown className="size-3.5 text-omega-gold" />
+                  <span className="font-bold text-omega-gold">{bestStreak}</span>
+                  <span className="text-omega-muted text-xs">mejor racha</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {player.is_eliminated && (
+            <span className="inline-flex items-center rounded-full bg-omega-red/10 border border-omega-red/30 px-3 py-1 text-xs font-bold text-omega-red">
+              ELIMINADO
+            </span>
+          )}
+        </div>
+
+        {/* Beys */}
+        {beys.length > 0 && (
+          <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
+              <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
+                <Swords className="size-4 text-omega-purple" />
+                Beys
+              </h2>
+            </div>
+            <div className="divide-y divide-omega-border/30">
+              {beys.map((bey) => {
+                const config = beyTypeConfig[bey.type as keyof typeof beyTypeConfig];
+                const Icon = config.icon;
+                return (
+                  <div key={bey.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className={`size-8 rounded-lg border flex items-center justify-center ${config.bg}`}>
+                      <Icon className={`size-4 ${config.color}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-omega-text truncate">{bey.name}</p>
+                      <p className={`text-[11px] font-medium ${config.color}`}>{config.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Match history */}
+        {matches.length > 0 && (
+          <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
+              <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
+                <Trophy className="size-4 text-omega-purple" />
+                Historial de partidas
+              </h2>
+            </div>
+            <div className="divide-y divide-omega-border/30">
+              {matches.map((match) => {
+                const won = match.winner_id === id;
+                const isPlayer1 = match.player1_id === id;
+                const opponent = isPlayer1 ? match.player2 : match.player1;
+                const opponentAlias = (opponent as unknown as { alias: string })?.alias ?? "???";
+
+                return (
+                  <div
+                    key={match.id}
+                    className="flex items-center gap-3 px-4 py-3"
+                  >
+                    {/* Result indicator */}
+                    <div
+                      className={`size-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                        won
+                          ? "bg-omega-green/10 border border-omega-green/30 text-omega-green"
+                          : "bg-omega-red/10 border border-omega-red/30 text-omega-red"
+                      }`}
+                    >
+                      {won ? "W" : "L"}
+                    </div>
+
+                    {/* Opponent */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-omega-text truncate">
+                        vs {opponentAlias}
+                      </p>
+                      <p className="text-[11px] text-omega-muted">
+                        {match.completed_at
+                          ? new Date(match.completed_at).toLocaleDateString("es-AR", {
+                              day: "numeric",
+                              month: "short",
+                            })
+                          : ""}
+                      </p>
+                    </div>
+
+                    {/* Stars */}
+                    <div className={`flex items-center gap-1 shrink-0 ${won ? "text-omega-green" : "text-omega-red"}`}>
+                      <span className="text-sm font-black">
+                        {won ? "+" : "-"}{match.stars_bet}
+                      </span>
+                      <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

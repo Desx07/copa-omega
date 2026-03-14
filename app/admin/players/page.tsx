@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Star, Users, Shield, ArrowLeft, UserX, UserCheck } from "lucide-react";
+import { Star, Users, Shield, ArrowLeft, UserX, UserCheck, EyeOff } from "lucide-react";
+import { PlayerActions } from "./_components/player-actions";
+import { LogoutButton } from "@/app/_components/logout-button";
 
 export default async function AdminPlayersPage() {
   const supabase = await createClient();
 
-  // Verificar autenticacion
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -15,12 +16,11 @@ export default async function AdminPlayersPage() {
     redirect("/auth/login");
   }
 
-  // Verificar admin + obtener jugadores en paralelo (queries independientes)
   const [profileResult, playersResult] = await Promise.all([
     supabase.from("players").select("is_admin").eq("id", user.id).single(),
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_admin, created_at")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_admin, is_hidden, created_at")
       .order("stars", { ascending: false }),
   ]);
 
@@ -33,24 +33,27 @@ export default async function AdminPlayersPage() {
 
   const allPlayers = players ?? [];
   const totalPlayers = allPlayers.length;
-  const activePlayers = allPlayers.filter((p) => !p.is_eliminated).length;
-  const eliminatedPlayers = allPlayers.filter((p) => p.is_eliminated).length;
+  const activePlayers = allPlayers.filter((p) => !p.is_eliminated && !p.is_hidden).length;
+  const hiddenPlayers = allPlayers.filter((p) => p.is_hidden).length;
 
   return (
     <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link
-          href="/admin/matches"
-          className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
-          aria-label="Volver a partidas"
-        >
-          <ArrowLeft className="size-5" />
-        </Link>
-        <div className="flex items-center gap-2">
-          <Shield className="size-5 text-omega-purple" />
-          <h1 className="text-2xl font-black neon-blue">JUGADORES</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/matches"
+            className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
+            aria-label="Volver a partidas"
+          >
+            <ArrowLeft className="size-5" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <Shield className="size-5 text-omega-purple" />
+            <h1 className="text-2xl font-black neon-blue">JUGADORES</h1>
+          </div>
         </div>
+        <LogoutButton />
       </div>
 
       {/* Stats bar */}
@@ -63,12 +66,12 @@ export default async function AdminPlayersPage() {
         <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
           <UserCheck className="size-4 text-omega-green mx-auto mb-1" />
           <p className="text-xl font-black text-omega-green">{activePlayers}</p>
-          <p className="text-[11px] text-omega-muted">activos</p>
+          <p className="text-[11px] text-omega-muted">visibles</p>
         </div>
         <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
-          <UserX className="size-4 text-omega-red mx-auto mb-1" />
-          <p className="text-xl font-black text-omega-red">{eliminatedPlayers}</p>
-          <p className="text-[11px] text-omega-muted">eliminados</p>
+          <EyeOff className="size-4 text-omega-gold mx-auto mb-1" />
+          <p className="text-xl font-black text-omega-gold">{hiddenPlayers}</p>
+          <p className="text-[11px] text-omega-muted">ocultos</p>
         </div>
       </div>
 
@@ -83,12 +86,17 @@ export default async function AdminPlayersPage() {
           allPlayers.map((player, index) => {
             const rank = index + 1;
             const isEliminated = player.is_eliminated;
+            const isCurrentUser = player.id === user.id;
 
             return (
               <div
                 key={player.id}
-                className={`rounded-xl bg-omega-card border border-omega-border p-4 transition-all ${
-                  isEliminated ? "opacity-50" : "hover:border-omega-blue/30"
+                className={`rounded-xl bg-omega-card border p-4 transition-all ${
+                  player.is_hidden
+                    ? "border-omega-gold/30 opacity-60"
+                    : isEliminated
+                      ? "border-omega-border opacity-50"
+                      : "border-omega-border hover:border-omega-blue/30"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -122,6 +130,9 @@ export default async function AdminPlayersPage() {
                       {player.is_admin && (
                         <Shield className="size-3.5 text-omega-purple shrink-0" />
                       )}
+                      {player.is_hidden && (
+                        <EyeOff className="size-3.5 text-omega-gold shrink-0" />
+                      )}
                     </div>
                     <p className="text-xs text-omega-muted truncate">
                       {player.full_name}
@@ -153,18 +164,14 @@ export default async function AdminPlayersPage() {
                     <span className="text-omega-red">{player.losses}L</span>
                   </div>
 
-                  {/* Status badge */}
-                  <div className="shrink-0">
-                    {isEliminated ? (
-                      <span className="inline-flex items-center rounded-full bg-omega-red/10 border border-omega-red/30 px-2 py-0.5 text-[10px] font-bold text-omega-red">
-                        ELIMINADO
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center rounded-full bg-omega-green/10 border border-omega-green/30 px-2 py-0.5 text-[10px] font-bold text-omega-green">
-                        ACTIVO
-                      </span>
-                    )}
-                  </div>
+                  {/* Admin actions */}
+                  {!isCurrentUser && (
+                    <PlayerActions
+                      playerId={player.id}
+                      isHidden={player.is_hidden}
+                      alias={player.alias}
+                    />
+                  )}
                 </div>
               </div>
             );

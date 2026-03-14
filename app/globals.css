@@ -49,3 +49,42 @@ body {
 .neon-gold {
   text-shadow: 0 0 10px var(--color-omega-gold), 0 0 30px var(--color-omega-gold-glow);
 }
+
+/* Float animation — smoother than bounce */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-float-d1 { animation: float 3.5s ease-in-out infinite 0.5s; }
+.animate-float-d2 { animation: float 5s ease-in-out infinite 1s; }
+.animate-float-d3 { animation: float 4.5s ease-in-out infinite 0.7s; }
+
+/* Hexagonal clip-path */
+.hex-clip {
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+}
+
+/* Subtle grid bg for hero */
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(123,47,247,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123,47,247,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Energy line divider */
+.energy-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(123,47,247,0.3), rgba(0,180,216,0.3), transparent);
+}
+
+/* Text glows */
+.text-glow-gold {
+  text-shadow: 0 0 30px rgba(255,214,10,0.3), 0 0 60px rgba(255,214,10,0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float, .animate-float-d1, .animate-float-d2, .animate-float-d3 { animation: none; }
+}
