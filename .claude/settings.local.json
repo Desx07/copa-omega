@@ -47,7 +47,9 @@
       "WebFetch(domain:muz.li)",
       "WebFetch(domain:github.com)",
       "Bash(npx tsc:*)",
-      "WebFetch(domain:www.beybladexmeta.com)"
+      "WebFetch(domain:www.beybladexmeta.com)",
+      "WebFetch(domain:worldbeyblade.org)",
+      "WebFetch(domain:malloftoys.com)"
     ]
   }
 }

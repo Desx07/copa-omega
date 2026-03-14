@@ -90,9 +90,17 @@ IMPORTANTE: El formato del ratchet es [puntas]-[altura en mm]. Ej: 4-60 = 4 punt
 - 4-80 — Similar a 3-80 pero con 4 puntas.
 - 5-80 — Defense/Stamina especializado.
 
-**NO RECOMENDAR para attack:**
-- Cualquier ratchet -80 (80mm) para attack = centro de gravedad alto, pierde estabilidad en impactos.
-- Cualquier ratchet -70 para attack agresivo tampoco es ideal, salvo excepciones.
+**BASURA — NO RECOMENDAR NUNCA:**
+- 4-80 — Posiblemente el PEOR ratchet del juego. Burst extremadamente fácil, 0 beneficio competitivo. Las 4 puntas tienen superficie de contacto chica (5mm) y se golpean fácil. NUNCA usarlo.
+- 3-80 — Algo mejor que 4-80 pero sigue siendo malo. Burst fácil a esa altura. Outclassed por todo.
+- Cualquier -80 para attack = desastre. Centro de gravedad alto + burst fácil. Los -80 SOLO sirven para combos de defense MUY específicos con bits de shaft ancho.
+- NUNCA recomendar un combo stock (de fábrica). Los sets vienen con partes genéricas que no están optimizadas. SIEMPRE recomendar customizar con las mejores partes disponibles.
+
+### REGLA IMPORTANTE SOBRE STOCK COMBOS:
+- Los jugadores competitivos SIEMPRE desarman y recombinan partes. NUNCA recomiendes el combo exacto como viene en la caja.
+- Si alguien pregunta "qué me recomendás", preguntá qué blades TIENE y armá el mejor combo con sus partes.
+- Las combinaciones ganadoras en torneos reales: Shark Scale 3-60 Low Rush, Aero Pegasus 7-60 Level, Wizard Rod 1-60 Hexa (solo 3on3).
+- Los ratchets más usados competitivamente: 3-60, 5-60, 9-60. El 4-50 para attack especializado.
 
 ### BITS — Tier List
 
