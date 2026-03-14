@@ -15,9 +15,15 @@ import {
   Timer,
   Scale,
   LogOut,
+  MessageSquare,
+  Eye,
+  EyeOff,
+  Palette,
+  Calendar,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { getTitle, BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 
 interface Player {
   id: string;
@@ -28,6 +34,11 @@ interface Player {
   losses: number;
   is_eliminated: boolean;
   avatar_url: string | null;
+  tagline: string | null;
+  hide_beys: boolean;
+  badge: string | null;
+  accent_color: string;
+  created_at: string;
 }
 
 interface Bey {
@@ -52,11 +63,16 @@ export default function ProfilePage() {
   const [beys, setBeys] = useState<Bey[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [savingField, setSavingField] = useState<string | null>(null);
 
   // New bey form
   const [newBeyName, setNewBeyName] = useState("");
   const [newBeyType, setNewBeyType] = useState<Bey["type"]>("attack");
   const [addingBey, setAddingBey] = useState(false);
+
+  // Tagline edit
+  const [editingTagline, setEditingTagline] = useState(false);
+  const [taglineInput, setTaglineInput] = useState("");
 
   useEffect(() => {
     loadProfile();
@@ -75,7 +91,7 @@ export default function ProfilePage() {
     const [playerResult, beysResult] = await Promise.all([
       supabase
         .from("players")
-        .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url")
+        .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at")
         .eq("id", user.id)
         .single(),
       supabase
@@ -85,9 +101,28 @@ export default function ProfilePage() {
         .order("created_at", { ascending: true }),
     ]);
 
-    if (playerResult.data) setPlayer(playerResult.data);
+    if (playerResult.data) {
+      setPlayer(playerResult.data);
+      setTaglineInput(playerResult.data.tagline || "");
+    }
     if (beysResult.data) setBeys(beysResult.data);
     setLoading(false);
+  }
+
+  async function updateField(field: string, value: unknown) {
+    if (!player) return;
+    setSavingField(field);
+    const { error } = await supabase
+      .from("players")
+      .update({ [field]: value })
+      .eq("id", player.id);
+    if (error) {
+      toast.error("Error guardando");
+    } else {
+      setPlayer({ ...player, [field]: value } as Player);
+      toast.success("Guardado!");
+    }
+    setSavingField(null);
   }
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -95,7 +130,7 @@ export default function ProfilePage() {
     if (!file || !player) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("La imagen no puede pesar más de 2MB");
+      toast.error("La imagen no puede pesar mas de 2MB");
       return;
     }
 
@@ -103,8 +138,6 @@ export default function ProfilePage() {
     try {
       const ext = file.name.split(".").pop();
       const path = `${player.id}/avatar.${ext}`;
-
-      // Remove old avatar if exists
       await supabase.storage.from("avatars").remove([path]);
 
       const { error: uploadError } = await supabase.storage
@@ -120,7 +153,6 @@ export default function ProfilePage() {
         data: { publicUrl },
       } = supabase.storage.from("avatars").getPublicUrl(path);
 
-      // Add cache buster
       const avatarUrl = `${publicUrl}?t=${Date.now()}`;
 
       const { error: updateError } = await supabase
@@ -136,7 +168,7 @@ export default function ProfilePage() {
       setPlayer({ ...player, avatar_url: avatarUrl });
       toast.success("Foto actualizada!");
     } catch {
-      toast.error("Error de conexión");
+      toast.error("Error de conexion");
     } finally {
       setUploading(false);
     }
@@ -144,7 +176,6 @@ export default function ProfilePage() {
 
   async function handleAddBey() {
     if (!newBeyName.trim() || !player) return;
-
     setAddingBey(true);
     try {
       const { data, error } = await supabase
@@ -157,12 +188,11 @@ export default function ProfilePage() {
         toast.error("Error agregando bey");
         return;
       }
-
       setBeys([...beys, data]);
       setNewBeyName("");
       toast.success("Bey agregado!");
     } catch {
-      toast.error("Error de conexión");
+      toast.error("Error de conexion");
     } finally {
       setAddingBey(false);
     }
@@ -193,6 +223,10 @@ export default function ProfilePage() {
 
   if (!player) return null;
 
+  const title = getTitle(player.wins, player.losses, 0);
+  const accentConfig = ACCENT_COLORS[player.accent_color] || ACCENT_COLORS.purple;
+  const memberSince = new Date(player.created_at).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+
   return (
     <div className="min-h-screen bg-omega-black">
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-omega-purple)_0%,_transparent_60%)] opacity-10 pointer-events-none" />
@@ -219,13 +253,9 @@ export default function ProfilePage() {
         <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">
           {/* Avatar */}
           <div className="relative inline-block">
-            <div className="size-24 rounded-full border-2 border-omega-purple overflow-hidden bg-omega-dark mx-auto">
+            <div className={`size-24 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark mx-auto`}>
               {player.avatar_url ? (
-                <img
-                  src={player.avatar_url}
-                  alt={player.alias}
-                  className="size-full object-cover"
-                />
+                <img src={player.avatar_url} alt={player.alias} className="size-full object-cover" />
               ) : (
                 <div className="size-full flex items-center justify-center text-3xl font-black text-omega-purple">
                   {player.alias.charAt(0).toUpperCase()}
@@ -237,26 +267,56 @@ export default function ProfilePage() {
               disabled={uploading}
               className="absolute bottom-0 right-0 size-8 rounded-full bg-omega-purple text-white flex items-center justify-center shadow-lg hover:bg-omega-purple-glow transition-colors disabled:opacity-50"
             >
-              {uploading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Camera className="size-4" />
-              )}
+              {uploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleAvatarUpload}
-            />
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarUpload} />
           </div>
 
-          {/* Name & alias */}
+          {/* Name, badge, title */}
           <div>
-            <p className="text-lg font-black text-omega-text">{player.alias}</p>
+            <p className="text-lg font-black text-omega-text">
+              {player.badge && <span className="mr-1">{BADGE_EMOJIS[player.badge]}</span>}
+              {player.alias}
+            </p>
+            <p className={`text-xs font-bold ${title.color}`}>{title.label}</p>
             <p className="text-sm text-omega-muted">{player.full_name}</p>
           </div>
+
+          {/* Tagline */}
+          {editingTagline ? (
+            <div className="flex gap-2 max-w-xs mx-auto">
+              <input
+                type="text"
+                value={taglineInput}
+                onChange={(e) => setTaglineInput(e.target.value)}
+                maxLength={60}
+                placeholder="Tu frase de batalla..."
+                className="flex-1 min-w-0 rounded-lg border border-omega-border bg-omega-dark px-3 py-2 text-sm text-omega-text text-center placeholder:text-omega-muted/50 outline-none focus:border-omega-purple"
+                autoFocus
+              />
+              <button
+                onClick={() => {
+                  updateField("tagline", taglineInput.trim() || null);
+                  setEditingTagline(false);
+                }}
+                className="px-3 py-2 rounded-lg bg-omega-purple text-white text-xs font-bold"
+              >
+                {savingField === "tagline" ? <Loader2 className="size-3 animate-spin" /> : "OK"}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setEditingTagline(true)}
+              className="flex items-center justify-center gap-1.5 mx-auto text-sm text-omega-muted hover:text-omega-purple transition-colors"
+            >
+              <MessageSquare className="size-3.5" />
+              {player.tagline ? (
+                <span className="italic">&ldquo;{player.tagline}&rdquo;</span>
+              ) : (
+                <span>Agregar frase de batalla</span>
+              )}
+            </button>
+          )}
 
           {/* Stats */}
           <div className="flex items-center justify-center gap-6">
@@ -278,11 +338,88 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Member since */}
+          <p className="text-[11px] text-omega-muted/60 flex items-center justify-center gap-1">
+            <Calendar className="size-3" />
+            Blader desde {memberSince}
+          </p>
+
           {player.is_eliminated && (
             <span className="inline-flex items-center rounded-full bg-omega-red/10 border border-omega-red/30 px-3 py-1 text-xs font-bold text-omega-red">
               ELIMINADO
             </span>
           )}
+        </div>
+
+        {/* Personalización */}
+        <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
+            <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
+              <Palette className="size-4 text-omega-purple" />
+              Personalizar
+            </h2>
+          </div>
+
+          <div className="p-4 space-y-4">
+            {/* Badge emoji */}
+            <div>
+              <p className="text-xs text-omega-muted mb-2">Emoji de perfil</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(BADGE_EMOJIS).map(([key, emoji]) => (
+                  <button
+                    key={key}
+                    onClick={() => updateField("badge", player.badge === key ? null : key)}
+                    className={`size-10 rounded-lg flex items-center justify-center text-lg transition-all ${
+                      player.badge === key
+                        ? "bg-omega-purple/20 border-2 border-omega-purple scale-110"
+                        : "bg-omega-dark border border-omega-border hover:border-omega-purple/50"
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Accent color */}
+            <div>
+              <p className="text-xs text-omega-muted mb-2">Color de perfil</p>
+              <div className="flex gap-2">
+                {Object.entries(ACCENT_COLORS).map(([key, config]) => (
+                  <button
+                    key={key}
+                    onClick={() => updateField("accent_color", key)}
+                    className={`size-8 rounded-full ${config.bg} transition-all ${
+                      player.accent_color === key
+                        ? "ring-2 ring-offset-2 ring-offset-omega-card scale-110"
+                        : "opacity-60 hover:opacity-100"
+                    }`}
+                    title={config.label}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Hide beys toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {player.hide_beys ? <EyeOff className="size-4 text-omega-muted" /> : <Eye className="size-4 text-omega-green" />}
+                <span className="text-sm text-omega-muted">Mostrar beys en perfil publico</span>
+              </div>
+              <button
+                onClick={() => updateField("hide_beys", !player.hide_beys)}
+                className={`w-10 h-6 rounded-full transition-all relative ${
+                  player.hide_beys ? "bg-omega-border" : "bg-omega-green"
+                }`}
+              >
+                <div
+                  className={`size-4 rounded-full bg-white absolute top-1 transition-all ${
+                    player.hide_beys ? "left-1" : "left-5"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Beys section */}
@@ -294,10 +431,9 @@ export default function ProfilePage() {
             </h2>
           </div>
 
-          {/* Bey list */}
           {beys.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-sm text-omega-muted/70">No tenés beys cargados todavía</p>
+              <p className="text-sm text-omega-muted/70">No tenes beys cargados todavia</p>
             </div>
           ) : (
             <div className="divide-y divide-omega-border/30">
@@ -305,10 +441,7 @@ export default function ProfilePage() {
                 const config = beyTypeConfig[bey.type];
                 const Icon = config.icon;
                 return (
-                  <div
-                    key={bey.id}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-omega-card/60 transition-colors"
-                  >
+                  <div key={bey.id} className="flex items-center gap-3 px-4 py-3 hover:bg-omega-card/60 transition-colors">
                     <div className={`size-8 rounded-lg border flex items-center justify-center ${config.bg}`}>
                       <Icon className={`size-4 ${config.color}`} />
                     </div>
@@ -354,11 +487,7 @@ export default function ProfilePage() {
                 disabled={addingBey || !newBeyName.trim()}
                 className="flex items-center justify-center size-10 rounded-lg bg-omega-purple text-white hover:bg-omega-purple-glow transition-colors disabled:opacity-50 shrink-0"
               >
-                {addingBey ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Plus className="size-5" />
-                )}
+                {addingBey ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-5" />}
               </button>
             </div>
           </div>

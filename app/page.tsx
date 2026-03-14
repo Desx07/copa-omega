@@ -47,11 +47,18 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-omega-black text-omega-text overflow-x-hidden">
+      {/* ═══ ANIMATED BG — covers entire page ═══ */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="orb-1 absolute top-[10%] right-[15%] w-[600px] h-[600px] rounded-full bg-omega-purple/[0.15] blur-[120px]" />
+        <div className="orb-2 absolute top-[45%] left-[5%] w-[500px] h-[500px] rounded-full bg-omega-blue/[0.12] blur-[100px]" />
+        <div className="orb-3 absolute bottom-[5%] right-[25%] w-[450px] h-[450px] rounded-full bg-omega-gold/[0.08] blur-[110px]" />
+      </div>
+
       {/* ═══ NAV ═══ */}
       <header className="sticky top-0 z-50 bg-omega-black/80 backdrop-blur-xl border-b border-omega-border/30">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-8">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
           <Link href="/">
-            <Image src="/copaomega-logo.png" alt="Copa Omega Stars" width={120} height={40} className="h-8 w-auto" priority />
+            <Image src="/bladers-text.png" alt="Bladers Santa Fe" width={150} height={42} className="h-7 w-auto" priority />
           </Link>
           <div className="flex items-center gap-2">
             <Link href="/auth/login" className="px-3 py-2 text-sm font-medium text-omega-muted hover:text-omega-text transition-colors">
@@ -73,10 +80,10 @@ export default async function LandingPage() {
           {/* Radial glow behind illustration area */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_65%_50%,_rgba(123,47,247,0.12)_0%,_rgba(0,180,216,0.06)_40%,_transparent_70%)]" />
 
-          <div className="relative mx-auto max-w-7xl px-6 md:px-8 pt-16 pb-20 md:pt-24 md:pb-28">
-            <div className="grid gap-10 md:grid-cols-2 md:items-center lg:gap-16">
+          <div className="relative mx-auto max-w-7xl px-4 md:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28">
+            <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
               {/* Illustration — FIRST on mobile */}
-              <div className="relative mx-auto w-full max-w-[260px] aspect-square sm:max-w-[320px] md:max-w-[420px] md:order-last">
+              <div className="relative mx-auto w-full max-w-[260px] aspect-square md:max-w-[320px] lg:max-w-[420px] lg:order-last">
                 {/* Glow */}
                 <div className="absolute inset-[15%] rounded-full bg-gradient-to-br from-omega-purple/20 via-omega-blue/15 to-transparent blur-[60px]" />
                 <div className="absolute inset-[15%] rounded-full shadow-[0_0_120px_60px_rgba(123,47,247,0.12)]" />
@@ -116,32 +123,30 @@ export default async function LandingPage() {
               </div>
 
               {/* Text — SECOND on mobile, FIRST on desktop */}
-              <div className="space-y-6 text-center md:text-left">
-                <Image src="/bladers-text.png" alt="Bladers Santa Fe" width={150} height={42} className="h-7 w-auto mx-auto md:mx-0 opacity-70" />
-
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight">
+              <div className="space-y-6 text-center lg:text-left">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight">
                   Competi por las estrellas,{" "}
                   <span className="bg-gradient-to-r from-omega-gold via-omega-gold-glow to-omega-gold bg-clip-text text-transparent text-glow-gold">
                     conquista el torneo
                   </span>
                 </h1>
 
-                <p className="text-lg md:text-xl text-omega-muted/90 max-w-lg mx-auto md:mx-0 leading-relaxed">
+                <p className="text-lg lg:text-xl text-omega-muted/90 max-w-lg mx-auto lg:mx-0 leading-relaxed">
                   El torneo oficial de Beyblade X en Santa Fe. Batalla, gana estrellas y clasifica al top 16.
                 </p>
 
                 {/* CTAs */}
-                <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center md:justify-start">
+                <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center lg:justify-start">
                   <Link
                     href="/auth/register"
-                    className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-black uppercase tracking-wide text-white bg-gradient-to-r from-omega-purple via-omega-blue to-omega-purple rounded-lg border border-omega-purple/30 shadow-[0_0_30px_rgba(123,47,247,0.4)] hover:shadow-[0_0_50px_rgba(123,47,247,0.6)] transition-all active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3.5 md:px-8 md:py-4 text-base font-black uppercase tracking-wide text-white bg-gradient-to-r from-omega-purple via-omega-blue to-omega-purple rounded-lg border border-omega-purple/30 shadow-[0_0_30px_rgba(123,47,247,0.4)] hover:shadow-[0_0_50px_rgba(123,47,247,0.6)] transition-all active:scale-95"
                   >
                     <Zap className="size-5" />
                     Unirme al torneo
                   </Link>
                   <Link
                     href="/dashboard"
-                    className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium text-omega-muted border border-omega-border/50 rounded-lg hover:text-omega-text hover:border-omega-purple/50 hover:bg-omega-purple/5 transition-all"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3.5 md:px-8 md:py-4 text-base font-medium text-omega-muted border border-omega-border/50 rounded-lg hover:text-omega-text hover:border-omega-purple/50 hover:bg-omega-purple/5 transition-all"
                   >
                     Ver ranking
                     <ArrowRight className="size-4" />
@@ -149,7 +154,7 @@ export default async function LandingPage() {
                 </div>
 
                 {/* Stats */}
-                <div className="flex items-center justify-center md:justify-start gap-8 md:gap-12 pt-4">
+                <div className="flex items-center justify-center lg:justify-start gap-5 sm:gap-8 lg:gap-12 pt-4">
                   <HeroStat value={totalPlayers} label="bladers" color="text-omega-blue" />
                   <div className="w-px h-10 bg-gradient-to-b from-transparent via-omega-border/60 to-transparent" />
                   <HeroStat value={totalStars} label="estrellas" color="text-omega-gold" />
@@ -163,7 +168,9 @@ export default async function LandingPage() {
 
 
         {/* ═══ COMO FUNCIONA ═══ */}
-        <section className="bg-omega-dark/50 py-12 md:py-16 px-6 md:px-8">
+        <section className="relative py-12 md:py-16 px-4 md:px-8 section-bg-steps">
+          {/* Top divider — hero to steps */}
+          <div className="absolute top-0 inset-x-0 section-divider" />
           <div className="mx-auto max-w-6xl">
             <p className="text-xs uppercase tracking-[0.3em] text-omega-purple font-bold mb-3 text-center">Como funciona</p>
             <h2 className="text-2xl md:text-3xl font-black text-center">En tres pasos empezas a competir</h2>
@@ -196,14 +203,17 @@ export default async function LandingPage() {
 
 
         {/* ═══ FEATURES — Bento Grid ═══ */}
-        <section className="mx-auto max-w-6xl px-6 md:px-8 py-12 md:py-16">
+        <section className="relative py-12 md:py-16 section-bg-features">
+          {/* Top divider — steps to features */}
+          <div className="absolute top-0 inset-x-0 section-divider" />
+          <div className="mx-auto max-w-6xl px-4 md:px-8">
           <p className="text-xs uppercase tracking-[0.3em] text-omega-blue font-bold mb-3 text-center">Funcionalidades</p>
           <h2 className="text-2xl md:text-3xl font-black text-center">Todo en un solo lugar</h2>
 
           {/* Desktop: bento 4-col. Tablet: 2-col. Mobile: 1-col */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-14">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-14">
             {/* Hero card — Ranking */}
-            <div className="group sm:col-span-2 relative overflow-hidden rounded-xl bg-gradient-to-br from-omega-card/60 to-omega-card/30 border border-omega-gold/20 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(255,214,10,0.1)] hover:border-omega-gold/40">
+            <div className="group md:col-span-2 relative overflow-hidden rounded-xl bg-gradient-to-br from-omega-card/60 to-omega-card/30 border border-omega-gold/20 p-5 md:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(255,214,10,0.1)] hover:border-omega-gold/40">
               <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-omega-gold/60 to-transparent" />
               <Crown className="size-10 text-omega-gold mb-4 transition-transform group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(255,214,10,0.5)]" />
               <h3 className="text-xl font-bold mb-1">Ranking en vivo</h3>
@@ -211,7 +221,7 @@ export default async function LandingPage() {
             </div>
 
             {/* Perfil */}
-            <div className="group sm:col-span-2 lg:col-span-2 rounded-xl bg-omega-card/30 border border-omega-border/30 p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-omega-card/50 hover:border-omega-blue/40 hover:shadow-[0_0_25px_rgba(0,180,216,0.1)]">
+            <div className="group md:col-span-2 lg:col-span-2 rounded-xl bg-omega-card/30 border border-omega-border/30 p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-omega-card/50 hover:border-omega-blue/40 hover:shadow-[0_0_25px_rgba(0,180,216,0.1)]">
               <UserCircle className="size-8 text-omega-blue mb-3 transition-transform group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(0,180,216,0.5)]" />
               <h3 className="text-base font-bold mb-1">Perfil de blader</h3>
               <p className="text-sm text-omega-muted">Tu foto, alias, beys y estadisticas.</p>
@@ -232,19 +242,21 @@ export default async function LandingPage() {
             </div>
 
             {/* Hero card — Sistema estrellas */}
-            <div className="group sm:col-span-2 relative overflow-hidden rounded-xl bg-gradient-to-br from-omega-card/60 to-omega-card/30 border border-omega-purple/20 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(123,47,247,0.1)] hover:border-omega-purple/40">
+            <div className="group md:col-span-2 relative overflow-hidden rounded-xl bg-gradient-to-br from-omega-card/60 to-omega-card/30 border border-omega-purple/20 p-5 md:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(123,47,247,0.1)] hover:border-omega-purple/40">
               <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-omega-purple/60 to-transparent" />
               <Target className="size-10 text-omega-gold mb-4 transition-transform group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(255,214,10,0.5)]" />
               <h3 className="text-xl font-bold mb-1">Sistema de estrellas</h3>
               <p className="text-sm text-omega-muted">Aposta de 1 a 5 estrellas por batalla. El ganador se las lleva.</p>
             </div>
           </div>
+          </div>
         </section>
 
 
         {/* ═══ LEADERBOARD ═══ */}
-        <section className="bg-omega-dark/80 py-12 md:py-16 px-6 md:px-8">
-          <div className="energy-line max-w-6xl mx-auto mb-10" />
+        <section className="relative py-12 md:py-16 px-4 md:px-8 section-bg-leaderboard">
+          {/* Top divider — features to leaderboard */}
+          <div className="absolute top-0 inset-x-0 section-divider-gold" />
 
           <div className="mx-auto max-w-6xl">
             <p className="text-xs uppercase tracking-[0.3em] text-omega-gold font-bold mb-3 text-center">Torneo activo</p>
@@ -331,11 +343,8 @@ export default async function LandingPage() {
       </main>
 
       {/* ═══ FOOTER ═══ */}
-      <footer className="border-t border-omega-border/20 py-8 px-6 md:px-8">
-        <div className="mx-auto max-w-7xl flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-          <Image src="/copaomega-logo.png" alt="" width={100} height={32} className="h-7 w-auto opacity-50" />
-          <p className="text-xs text-omega-muted/50">&copy; {new Date().getFullYear()} Bladers Santa Fe — Beyblade X</p>
-        </div>
+      <footer className="py-8 px-4 md:px-8">
+        <p className="text-center text-xs text-omega-muted/50">&copy; {new Date().getFullYear()} Bladers Santa Fe — Beyblade X</p>
       </footer>
     </div>
   );

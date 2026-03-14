@@ -11,7 +11,9 @@ import {
   Trophy,
   Flame,
   Crown,
+  Calendar,
 } from "lucide-react";
+import { getTitle, BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 
 const beyTypeConfig = {
   attack: { label: "Ataque", icon: Swords, color: "text-omega-red", bg: "bg-omega-red/10 border-omega-red/30" },
@@ -31,7 +33,7 @@ export default async function PlayerProfilePage({
   const [playerResult, beysResult, matchesResult] = await Promise.all([
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, created_at")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, created_at, tagline, hide_beys, badge, accent_color")
       .eq("id", id)
       .eq("is_hidden", false)
       .single(),
@@ -115,27 +117,41 @@ export default async function PlayerProfilePage({
         {/* Player card */}
         <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">
           {/* Avatar */}
-          <div className="size-24 rounded-full border-2 border-omega-purple overflow-hidden bg-omega-dark mx-auto">
-            {player.avatar_url ? (
-              <img
-                src={player.avatar_url}
-                alt={player.alias}
-                className="size-full object-cover"
-              />
-            ) : (
-              <div className="size-full flex items-center justify-center text-3xl font-black text-omega-purple">
-                {player.alias.charAt(0).toUpperCase()}
+          {(() => {
+            const ac = ACCENT_COLORS[(player as unknown as { accent_color: string }).accent_color] || ACCENT_COLORS.purple;
+            return (
+              <div className={`size-24 rounded-full border-2 ${ac.border} overflow-hidden bg-omega-dark mx-auto`}>
+                {player.avatar_url ? (
+                  <img src={player.avatar_url} alt={player.alias} className="size-full object-cover" />
+                ) : (
+                  <div className="size-full flex items-center justify-center text-3xl font-black text-omega-purple">
+                    {player.alias.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
-          {/* Name */}
+          {/* Name, badge, title */}
           <div>
-            <p className="text-lg font-black text-omega-text">{player.alias}</p>
+            <p className="text-lg font-black text-omega-text">
+              {(player as unknown as { badge: string | null }).badge && (
+                <span className="mr-1">{BADGE_EMOJIS[(player as unknown as { badge: string }).badge]}</span>
+              )}
+              {player.alias}
+            </p>
+            <p className={`text-xs font-bold ${getTitle(player.wins, player.losses, currentStreak).color}`}>
+              {getTitle(player.wins, player.losses, currentStreak).label}
+            </p>
             <p className="text-sm text-omega-muted">{player.full_name}</p>
             {rank > 0 && (
               <p className="text-xs text-omega-muted mt-1">
                 Ranking <span className="text-omega-gold font-bold">#{rank}</span>
+              </p>
+            )}
+            {(player as unknown as { tagline: string | null }).tagline && (
+              <p className="text-sm text-omega-muted/80 italic mt-2">
+                &ldquo;{(player as unknown as { tagline: string }).tagline}&rdquo;
               </p>
             )}
           </div>
@@ -183,6 +199,12 @@ export default async function PlayerProfilePage({
             </div>
           )}
 
+          {/* Member since */}
+          <p className="text-[11px] text-omega-muted/60 flex items-center justify-center gap-1">
+            <Calendar className="size-3" />
+            Blader desde {new Date(player.created_at).toLocaleDateString("es-AR", { month: "long", year: "numeric" })}
+          </p>
+
           {player.is_eliminated && (
             <span className="inline-flex items-center rounded-full bg-omega-red/10 border border-omega-red/30 px-3 py-1 text-xs font-bold text-omega-red">
               ELIMINADO
@@ -190,8 +212,8 @@ export default async function PlayerProfilePage({
           )}
         </div>
 
-        {/* Beys */}
-        {beys.length > 0 && (
+        {/* Beys — hidden if player chose to hide */}
+        {!(player as unknown as { hide_beys: boolean }).hide_beys && beys.length > 0 && (
           <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
               <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
