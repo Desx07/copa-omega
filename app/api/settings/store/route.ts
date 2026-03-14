@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 
-// GET — check if store is enabled
+// GET — check store status: 'open' | 'closed' | 'hidden'
 export async function GET() {
   const supabase = await createClient();
 
@@ -10,10 +10,11 @@ export async function GET() {
     .eq("key", "store_enabled")
     .single();
 
-  return Response.json({ enabled: data?.value === "true" });
+  const status = data?.value ?? "open";
+  return Response.json({ status });
 }
 
-// PATCH — toggle store (admin only)
+// PATCH — change store status (admin only)
 export async function PATCH(request: Request) {
   const supabase = await createClient();
 
@@ -35,16 +36,19 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const enabled = body.enabled === true;
+  const validStatuses = ["open", "closed", "hidden"];
+  if (!validStatuses.includes(body.status)) {
+    return Response.json({ error: "Estado inválido" }, { status: 400 });
+  }
 
   const { error } = await supabase
     .from("app_settings")
-    .update({ value: enabled ? "true" : "false", updated_at: new Date().toISOString() })
+    .update({ value: body.status, updated_at: new Date().toISOString() })
     .eq("key", "store_enabled");
 
   if (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json({ enabled });
+  return Response.json({ status: body.status });
 }

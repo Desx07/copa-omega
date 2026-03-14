@@ -6,13 +6,13 @@ import {
   Trophy,
   User,
   Shield,
-  ShoppingBag,
   Package,
   ClipboardList,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 import { StoreToggle } from "@/app/_components/store-toggle";
+import { StoreButton } from "@/app/_components/store-button";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -192,16 +192,7 @@ export default async function DashboardPage() {
           <p className="text-xs text-white/60 mt-0.5">Inscripción e historial</p>
         </Link>
 
-        <Link
-          href="/store"
-          className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-red/25 to-omega-red/5 p-5 shadow-md shadow-omega-red/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
-            <ShoppingBag className="size-6 text-white" />
-          </div>
-          <p className="font-bold text-white text-sm">Tienda</p>
-          <p className="text-xs text-white/60 mt-0.5">Productos y pedidos</p>
-        </Link>
+        <StoreButton />
 
         {player.is_admin && (
           <>

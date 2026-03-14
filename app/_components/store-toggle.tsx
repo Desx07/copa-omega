@@ -4,59 +4,80 @@ import { useState, useEffect } from "react";
 import { Store, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+type StoreStatus = "open" | "closed" | "hidden";
+
+const statusConfig: Record<StoreStatus, { label: string; desc: string; color: string; next: StoreStatus }> = {
+  open: { label: "Abierta", desc: "Visible y operativa", color: "text-omega-green", next: "closed" },
+  closed: { label: "Cerrada", desc: "Se ve el cartel de mantenimiento", color: "text-omega-gold", next: "hidden" },
+  hidden: { label: "Oculta", desc: "No aparece en el dashboard", color: "text-omega-red", next: "open" },
+};
+
 export function StoreToggle() {
-  const [enabled, setEnabled] = useState(true);
+  const [status, setStatus] = useState<StoreStatus>("open");
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings/store")
       .then((r) => r.json())
-      .then((d) => setEnabled(d.enabled))
+      .then((d) => setStatus(d.status || "open"))
       .finally(() => setLoading(false));
   }, []);
 
-  async function handleToggle() {
+  async function handleCycle() {
     setToggling(true);
+    const next = statusConfig[status].next;
     try {
       const res = await fetch("/api/settings/store", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !enabled }),
+        body: JSON.stringify({ status: next }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setEnabled(data.enabled);
-        toast.success(data.enabled ? "Tienda habilitada" : "Tienda deshabilitada");
+        setStatus(next);
+        toast.success(`Tienda: ${statusConfig[next].label}`);
       }
     } catch {
-      toast.error("Error cambiando estado de la tienda");
+      toast.error("Error cambiando estado");
     }
     setToggling(false);
   }
 
   if (loading) return null;
 
+  const config = statusConfig[status];
+
   return (
     <div className="flex items-center justify-between rounded-2xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4">
       <div className="flex items-center gap-3">
-        <Store className={`size-5 ${enabled ? "text-omega-green" : "text-omega-red"}`} />
+        <Store className={`size-5 ${config.color}`} />
         <div>
-          <p className="text-sm font-bold text-omega-text">Tienda</p>
-          <p className="text-xs text-omega-muted">{enabled ? "Visible para todos" : "Cerrada (mantenimiento)"}</p>
+          <p className="text-sm font-bold text-omega-text">Tienda: <span className={config.color}>{config.label}</span></p>
+          <p className="text-xs text-omega-muted">{config.desc}</p>
         </div>
       </div>
       <button
-        onClick={handleToggle}
+        onClick={handleCycle}
         disabled={toggling}
-        className={`w-12 h-7 rounded-full transition-all relative ${enabled ? "bg-omega-green" : "bg-omega-border"} disabled:opacity-50`}
+        className="px-3 py-1.5 rounded-lg border border-omega-border text-xs font-bold text-omega-muted hover:text-omega-text hover:border-omega-purple/50 transition-all disabled:opacity-50"
       >
-        {toggling ? (
-          <Loader2 className="size-4 animate-spin text-white absolute top-1.5 left-4" />
-        ) : (
-          <div className={`size-5 rounded-full bg-white absolute top-1 transition-all ${enabled ? "left-6" : "left-1"}`} />
-        )}
+        {toggling ? <Loader2 className="size-3 animate-spin" /> : "Cambiar"}
       </button>
     </div>
   );
+}
+
+// Export for dashboard to check if store button should be shown
+export function useStoreStatus() {
+  const [status, setStatus] = useState<StoreStatus>("open");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/settings/store")
+      .then((r) => r.json())
+      .then((d) => setStatus(d.status || "open"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { status, loading };
 }

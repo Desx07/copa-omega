@@ -32,7 +32,7 @@ interface Product {
 export default function StorePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [storeEnabled, setStoreEnabled] = useState(true);
+  const [storeStatus, setStoreStatus] = useState<string>("open");
   const { addItem, totalItems } = useCart();
 
   const fetchProducts = useCallback(async () => {
@@ -41,8 +41,8 @@ export default function StorePage() {
       const settingsRes = await fetch("/api/settings/store");
       if (settingsRes.ok) {
         const settingsData = await settingsRes.json();
-        setStoreEnabled(settingsData.enabled);
-        if (!settingsData.enabled) {
+        setStoreStatus(settingsData.status || "open");
+        if (settingsData.status !== "open") {
           setLoading(false);
           return;
         }
@@ -77,7 +77,7 @@ export default function StorePage() {
     toast.success(`${product.name} agregado al carrito`);
   }
 
-  if (!storeEnabled) {
+  if (storeStatus !== "open") {
     return (
       <div className="px-4 py-6 max-w-2xl mx-auto">
         <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors mb-4">
