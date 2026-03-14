@@ -329,8 +329,8 @@ export async function POST(request: Request) {
       + (statsContext ? "\n\n[DATOS DEL TORNEO]:" + statsContext : "")
       + (searchContext ? "\n\n" + searchContext + "\n\nUsá esta info actualizada para complementar tu respuesta, pero verificá que tenga sentido con lo que ya sabés. Si contradice tu base de conocimiento, mencionalo." : "");
 
-    // Keep last 20 messages to avoid context overflow
-    const contextMessages = trimmedMessages.slice(-20);
+    // Keep last 10 messages to avoid context overflow (system prompt is ~2300 tokens)
+    const contextMessages = trimmedMessages.slice(-10);
 
     let reply = "";
     try {
