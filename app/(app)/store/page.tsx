@@ -32,10 +32,22 @@ interface Product {
 export default function StorePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [storeEnabled, setStoreEnabled] = useState(true);
   const { addItem, totalItems } = useCart();
 
   const fetchProducts = useCallback(async () => {
     try {
+      // Check store toggle
+      const settingsRes = await fetch("/api/settings/store");
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        setStoreEnabled(settingsData.enabled);
+        if (!settingsData.enabled) {
+          setLoading(false);
+          return;
+        }
+      }
+
       const res = await fetch("/api/products");
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
@@ -63,6 +75,22 @@ export default function StorePage() {
       image_url: mainImage,
     });
     toast.success(`${product.name} agregado al carrito`);
+  }
+
+  if (!storeEnabled) {
+    return (
+      <div className="px-4 py-6 max-w-2xl mx-auto">
+        <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors mb-4">
+          <ArrowLeft className="size-4" />
+          Dashboard
+        </Link>
+        <div className="rounded-2xl border border-omega-border bg-omega-card/40 p-10 text-center space-y-3 mt-4">
+          <Package className="size-12 text-omega-muted/30 mx-auto" />
+          <h2 className="text-xl font-black text-omega-text">Tienda cerrada</h2>
+          <p className="text-sm text-omega-muted">La tienda está en mantenimiento. Volvé pronto!</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
+import { StoreToggle } from "@/app/_components/store-toggle";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -250,6 +251,9 @@ export default async function DashboardPage() {
           </>
         )}
       </div>
+
+      {/* Store toggle — admin only */}
+      {player.is_admin && <StoreToggle />}
 
       {/* Recent matches */}
       <div className="rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-sm overflow-hidden shadow-lg shadow-omega-dark/30">
