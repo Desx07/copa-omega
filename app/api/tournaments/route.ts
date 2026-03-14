@@ -110,10 +110,11 @@ export async function POST(request: Request) {
 
     // Generate QR code data (URL for registration)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-      ? process.env.NEXT_PUBLIC_APP_URL
-      : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3000";
+      || (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3002");
     const qrCode = `${baseUrl}/tournaments/${tournament.id}/register`;
 
     // Update with QR code data

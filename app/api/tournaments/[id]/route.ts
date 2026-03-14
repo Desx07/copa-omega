@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // GET /api/tournaments/[id] — Tournament detail with participants and matches
 export async function GET(
@@ -68,5 +69,51 @@ export async function GET(
       { error: "Error interno del servidor" },
       { status: 500 }
     );
+  }
+}
+
+// DELETE /api/tournaments/[id] — Delete tournament (admin only)
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return Response.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const { data: admin } = await supabase
+      .from("players")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+
+    if (!admin?.is_admin) {
+      return Response.json({ error: "Solo administradores" }, { status: 403 });
+    }
+
+    // Use admin client to bypass RLS for cascade delete
+    const adminClient = createAdminClient();
+
+    // Delete tournament (cascades to participants, matches, points)
+    const { error } = await adminClient
+      .from("tournaments")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      return Response.json({ error: error.message }, { status: 500 });
+    }
+
+    return Response.json({ success: true });
+  } catch (err) {
+    console.error("DELETE /api/tournaments/[id] error:", err);
+    return Response.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

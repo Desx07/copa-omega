@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Play, Loader2, XCircle, CheckCircle, AlertTriangle } from "lucide-react";
+import { Play, Loader2, XCircle, CheckCircle, AlertTriangle, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -23,6 +23,25 @@ export default function TournamentAdminActions({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+
+  async function handleDelete() {
+    if (!confirm("¿Eliminar este torneo completamente? Se borrarán todas las partidas y participantes.")) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/tournaments/${tournamentId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Error eliminando");
+        return;
+      }
+      toast.success("Torneo eliminado");
+      router.push("/admin/tournaments");
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleStart() {
     if (participantCount < 2) {
@@ -198,6 +217,16 @@ export default function TournamentAdminActions({
           Cancelar torneo
         </button>
       )}
+
+      {/* Delete button — always available */}
+      <button
+        onClick={handleDelete}
+        disabled={loading}
+        className="flex items-center justify-center gap-2 w-full rounded-xl border border-omega-border/30 px-4 py-2 text-xs font-medium text-omega-muted hover:text-omega-red hover:border-omega-red/30 transition-all disabled:opacity-50"
+      >
+        <Trash2 className="size-3.5" />
+        Eliminar torneo
+      </button>
     </div>
   );
 }
