@@ -21,7 +21,21 @@
       "Read(//c/Users/ariel/**)",
       "Bash(cp:*)",
       "Bash(cd:*)",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "WebFetch(domain:beyblade.takaratomy.co.jp)",
+      "WebFetch(domain:en.riotpixels.com)",
+      "WebFetch(domain:store.steampowered.com)",
+      "WebFetch(domain:beyblade.fandom.com)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:logos.fandom.com)",
+      "WebFetch(domain:seeklogo.com)",
+      "WebFetch(domain:wall.alphacoders.com)",
+      "WebFetch(domain:www.mobygames.com)",
+      "WebFetch(domain:steamcommunity.com)",
+      "WebFetch(domain:www.takaratomy.co.jp)",
+      "WebFetch(domain:www.color-hex.com)",
+      "WebFetch(domain:www.dorkaholics.com)",
+      "WebFetch(domain:www.media.io)"
     ]
   }
 }
