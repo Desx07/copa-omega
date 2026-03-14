@@ -12,6 +12,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 import { LogoutButtonFull } from "@/app/_components/logout-button-full";
+import { QrScannerButton } from "@/app/_components/qr-scanner";
 import { StoreToggle } from "@/app/_components/store-toggle";
 import { StoreButton } from "@/app/_components/store-button";
 
@@ -181,6 +182,8 @@ export default async function DashboardPage() {
           <p className="font-bold text-white text-sm">Mi Perfil</p>
           <p className="text-xs text-white/60 mt-0.5">Editar y personalizar</p>
         </Link>
+
+        <QrScannerButton />
 
         <Link
           href="/tournaments"
