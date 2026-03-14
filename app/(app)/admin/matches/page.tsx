@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Star, Swords, Trophy, ArrowLeft, Plus, Crown } from "lucide-react";
-import { LogoutButton } from "@/app/_components/logout-button";
+import { Star, Swords, Trophy, Plus, Crown } from "lucide-react";
 
 export default async function AdminMatchesPage() {
   const supabase = await createClient();
@@ -39,21 +38,12 @@ export default async function AdminMatchesPage() {
   const completedMatches = allMatches.filter((m) => m.status === "completed");
 
   return (
-    <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
+    <div className="px-4 py-6 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
-            aria-label="Volver al ranking"
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <Swords className="size-5 text-omega-blue" />
-            <h1 className="text-2xl font-black neon-blue">PARTIDAS</h1>
-          </div>
+        <div className="flex items-center gap-2">
+          <Swords className="size-5 text-omega-blue" />
+          <h1 className="text-2xl font-black neon-blue">PARTIDAS</h1>
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -69,7 +59,6 @@ export default async function AdminMatchesPage() {
             <Plus className="size-4" />
             Nueva
           </Link>
-          <LogoutButton />
         </div>
       </div>
 

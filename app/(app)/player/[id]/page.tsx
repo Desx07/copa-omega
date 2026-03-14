@@ -1,9 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import {
   Star,
-  ArrowLeft,
   Swords,
   ShieldHalf,
   Timer,
@@ -99,20 +97,7 @@ export default async function PlayerProfilePage({
   const rank = allPlayers ? allPlayers.findIndex((p) => p.id === id) + 1 : 0;
 
   return (
-    <div className="min-h-screen bg-omega-black">
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-omega-purple)_0%,_transparent_60%)] opacity-10 pointer-events-none" />
-
-      <div className="relative z-10 mx-auto max-w-md px-4 py-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
-          <h1 className="text-xl font-black neon-purple">PERFIL</h1>
-        </div>
+    <div className="mx-auto max-w-md px-4 py-6 space-y-6">
 
         {/* Player card */}
         <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">
@@ -297,7 +282,6 @@ export default async function PlayerProfilePage({
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

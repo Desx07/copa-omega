@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, Trophy, Crown, Flame, ArrowLeft, Swords } from "lucide-react";
+import { Star, Trophy, Crown, Flame, Swords } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function RankingPage() {
@@ -55,12 +55,7 @@ export default async function RankingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-omega-black">
-      {/* Background effects */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-omega-purple)_0%,_transparent_60%)] opacity-10 pointer-events-none" />
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--color-omega-blue)_0%,_transparent_50%)] opacity-5 pointer-events-none" />
-
-      <div className="relative z-10 mx-auto max-w-3xl px-4 py-8 space-y-6">
+    <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-3">
@@ -73,17 +68,6 @@ export default async function RankingPage() {
           <p className="text-sm text-omega-muted">
             Copa Omega Star — Bladers Santa Fe
           </p>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-start">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors"
-          >
-            <ArrowLeft className="size-4" />
-            Volver
-          </Link>
         </div>
 
         {/* Empty state */}
@@ -267,11 +251,6 @@ export default async function RankingPage() {
           </div>
         )}
 
-        {/* Footer */}
-        <footer className="text-center py-4 text-xs text-omega-muted/50">
-          Copa Omega Star &copy; 2026 — Bladers Santa Fe
-        </footer>
-      </div>
     </div>
   );
 }

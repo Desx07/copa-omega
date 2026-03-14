@@ -19,7 +19,9 @@
       "WebFetch(domain:copa-omega-rho.vercel.app)",
       "WebFetch(domain:instagram.com)",
       "Read(//c/Users/ariel/**)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(cd:*)",
+      "Bash(tail:*)"
     ]
   }
 }

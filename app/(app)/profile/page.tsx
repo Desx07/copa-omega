@@ -2,10 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   Star,
-  ArrowLeft,
   Camera,
   Loader2,
   Trash2,
@@ -66,16 +64,13 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [savingField, setSavingField] = useState<string | null>(null);
 
-  // New bey form
   const [newBeyName, setNewBeyName] = useState("");
   const [newBeyType, setNewBeyType] = useState<Bey["type"]>("attack");
   const [addingBey, setAddingBey] = useState(false);
 
-  // Tagline edit
   const [editingTagline, setEditingTagline] = useState(false);
   const [taglineInput, setTaglineInput] = useState("");
 
-  // Image cropper
   const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   useEffect(() => {
@@ -139,7 +134,6 @@ export default function ProfilePage() {
     const reader = new FileReader();
     reader.onload = () => setCropSrc(reader.result as string);
     reader.readAsDataURL(file);
-    // Reset input so same file can be selected again
     e.target.value = "";
   }
 
@@ -150,20 +144,13 @@ export default function ProfilePage() {
     try {
       const path = `${player.id}/avatar.jpeg`;
       await supabase.storage.from("avatars").remove([path]);
-
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(path, blob, { upsert: true, contentType: "image/jpeg" });
 
-      if (uploadError) {
-        toast.error("Error subiendo imagen");
-        return;
-      }
+      if (uploadError) { toast.error("Error subiendo imagen"); return; }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("avatars").getPublicUrl(path);
-
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
       const avatarUrl = `${publicUrl}?t=${Date.now()}`;
 
       const { error: updateError } = await supabase
@@ -171,18 +158,11 @@ export default function ProfilePage() {
         .update({ avatar_url: avatarUrl })
         .eq("id", player.id);
 
-      if (updateError) {
-        toast.error("Error actualizando perfil");
-        return;
-      }
-
+      if (updateError) { toast.error("Error actualizando perfil"); return; }
       setPlayer({ ...player, avatar_url: avatarUrl });
       toast.success("Foto actualizada!");
-    } catch {
-      toast.error("Error de conexion");
-    } finally {
-      setUploading(false);
-    }
+    } catch { toast.error("Error de conexion"); }
+    finally { setUploading(false); }
   }
 
   async function handleAddBey() {
@@ -194,39 +174,24 @@ export default function ProfilePage() {
         .insert({ player_id: player.id, name: newBeyName.trim(), type: newBeyType })
         .select("id, name, type")
         .single();
-
-      if (error) {
-        toast.error("Error agregando bey");
-        return;
-      }
+      if (error) { toast.error("Error agregando bey"); return; }
       setBeys([...beys, data]);
       setNewBeyName("");
       toast.success("Bey agregado!");
-    } catch {
-      toast.error("Error de conexion");
-    } finally {
-      setAddingBey(false);
-    }
+    } catch { toast.error("Error de conexion"); }
+    finally { setAddingBey(false); }
   }
 
   async function handleDeleteBey(beyId: string) {
     const { error } = await supabase.from("beys").delete().eq("id", beyId);
-    if (error) {
-      toast.error("Error eliminando bey");
-      return;
-    }
+    if (error) { toast.error("Error eliminando bey"); return; }
     setBeys(beys.filter((b) => b.id !== beyId));
     toast.success("Bey eliminado");
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push("/");
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <Loader2 className="size-8 animate-spin text-omega-purple" />
       </div>
     );
@@ -238,29 +203,10 @@ export default function ProfilePage() {
   const memberSince = new Date(player.created_at).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
 
   return (
-    <div className="min-h-screen bg-omega-black">
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-omega-purple)_0%,_transparent_60%)] opacity-10 pointer-events-none" />
-
-      <div className="relative z-10 mx-auto max-w-md px-4 py-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
-          <h1 className="text-xl font-black neon-purple">MI PERFIL</h1>
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-red hover:border-omega-red/50 transition-all"
-          >
-            <LogOut className="size-5" />
-          </button>
-        </div>
-
+    <>
+      <div className="mx-auto max-w-md px-4 py-6 space-y-6">
         {/* Avatar + Stats card */}
-        <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">
+        <div className="rounded-2xl border-l-4 border-l-omega-purple border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">
           {/* Avatar */}
           <div className="relative inline-block">
             <div className={`size-32 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark mx-auto`}>
@@ -282,7 +228,7 @@ export default function ProfilePage() {
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileSelect} />
           </div>
 
-          {/* Name, badge, title */}
+          {/* Name + badge */}
           <div>
             <p className="text-lg font-black text-omega-text">
               {player.badge && <span className="mr-1">{BADGE_EMOJIS[player.badge]}</span>}
@@ -303,10 +249,7 @@ export default function ProfilePage() {
                 autoFocus
               />
               <button
-                onClick={() => {
-                  updateField("tagline", taglineInput.trim() || null);
-                  setEditingTagline(false);
-                }}
+                onClick={() => { updateField("tagline", taglineInput.trim() || null); setEditingTagline(false); }}
                 className="px-3 py-2 rounded-lg bg-omega-purple text-white text-xs font-bold"
               >
                 {savingField === "tagline" ? <Loader2 className="size-3 animate-spin" /> : "OK"}
@@ -346,7 +289,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Member since */}
           <p className="text-[11px] text-omega-muted/60 flex items-center justify-center gap-1">
             <Calendar className="size-3" />
             Blader desde {memberSince}
@@ -360,10 +302,10 @@ export default function ProfilePage() {
         </div>
 
         {/* Personalización */}
-        <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+        <div className="rounded-2xl border-l-4 border-l-omega-gold border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
             <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
-              <Palette className="size-4 text-omega-purple" />
+              <Palette className="size-4 text-omega-gold" />
               Personalizar
             </h2>
           </div>
@@ -418,25 +360,19 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={() => updateField("hide_beys", !player.hide_beys)}
-                className={`w-10 h-6 rounded-full transition-all relative ${
-                  player.hide_beys ? "bg-omega-border" : "bg-omega-green"
-                }`}
+                className={`w-10 h-6 rounded-full transition-all relative ${player.hide_beys ? "bg-omega-border" : "bg-omega-green"}`}
               >
-                <div
-                  className={`size-4 rounded-full bg-white absolute top-1 transition-all ${
-                    player.hide_beys ? "left-1" : "left-5"
-                  }`}
-                />
+                <div className={`size-4 rounded-full bg-white absolute top-1 transition-all ${player.hide_beys ? "left-1" : "left-5"}`} />
               </button>
             </div>
           </div>
         </div>
 
         {/* Beys section */}
-        <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+        <div className="rounded-2xl border-l-4 border-l-omega-blue border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
             <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
-              <Swords className="size-4 text-omega-purple" />
+              <Swords className="size-4 text-omega-blue" />
               Mis Beys
             </h2>
           </div>
@@ -471,7 +407,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Add bey form */}
           <div className="p-4 border-t border-omega-border bg-omega-card/30">
             <div className="flex gap-2">
               <input
@@ -502,6 +437,18 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Logout */}
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            window.location.href = "/";
+          }}
+          className="w-full flex items-center justify-center gap-2 rounded-xl border border-omega-border bg-omega-card/40 py-3 text-sm font-medium text-omega-muted hover:text-omega-red hover:border-omega-red/30 transition-all"
+        >
+          <LogOut className="size-4" />
+          Cerrar sesion
+        </button>
       </div>
 
       {/* Image cropper modal */}
@@ -512,6 +459,6 @@ export default function ProfilePage() {
           onCancel={() => setCropSrc(null)}
         />
       )}
-    </div>
+    </>
   );
 }

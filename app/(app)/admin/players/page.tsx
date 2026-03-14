@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Star, Users, Shield, ArrowLeft, UserX, UserCheck, EyeOff } from "lucide-react";
+import { Star, Users, Shield, UserCheck, EyeOff } from "lucide-react";
 import { PlayerActions } from "./_components/player-actions";
-import { LogoutButton } from "@/app/_components/logout-button";
 
 export default async function AdminPlayersPage() {
   const supabase = await createClient();
@@ -37,23 +36,19 @@ export default async function AdminPlayersPage() {
   const hiddenPlayers = allPlayers.filter((p) => p.is_hidden).length;
 
   return (
-    <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
+    <div className="px-4 py-6 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/admin/matches"
-            className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
-            aria-label="Volver a partidas"
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <Shield className="size-5 text-omega-purple" />
-            <h1 className="text-2xl font-black neon-blue">JUGADORES</h1>
-          </div>
+        <div className="flex items-center gap-2">
+          <Shield className="size-5 text-omega-purple" />
+          <h1 className="text-2xl font-black neon-blue">JUGADORES</h1>
         </div>
-        <LogoutButton />
+        <Link
+          href="/admin/matches"
+          className="flex items-center gap-1.5 rounded-lg border border-omega-border bg-omega-card/60 px-3 py-1.5 text-xs font-medium text-omega-muted hover:text-omega-blue hover:border-omega-blue/50 transition-all"
+        >
+          Partidas
+        </Link>
       </div>
 
       {/* Stats bar */}
