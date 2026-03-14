@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Star,
   Camera,
+  ArrowLeft,
   Loader2,
   Trash2,
   Plus,
@@ -205,6 +207,12 @@ export default function ProfilePage() {
   return (
     <>
       <div className="mx-auto max-w-md px-4 py-6 space-y-6">
+        {/* Back */}
+        <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
+          <ArrowLeft className="size-4" />
+          Volver
+        </Link>
+
         {/* Avatar + Stats card */}
         <div className="relative overflow-hidden rounded-2xl border border-omega-purple/20 bg-gradient-to-br from-omega-card/60 to-omega-card/30 p-6 text-center space-y-4 backdrop-blur-sm">
           {/* Avatar */}

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Star, Users, Shield, UserCheck, EyeOff } from "lucide-react";
+import { Star, Users, Shield, UserCheck, EyeOff, ArrowLeft } from "lucide-react";
 import { PlayerActions } from "./_components/player-actions";
 
 export default async function AdminPlayersPage() {
@@ -37,6 +37,12 @@ export default async function AdminPlayersPage() {
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto">
+      {/* Back */}
+      <Link href="/admin/matches" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors mb-4">
+        <ArrowLeft className="size-4" />
+        Partidas
+      </Link>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">

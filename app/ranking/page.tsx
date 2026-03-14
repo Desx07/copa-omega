@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { Star, Trophy, Crown, Flame, Swords } from "lucide-react";
+import { Star, Trophy, Crown, Flame, Swords, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function RankingPage() {
   const supabase = await createClient();
+
+  // Check if logged in (for back button)
+  const { data: { user } } = await supabase.auth.getUser();
 
   // Leaderboard + recent matches
   const [playersResult, matchesResult] = await Promise.all([
@@ -63,6 +66,19 @@ export default async function RankingPage() {
         <div className="absolute inset-0 hero-grid opacity-30" />
       </div>
     <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
+        {/* Back */}
+        {user ? (
+          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
+            <ArrowLeft className="size-4" />
+            Dashboard
+          </Link>
+        ) : (
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
+            <ArrowLeft className="size-4" />
+            Inicio
+          </Link>
+        )}
+
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-3">

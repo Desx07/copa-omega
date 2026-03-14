@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import {
   Star,
   Swords,
+  ArrowLeft,
   ShieldHalf,
   Timer,
   Scale,
@@ -98,6 +100,11 @@ export default async function PlayerProfilePage({
 
   return (
     <div className="mx-auto max-w-md px-4 py-6 space-y-6">
+        {/* Back */}
+        <Link href="/ranking" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
+          <ArrowLeft className="size-4" />
+          Volver al ranking
+        </Link>
 
         {/* Player card */}
         <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">

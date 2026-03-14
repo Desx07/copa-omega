@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Star, Swords, Trophy, Plus, Crown } from "lucide-react";
+import { Star, Swords, Trophy, Plus, Crown, ArrowLeft } from "lucide-react";
 
 export default async function AdminMatchesPage() {
   const supabase = await createClient();
@@ -39,6 +39,12 @@ export default async function AdminMatchesPage() {
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto">
+      {/* Back */}
+      <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors mb-4">
+        <ArrowLeft className="size-4" />
+        Dashboard
+      </Link>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
