@@ -40,7 +40,12 @@
       "WebFetch(domain:www.beycase.com)",
       "WebFetch(domain:beybase.com)",
       "WebFetch(domain:challonge.com)",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "WebFetch(domain:www.figma.com)",
+      "WebFetch(domain:dribbble.com)",
+      "WebFetch(domain:www.pinterest.com)",
+      "WebFetch(domain:muz.li)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

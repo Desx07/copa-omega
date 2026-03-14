@@ -20,6 +20,8 @@ import {
   EyeOff,
   Palette,
   Calendar,
+  Trophy,
+  Flame,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -77,6 +79,8 @@ export default function ProfilePage() {
 
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [earnedBadgeIds, setEarnedBadgeIds] = useState<string[]>([]);
+  const [rank, setRank] = useState(0);
+  const [totalPlayers, setTotalPlayers] = useState(0);
 
   useEffect(() => {
     loadProfile();
@@ -92,7 +96,7 @@ export default function ProfilePage() {
       return;
     }
 
-    const [playerResult, beysResult, badgesResult] = await Promise.all([
+    const [playerResult, beysResult, badgesResult, allPlayersResult] = await Promise.all([
       supabase
         .from("players")
         .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at")
@@ -107,6 +111,13 @@ export default function ProfilePage() {
         .from("player_badges")
         .select("badge_id")
         .eq("player_id", user.id),
+      supabase
+        .from("players")
+        .select("id")
+        .eq("is_hidden", false)
+        .order("stars", { ascending: false })
+        .order("wins", { ascending: false })
+        .order("created_at", { ascending: true }),
     ]);
 
     if (playerResult.data) {
@@ -115,6 +126,11 @@ export default function ProfilePage() {
     }
     if (beysResult.data) setBeys(beysResult.data);
     if (badgesResult.data) setEarnedBadgeIds(badgesResult.data.map((b) => b.badge_id));
+    if (allPlayersResult.data) {
+      setTotalPlayers(allPlayersResult.data.length);
+      const r = allPlayersResult.data.findIndex((p) => p.id === user.id) + 1;
+      setRank(r);
+    }
     setLoading(false);
   }
 
@@ -211,112 +227,130 @@ export default function ProfilePage() {
 
   const accentConfig = ACCENT_COLORS[player.accent_color] || ACCENT_COLORS.purple;
   const memberSince = new Date(player.created_at).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+  const winRate = player.wins + player.losses > 0
+    ? Math.round((player.wins / (player.wins + player.losses)) * 100)
+    : 0;
 
   return (
     <>
-      <div className="mx-auto max-w-md px-4 py-6 space-y-6">
+      <div className="max-w-md mx-auto pb-10 space-y-5">
         {/* Back */}
-        <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
-          <ArrowLeft className="size-4" />
-          Volver
-        </Link>
+        <div className="px-4 pt-2">
+          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
+            <ArrowLeft className="size-4" />
+            Volver
+          </Link>
+        </div>
 
-        {/* Avatar + Stats card */}
-        <div className="omega-card-elevated p-6 text-center space-y-4">
-          {/* Avatar */}
-          <div className="relative inline-block">
-            <div className={`size-32 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark mx-auto`}>
-              {player.avatar_url ? (
-                <img src={player.avatar_url} alt={player.alias} className="size-full object-cover" />
-              ) : (
-                <div className="size-full flex items-center justify-center text-3xl font-black text-omega-purple">
-                  {player.alias.charAt(0).toUpperCase()}
-                </div>
-              )}
+        {/* ═══ HERO BANNER — bleeds edge-to-edge, avatar centered + stats ═══ */}
+        <div className="relative -mx-4 px-5 pt-8 pb-6 bg-gradient-to-br from-omega-purple/30 via-omega-surface to-omega-blue/15 rounded-b-[2rem] overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-omega-purple/20 rounded-full blur-[80px]" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-omega-blue/15 rounded-full blur-[60px]" />
+
+          {/* Avatar centered */}
+          <div className="relative flex flex-col items-center">
+            <div className="relative">
+              <div className={`size-28 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark ring-4 ring-omega-card shadow-lg`}>
+                {player.avatar_url ? (
+                  <img src={player.avatar_url} alt={player.alias} className="size-full object-cover" />
+                ) : (
+                  <div className="size-full flex items-center justify-center text-3xl font-black text-omega-purple">
+                    {player.alias.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-0 right-0 size-9 rounded-full bg-omega-purple text-white flex items-center justify-center shadow-lg hover:bg-omega-purple-glow transition-colors disabled:opacity-50"
+              >
+                {uploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileSelect} />
             </div>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="absolute bottom-0 right-0 size-8 rounded-full bg-omega-purple text-white flex items-center justify-center shadow-lg hover:bg-omega-purple-glow transition-colors disabled:opacity-50"
-            >
-              {uploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileSelect} />
-          </div>
 
-          {/* Name + badge */}
-          <div>
-            <p className="text-lg font-black text-omega-text">
+            {/* Name + badge */}
+            <p className="text-xl font-black text-omega-text mt-3">
               {player.badge && <span className="mr-1">{BADGE_EMOJIS[player.badge]}</span>}
               {player.alias}
             </p>
-          </div>
 
-          {/* Tagline */}
-          {editingTagline ? (
-            <div className="flex gap-2 max-w-xs mx-auto">
-              <input
-                type="text"
-                value={taglineInput}
-                onChange={(e) => setTaglineInput(e.target.value)}
-                maxLength={60}
-                placeholder="Tu frase de batalla..."
-                className="omega-input flex-1 min-w-0 text-center"
-                autoFocus
-              />
-              <button
-                onClick={() => { updateField("tagline", taglineInput.trim() || null); setEditingTagline(false); }}
-                className="omega-btn omega-btn-purple px-3 py-2 text-xs"
-              >
-                {savingField === "tagline" ? <Loader2 className="size-3 animate-spin" /> : "OK"}
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setEditingTagline(true)}
-              className="flex items-center justify-center gap-1.5 mx-auto text-sm text-omega-muted hover:text-omega-purple transition-colors"
-            >
-              <MessageSquare className="size-3.5" />
-              {player.tagline ? (
-                <span className="italic">&ldquo;{player.tagline}&rdquo;</span>
-              ) : (
-                <span>Agregar frase de batalla</span>
-              )}
-            </button>
-          )}
-
-          {/* Stats */}
-          <div className="flex items-center justify-center gap-6">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1">
-                <Star className="size-4 text-omega-gold fill-omega-gold star-glow" />
-                <span className="text-2xl font-black text-omega-gold">{player.stars}</span>
+            {/* Tagline */}
+            {editingTagline ? (
+              <div className="flex gap-2 max-w-xs mx-auto mt-2">
+                <input
+                  type="text"
+                  value={taglineInput}
+                  onChange={(e) => setTaglineInput(e.target.value)}
+                  maxLength={60}
+                  placeholder="Tu frase de batalla..."
+                  className="omega-input flex-1 min-w-0 text-center"
+                  autoFocus
+                />
+                <button
+                  onClick={() => { updateField("tagline", taglineInput.trim() || null); setEditingTagline(false); }}
+                  className="omega-btn omega-btn-purple px-3 py-2 text-xs"
+                >
+                  {savingField === "tagline" ? <Loader2 className="size-3 animate-spin" /> : "OK"}
+                </button>
               </div>
-              <p className="text-[11px] text-omega-muted">estrellas</p>
-            </div>
-            <div className="w-px h-8 bg-omega-border" />
-            <div className="text-center">
-              <p className="text-lg font-black">
-                <span className="text-omega-green">{player.wins}</span>
-                <span className="text-omega-muted/50"> / </span>
-                <span className="text-omega-red">{player.losses}</span>
-              </p>
-              <p className="text-[11px] text-omega-muted">victorias / derrotas</p>
-            </div>
+            ) : (
+              <button
+                onClick={() => setEditingTagline(true)}
+                className="flex items-center justify-center gap-1.5 mt-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors"
+              >
+                <MessageSquare className="size-3.5" />
+                {player.tagline ? (
+                  <span className="italic">&ldquo;{player.tagline}&rdquo;</span>
+                ) : (
+                  <span>Agregar frase de batalla</span>
+                )}
+              </button>
+            )}
+
+            {player.is_eliminated && (
+              <span className="omega-badge omega-badge-red mt-2">ELIMINADO</span>
+            )}
           </div>
 
-          <p className="text-[11px] text-omega-muted/60 flex items-center justify-center gap-1">
+          {/* Stats strip — inside hero */}
+          <div className="relative flex items-center justify-around bg-omega-dark/60 rounded-xl py-2.5 px-3 mt-5 border border-white/[0.06]">
+            <div className="flex items-center gap-1.5 text-sm">
+              <Star className="size-3.5 text-omega-gold fill-omega-gold star-glow" />
+              <span className="text-xl font-black neon-gold">{player.stars}</span>
+            </div>
+            <div className="w-px h-5 bg-white/10" />
+            {rank > 0 && (
+              <>
+                <div className="flex items-center gap-1.5 text-sm">
+                  <Trophy className="size-3.5 text-omega-gold" />
+                  <span className="font-bold text-omega-gold">#{rank}</span>
+                  <span className="text-omega-muted text-xs">de {totalPlayers}</span>
+                </div>
+                <div className="w-px h-5 bg-white/10" />
+              </>
+            )}
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="font-bold text-omega-green">{player.wins}W</span>
+              <span className="text-omega-muted/50">/</span>
+              <span className="font-bold text-omega-red">{player.losses}L</span>
+            </div>
+            {winRate > 0 && (
+              <>
+                <div className="w-px h-5 bg-white/10" />
+                <span className="font-bold text-omega-blue text-sm">{winRate}%</span>
+              </>
+            )}
+          </div>
+
+          <p className="relative text-[11px] text-omega-muted/60 flex items-center justify-center gap-1 mt-3">
             <Calendar className="size-3" />
             Blader desde {memberSince}
           </p>
-
-          {player.is_eliminated && (
-            <span className="omega-badge omega-badge-red">ELIMINADO</span>
-          )}
         </div>
 
-        {/* Personalizar */}
-        <div className="omega-card">
+        {/* ═══ PERSONALIZAR — omega-card ═══ */}
+        <div className="omega-card mx-4">
           <div className="omega-section-header">
             <Palette className="size-4 text-omega-gold" />
             Personalizar
@@ -383,11 +417,13 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Badges / Achievements */}
-        <BadgesDisplay earnedBadgeIds={earnedBadgeIds} />
+        {/* ═══ BADGES — omega-card ═══ */}
+        <div className="mx-4">
+          <BadgesDisplay earnedBadgeIds={earnedBadgeIds} />
+        </div>
 
-        {/* Beys section */}
-        <div className="omega-card">
+        {/* ═══ BEYS — horizontal cards ═══ */}
+        <div className="omega-card mx-4">
           <div className="omega-section-header">
             <Swords className="size-4 text-omega-blue" />
             Mis Beys
@@ -395,27 +431,29 @@ export default function ProfilePage() {
 
           {beys.length === 0 ? (
             <div className="p-6 text-center">
+              <Swords className="size-10 text-omega-muted/20 mx-auto mb-2" />
               <p className="text-sm text-omega-muted/70">No tenes beys cargados todavia</p>
             </div>
           ) : (
-            <div>
+            <div className="p-3 flex flex-wrap gap-2">
               {beys.map((bey) => {
                 const config = beyTypeConfig[bey.type];
                 const Icon = config.icon;
                 return (
-                  <div key={bey.id} className="omega-row">
-                    <div className={`size-8 rounded-lg border flex items-center justify-center ${config.bg}`}>
-                      <Icon className={`size-4 ${config.color}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-omega-text truncate">{bey.name}</p>
-                      <p className={`text-[11px] font-medium ${config.color}`}>{config.label}</p>
+                  <div
+                    key={bey.id}
+                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 ${config.bg} transition-all group`}
+                  >
+                    <Icon className={`size-4 ${config.color} shrink-0`} />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-omega-text truncate leading-tight">{bey.name}</p>
+                      <p className={`text-[10px] font-medium ${config.color} leading-tight`}>{config.label}</p>
                     </div>
                     <button
                       onClick={() => handleDeleteBey(bey.id)}
-                      className="size-8 rounded-lg flex items-center justify-center text-omega-muted hover:text-omega-red hover:bg-omega-red/10 transition-all"
+                      className="size-6 rounded-md flex items-center justify-center text-omega-muted hover:text-omega-red hover:bg-omega-red/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
                     >
-                      <Trash2 className="size-4" />
+                      <Trash2 className="size-3.5" />
                     </button>
                   </div>
                 );
@@ -454,17 +492,19 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Logout */}
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            window.location.href = "/";
-          }}
-          className="omega-btn omega-btn-secondary w-full py-3 text-sm hover:text-omega-red hover:border-omega-red/30"
-        >
-          <LogOut className="size-4" />
-          Cerrar sesion
-        </button>
+        {/* ═══ LOGOUT ═══ */}
+        <div className="px-4">
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = "/";
+            }}
+            className="omega-btn omega-btn-secondary w-full py-3 text-sm hover:text-omega-red hover:border-omega-red/30"
+          >
+            <LogOut className="size-4" />
+            Cerrar sesion
+          </button>
+        </div>
       </div>
 
       {/* Image cropper modal */}
