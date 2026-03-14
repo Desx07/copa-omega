@@ -185,9 +185,9 @@ export function ChatBot() {
                   <Bot className="size-7 text-omega-purple-glow" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-omega-text">Hola, blader!</p>
+                  <p className="text-sm font-bold text-omega-text">Hey!</p>
                   <p className="mt-1 text-xs text-omega-muted leading-relaxed max-w-[240px]">
-                    Soy {botName}, tu asistente de Copa Omega Star. Preguntame sobre el torneo, combos, estrategias, o decime contra quien vas a pelear!
+                    Soy tu asistente blader. Estoy acá para ayudarte en lo que necesites — combos, estrategias, predicciones, lo que sea.
                   </p>
                   <p className="mt-2 text-[10px] text-omega-muted/60">
                     Toca mi nombre para cambiarlo
