@@ -38,7 +38,7 @@ export default function BracketView({
 }: BracketViewProps) {
   if (matches.length === 0) {
     return (
-      <div className="omega-card p-10 text-center">
+      <div className="omega-card shadow-sm p-10 text-center">
         <Swords className="size-10 text-omega-muted/20 mx-auto mb-3" />
         <p className="text-sm text-omega-muted/70">
           No hay partidas generadas todavia
@@ -121,11 +121,19 @@ function EliminationMatchCard({ match }: { match: BracketMatch }) {
   const isPending = match.status === "pending";
   const isActive = match.status === "in_progress";
 
+  const borderColor = isActive
+    ? "border-l-omega-blue"
+    : p1Won || p2Won
+    ? "border-l-omega-green"
+    : isBye
+    ? "border-l-omega-muted/30"
+    : "border-l-omega-purple/30";
+
   return (
     <div
-      className={`omega-card transition-all ${
+      className={`omega-card border-l-4 ${borderColor} shadow-sm transition-all hover:shadow-md ${
         isActive
-          ? "!border-omega-blue/50 !shadow-md !shadow-omega-blue/10"
+          ? "!border-t-omega-blue/50 !shadow-omega-blue/10"
           : isBye
           ? "opacity-60"
           : ""
@@ -261,12 +269,18 @@ function RoundList({
         const isCurrentRound = roundNum === currentRound;
         const allCompleted = roundMatches.every((m) => m.status === "completed" || m.status === "bye");
 
+        const borderColor = isCurrentRound
+          ? "border-l-omega-blue"
+          : allCompleted
+          ? "border-l-omega-green"
+          : "border-l-omega-purple/30";
+
         return (
           <div
             key={roundNum}
-            className={`omega-card ${
+            className={`omega-card border-l-4 ${borderColor} shadow-sm transition-all hover:shadow-md ${
               isCurrentRound
-                ? "!border-omega-blue/40 !shadow-md !shadow-omega-blue/10"
+                ? "!shadow-omega-blue/10"
                 : ""
             }`}
           >

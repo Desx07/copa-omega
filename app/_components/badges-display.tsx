@@ -13,7 +13,7 @@ export default function BadgesDisplay({ earnedBadgeIds }: BadgesDisplayProps) {
   const earnedSet = new Set(earnedBadgeIds);
 
   return (
-    <div className="omega-card">
+    <div className="omega-card shadow-sm">
       <div className="omega-section-header">
         <Award className="size-4 text-omega-gold" />
         Medallas ({earnedBadgeIds.length}/{BADGE_DEFINITIONS.length})
@@ -25,7 +25,7 @@ export default function BadgesDisplay({ earnedBadgeIds }: BadgesDisplayProps) {
           return (
             <div
               key={badge.id}
-              className={`flex flex-col items-center gap-1.5 rounded-xl p-3 text-center transition-all ${
+              className={`flex flex-col items-center gap-1.5 rounded-xl p-3 text-center transition-all shadow-sm hover:shadow-md hover:scale-[1.01] ${
                 earned
                   ? "bg-omega-gold/10 border border-omega-gold/30"
                   : "bg-omega-surface border border-omega-border/20 opacity-40 grayscale"

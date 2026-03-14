@@ -103,11 +103,13 @@ export default function TournamentRegisterPage() {
   if (!tournament) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center space-y-4">
-        <XCircle className="size-12 text-omega-red mx-auto" />
-        <p className="text-lg font-bold">Torneo no encontrado</p>
-        <Link href="/tournaments" className="text-sm text-omega-blue hover:underline">
-          Ver torneos disponibles
-        </Link>
+        <div className="omega-card p-8 space-y-4 shadow-sm">
+          <XCircle className="size-12 text-omega-red mx-auto" />
+          <p className="text-lg font-bold">Torneo no encontrado</p>
+          <Link href="/tournaments" className="text-sm text-omega-blue hover:underline">
+            Ver torneos disponibles
+          </Link>
+        </div>
       </div>
     );
   }
@@ -115,12 +117,14 @@ export default function TournamentRegisterPage() {
   if (tournament.status !== "registration") {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center space-y-4">
-        <Trophy className="size-12 text-omega-muted mx-auto" />
-        <p className="text-lg font-bold">Las inscripciones cerraron</p>
-        <p className="text-sm text-omega-muted">Este torneo ya no acepta nuevos participantes.</p>
-        <Link href={`/tournaments/${tournamentId}`} className="text-sm text-omega-blue hover:underline">
-          Ver torneo
-        </Link>
+        <div className="omega-card p-8 space-y-4 shadow-sm">
+          <Trophy className="size-12 text-omega-muted mx-auto" />
+          <p className="text-lg font-bold">Las inscripciones cerraron</p>
+          <p className="text-sm text-omega-muted">Este torneo ya no acepta nuevos participantes.</p>
+          <Link href={`/tournaments/${tournamentId}`} className="text-sm text-omega-blue hover:underline">
+            Ver torneo
+          </Link>
+        </div>
       </div>
     );
   }
@@ -128,99 +132,110 @@ export default function TournamentRegisterPage() {
   const isFull = participantCount >= tournament.max_participants;
 
   return (
-    <div className="mx-auto max-w-md px-4 py-8 space-y-6">
-      <Link href="/tournaments" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors">
-        <ArrowLeft className="size-4" />
-        Torneos
-      </Link>
+    <div className="min-h-screen">
+      {/* Hero banner */}
+      <div className="relative bg-gradient-to-b from-omega-purple/20 via-omega-surface to-omega-black rounded-b-3xl shadow-lg shadow-omega-purple/5 overflow-hidden">
+        <div className="absolute inset-0 bg-grid opacity-20" />
+        <div className="relative px-4 pt-6 pb-8 max-w-md mx-auto">
+          <Link href="/tournaments" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors mb-5">
+            <ArrowLeft className="size-4" />
+            Torneos
+          </Link>
 
-      {/* Tournament info */}
-      <div className="omega-card p-5 text-center space-y-3">
-        <Trophy className="size-10 text-omega-gold mx-auto" />
-        <h1 className="text-xl font-black text-omega-text">{tournament.name}</h1>
-        <p className="text-sm text-omega-muted">
-          {tournament.format === "single_elimination" ? "Eliminacion directa" :
-           tournament.format === "round_robin" ? "Round Robin" : "Suizo"}
-          {" · "}
-          {participantCount}/{tournament.max_participants} inscriptos
-        </p>
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center justify-center size-14 rounded-2xl bg-omega-gold/15 ring-2 ring-omega-gold/30">
+              <Trophy className="size-7 text-omega-gold star-glow" />
+            </div>
+            <h1 className="text-xl font-black text-omega-text">{tournament.name}</h1>
+            <p className="text-sm text-omega-muted">
+              {tournament.format === "single_elimination" ? "Eliminacion directa" :
+               tournament.format === "round_robin" ? "Round Robin" : "Suizo"}
+              {" · "}
+              {participantCount}/{tournament.max_participants} inscriptos
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Not logged in */}
-      {!isLoggedIn && (
-        <div className="omega-card p-6 text-center space-y-4">
-          <LogIn className="size-8 text-omega-blue mx-auto" />
-          <p className="text-sm font-bold text-omega-text">Necesitas una cuenta para inscribirte</p>
-          <p className="text-xs text-omega-muted">Inicia sesion o crea tu cuenta de blader para participar.</p>
-          <div className="flex flex-col gap-2">
-            <Link
-              href={`/auth/login?redirect=/tournaments/${tournamentId}/register`}
-              className="omega-btn omega-btn-primary w-full px-4 py-3"
-            >
-              Iniciar sesion
-            </Link>
-            <Link
-              href={`/auth/register?redirect=/tournaments/${tournamentId}/register`}
-              className="omega-btn omega-btn-secondary w-full px-4 py-3 text-sm"
-            >
-              Crear cuenta
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Logged in -- show profile + register button */}
-      {isLoggedIn && player && (
-        <div className="omega-card p-6 space-y-4">
-          {/* Player preview */}
-          <div className="flex items-center gap-4">
-            <div className="size-14 rounded-full border-2 border-omega-purple overflow-hidden bg-omega-dark">
-              {player.avatar_url ? (
-                <img src={player.avatar_url} alt="" className="size-full object-cover" />
-              ) : (
-                <div className="size-full flex items-center justify-center text-xl font-black text-omega-purple">
-                  {player.alias.charAt(0).toUpperCase()}
-                </div>
-              )}
+      <div className="px-4 py-6 max-w-md mx-auto space-y-6">
+        {/* Not logged in */}
+        {!isLoggedIn && (
+          <div className="omega-card shadow-sm p-6 text-center space-y-4 border-l-4 border-l-omega-blue">
+            <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-omega-blue/15 ring-2 ring-omega-blue/30">
+              <LogIn className="size-6 text-omega-blue" />
             </div>
-            <div>
-              <p className="text-lg font-black text-omega-text">{player.alias}</p>
-              <div className="flex items-center gap-1">
-                <Star className="size-3.5 text-omega-gold fill-omega-gold" />
-                <span className="text-sm font-bold text-omega-gold">{player.stars}</span>
+            <p className="text-sm font-bold text-omega-text">Necesitas una cuenta para inscribirte</p>
+            <p className="text-xs text-omega-muted">Inicia sesion o crea tu cuenta de blader para participar.</p>
+            <div className="flex flex-col gap-2">
+              <Link
+                href={`/auth/login?redirect=/tournaments/${tournamentId}/register`}
+                className="omega-btn omega-btn-primary w-full px-4 py-3 shadow-lg shadow-omega-purple/20"
+              >
+                Iniciar sesion
+              </Link>
+              <Link
+                href={`/auth/register?redirect=/tournaments/${tournamentId}/register`}
+                className="omega-btn omega-btn-secondary w-full px-4 py-3 text-sm"
+              >
+                Crear cuenta
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Logged in -- show profile + register button */}
+        {isLoggedIn && player && (
+          <div className="omega-card shadow-sm p-6 space-y-4">
+            {/* Player preview */}
+            <div className="flex items-center gap-4">
+              <div className="size-14 rounded-full border-2 border-omega-purple overflow-hidden bg-omega-dark shadow-sm">
+                {player.avatar_url ? (
+                  <img src={player.avatar_url} alt="" className="size-full object-cover" />
+                ) : (
+                  <div className="size-full flex items-center justify-center text-xl font-black text-omega-purple">
+                    {player.alias.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="text-lg font-black text-omega-text">{player.alias}</p>
+                <div className="flex items-center gap-1">
+                  <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                  <span className="text-sm font-bold text-omega-gold">{player.stars}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Action */}
-          {alreadyRegistered ? (
-            <div className="flex items-center justify-center gap-2 omega-badge omega-badge-green px-4 py-3 text-sm">
-              <CheckCircle className="size-5" />
-              <span className="font-bold">Ya estas inscripto!</span>
-            </div>
-          ) : isFull ? (
-            <div className="flex items-center justify-center gap-2 omega-badge omega-badge-red px-4 py-3 text-sm">
-              <XCircle className="size-5" />
-              <span className="font-bold">Torneo completo</span>
-            </div>
-          ) : (
-            <button
-              onClick={handleRegister}
-              disabled={registering}
-              className="omega-btn omega-btn-primary w-full px-4 py-3 text-base"
-            >
-              {registering ? (
-                <Loader2 className="size-5 animate-spin" />
-              ) : (
-                <>
-                  <Trophy className="size-5" />
-                  Inscribirme al torneo
-                </>
-              )}
-            </button>
-          )}
-        </div>
-      )}
+            {/* Action */}
+            {alreadyRegistered ? (
+              <div className="flex items-center justify-center gap-2 omega-badge omega-badge-green px-4 py-3 text-sm border-l-4 border-l-omega-green rounded-lg">
+                <CheckCircle className="size-5" />
+                <span className="font-bold">Ya estas inscripto!</span>
+              </div>
+            ) : isFull ? (
+              <div className="flex items-center justify-center gap-2 omega-badge omega-badge-red px-4 py-3 text-sm border-l-4 border-l-omega-red rounded-lg">
+                <XCircle className="size-5" />
+                <span className="font-bold">Torneo completo</span>
+              </div>
+            ) : (
+              <button
+                onClick={handleRegister}
+                disabled={registering}
+                className="omega-btn omega-btn-primary w-full px-4 py-3 text-base shadow-lg shadow-omega-purple/20"
+              >
+                {registering ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : (
+                  <>
+                    <Trophy className="size-5" />
+                    Inscribirme al torneo
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

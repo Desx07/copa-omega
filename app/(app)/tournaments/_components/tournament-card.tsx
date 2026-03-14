@@ -28,27 +28,31 @@ const FORMAT_LABELS: Record<string, string> = {
 
 const STATUS_BADGES: Record<
   string,
-  { label: string; badgeClass: string; icon: React.ReactNode }
+  { label: string; badgeClass: string; icon: React.ReactNode; borderColor: string }
 > = {
   registration: {
     label: "INSCRIPCION",
     badgeClass: "omega-badge omega-badge-blue",
     icon: <Users className="size-3" />,
+    borderColor: "border-l-omega-blue",
   },
   in_progress: {
     label: "EN CURSO",
     badgeClass: "omega-badge omega-badge-gold",
     icon: <Clock className="size-3" />,
+    borderColor: "border-l-omega-gold",
   },
   completed: {
     label: "FINALIZADO",
     badgeClass: "omega-badge omega-badge-green",
     icon: <CheckCircle className="size-3" />,
+    borderColor: "border-l-omega-green",
   },
   cancelled: {
     label: "CANCELADO",
     badgeClass: "omega-badge omega-badge-red",
     icon: <XCircle className="size-3" />,
+    borderColor: "border-l-omega-red",
   },
 };
 
@@ -61,7 +65,7 @@ export default function TournamentCard({ tournament, href }: TournamentCardProps
   return (
     <Link
       href={linkHref}
-      className={`block omega-card p-5 transition-all hover:bg-omega-card-hover active:scale-[0.99] ${
+      className={`block omega-card border-l-4 ${status.borderColor} p-5 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] active:scale-[0.99] ${
         tournament.status === "cancelled" ? "opacity-50" : ""
       }`}
     >

@@ -78,7 +78,7 @@ export function ImageCropper({ imageSrc, onCropDone, onCancel }: ImageCropperPro
       </div>
 
       {/* Controls */}
-      <div className="p-4 space-y-4 bg-omega-dark">
+      <div className="p-4 space-y-4 bg-omega-dark border-t border-omega-border/30">
         {/* Zoom slider */}
         <div className="flex items-center gap-3 max-w-xs mx-auto">
           <ZoomOut className="size-4 text-omega-muted shrink-0" />
@@ -98,7 +98,7 @@ export function ImageCropper({ imageSrc, onCropDone, onCancel }: ImageCropperPro
         <div className="flex justify-center gap-3">
           <button
             onClick={onCancel}
-            className="omega-btn omega-btn-secondary px-6 py-3"
+            className="omega-btn omega-btn-secondary px-6 py-3 shadow-sm hover:shadow-md"
           >
             <X className="size-4" />
             Cancelar
@@ -106,7 +106,7 @@ export function ImageCropper({ imageSrc, onCropDone, onCancel }: ImageCropperPro
           <button
             onClick={handleConfirm}
             disabled={processing}
-            className="omega-btn omega-btn-primary px-6 py-3"
+            className="omega-btn omega-btn-primary px-6 py-3 shadow-sm hover:shadow-md"
           >
             {processing ? (
               <Loader2 className="size-4 animate-spin" />

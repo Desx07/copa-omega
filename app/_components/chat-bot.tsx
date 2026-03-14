@@ -129,11 +129,11 @@ export function ChatBot() {
     <>
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col omega-card-elevated !rounded-2xl sm:bottom-6 sm:right-6 sm:w-96">
+        <div className="fixed bottom-20 right-4 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col omega-card-elevated !rounded-2xl shadow-lg sm:bottom-6 sm:right-6 sm:w-96">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-omega-border/40 bg-gradient-to-r from-omega-purple/20 via-omega-card/80 to-omega-blue/20 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-omega-border/40 bg-gradient-to-r from-omega-purple/20 via-omega-card/80 to-omega-blue/20 px-4 py-3 rounded-t-2xl">
             <div className="flex items-center gap-2.5">
-              <div className="flex size-8 items-center justify-center rounded-full bg-omega-purple/30 ring-2 ring-omega-purple/50">
+              <div className="flex size-8 items-center justify-center rounded-full bg-omega-purple/30 ring-2 ring-omega-purple/50 shadow-sm">
                 <Bot className="size-4 text-omega-purple-glow" />
               </div>
               <div>
@@ -170,7 +170,7 @@ export function ChatBot() {
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="omega-btn omega-btn-secondary size-7 !p-0 !rounded-lg"
+                className="omega-btn omega-btn-secondary size-7 !p-0 !rounded-lg shadow-sm"
               >
                 <X className="size-4" />
               </button>
@@ -181,7 +181,7 @@ export function ChatBot() {
           <div className="flex-1 space-y-3 overflow-y-auto p-4" style={{ maxHeight: "60vh", minHeight: "280px" }}>
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
-                <div className="flex size-14 items-center justify-center rounded-2xl bg-omega-purple/15 ring-2 ring-omega-purple/30">
+                <div className="flex size-14 items-center justify-center rounded-2xl bg-omega-purple/15 ring-2 ring-omega-purple/30 shadow-sm">
                   <Bot className="size-7 text-omega-purple-glow" />
                 </div>
                 <div>
@@ -202,12 +202,12 @@ export function ChatBot() {
                 className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.role === "assistant" && (
-                  <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-omega-purple/20 mt-0.5">
+                  <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-omega-purple/20 mt-0.5 shadow-sm">
                     <Bot className="size-3 text-omega-purple-glow" />
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                  className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
                     msg.role === "user"
                       ? "rounded-br-sm bg-omega-blue/20 border border-omega-blue/30 text-omega-text"
                       : "rounded-bl-sm bg-omega-card/80 border border-omega-border/30 text-omega-text/90"
@@ -216,7 +216,7 @@ export function ChatBot() {
                   <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                 </div>
                 {msg.role === "user" && (
-                  <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-omega-blue/20 mt-0.5">
+                  <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-omega-blue/20 mt-0.5 shadow-sm">
                     <User className="size-3 text-omega-blue" />
                   </div>
                 )}
@@ -225,10 +225,10 @@ export function ChatBot() {
 
             {loading && (
               <div className="flex items-center gap-2">
-                <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-omega-purple/20">
+                <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-omega-purple/20 shadow-sm">
                   <Bot className="size-3 text-omega-purple-glow" />
                 </div>
-                <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-omega-card/80 border border-omega-border/30 px-4 py-3">
+                <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-omega-card/80 border border-omega-border/30 px-4 py-3 shadow-sm">
                   <span className="size-1.5 rounded-full bg-omega-purple animate-pulse" />
                   <span className="size-1.5 rounded-full bg-omega-purple animate-pulse" style={{ animationDelay: "0.2s" }} />
                   <span className="size-1.5 rounded-full bg-omega-purple animate-pulse" style={{ animationDelay: "0.4s" }} />
@@ -240,7 +240,7 @@ export function ChatBot() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-omega-border bg-omega-surface p-3">
+          <div className="border-t border-omega-border bg-omega-surface p-3 rounded-b-2xl">
             <form
               onSubmit={(e) => { e.preventDefault(); handleSend(); }}
               className="flex items-center gap-2"
@@ -257,7 +257,7 @@ export function ChatBot() {
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="omega-btn omega-btn-purple size-10 !p-0 !rounded-xl shrink-0"
+                className="omega-btn omega-btn-purple size-10 !p-0 !rounded-xl shrink-0 shadow-sm hover:shadow-md"
               >
                 {loading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               </button>
@@ -271,8 +271,8 @@ export function ChatBot() {
         onClick={() => setOpen((prev) => !prev)}
         className={`fixed bottom-4 right-4 z-50 flex size-14 items-center justify-center rounded-full shadow-lg transition-all active:scale-90 sm:bottom-6 sm:right-6 ${
           open
-            ? "omega-btn omega-btn-secondary !rounded-full"
-            : "omega-btn omega-btn-primary !rounded-full hover:scale-105"
+            ? "omega-btn omega-btn-secondary !rounded-full shadow-sm"
+            : "omega-btn omega-btn-primary !rounded-full hover:scale-105 hover:shadow-xl shadow-omega-purple/30"
         }`}
         aria-label={open ? "Cerrar chat" : `Abrir ${botName}`}
       >

@@ -68,80 +68,92 @@ export default async function TournamentsPage() {
   }
 
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto space-y-6">
-      {/* Back */}
-      <Link
-        href={user ? "/dashboard" : "/"}
-        className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors"
-      >
-        <ArrowLeft className="size-4" />
-        {user ? "Dashboard" : "Inicio"}
-      </Link>
+    <div className="min-h-screen">
+      {/* Hero banner */}
+      <div className="relative bg-gradient-to-b from-omega-purple/20 via-omega-surface to-omega-black rounded-b-3xl shadow-lg shadow-omega-purple/5 overflow-hidden">
+        <div className="absolute inset-0 bg-grid opacity-30" />
+        <div className="relative px-4 pt-6 pb-8 max-w-2xl mx-auto">
+          <Link
+            href={user ? "/dashboard" : "/"}
+            className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors mb-6"
+          >
+            <ArrowLeft className="size-4" />
+            {user ? "Dashboard" : "Inicio"}
+          </Link>
 
-      {/* Header */}
-      <div className="omega-card-elevated p-5 relative">
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-gold via-omega-purple to-omega-blue" />
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-black tracking-tight neon-gold">
-            TORNEOS
-          </h1>
-          <p className="text-sm text-omega-muted">
-            Copa Omega Star -- Todos los torneos
-          </p>
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center justify-center size-14 rounded-2xl bg-omega-gold/15 ring-2 ring-omega-gold/30 mb-2">
+              <Trophy className="size-7 text-omega-gold star-glow" />
+            </div>
+            <h1 className="text-3xl font-black tracking-tight neon-gold">
+              TORNEOS
+            </h1>
+            <p className="text-sm text-omega-muted">
+              Copa Omega Star -- Todos los torneos
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Active tournaments */}
-      {active.length > 0 && (
-        <div className="space-y-3">
-          <div className="omega-section-header">
-            <Clock className="size-4 text-omega-blue" />
-            Torneos activos
-          </div>
-          {active.map((tournament) => (
-            <TournamentCard key={tournament.id} tournament={tournament} />
-          ))}
-        </div>
-      )}
+      <div className="px-4 py-6 max-w-2xl mx-auto space-y-6">
+        {/* Active tournaments */}
+        {active.length > 0 && (
+          <section className="space-y-3">
+            <div className="omega-section-header !bg-transparent !border-0 !px-1">
+              <Clock className="size-4 text-omega-blue" />
+              <span className="text-omega-blue">Torneos activos</span>
+              <span className="omega-badge omega-badge-blue ml-auto">{active.length}</span>
+            </div>
+            <div className="space-y-3">
+              {active.map((tournament) => (
+                <TournamentCard key={tournament.id} tournament={tournament} />
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Past tournaments */}
-      {past.length > 0 && (
-        <div className="space-y-3">
-          <div className="omega-section-header">
-            <Calendar className="size-4 text-omega-muted" />
-            Torneos anteriores
-          </div>
-          {past.map((tournament) => {
-            const champion = championsMap.get(tournament.id);
-            return (
-              <div key={tournament.id} className="relative">
-                <TournamentCard tournament={tournament} />
-                {champion && (
-                  <div className="absolute top-3.5 right-20 flex items-center gap-1 text-[10px] text-omega-gold font-bold">
-                    <Crown className="size-3 text-omega-gold" />
-                    {champion}
+        {/* Past tournaments */}
+        {past.length > 0 && (
+          <section className="space-y-3">
+            <div className="omega-section-header !bg-transparent !border-0 !px-1">
+              <Calendar className="size-4 text-omega-muted" />
+              <span>Torneos anteriores</span>
+              <span className="omega-badge omega-badge-purple ml-auto">{past.length}</span>
+            </div>
+            <div className="space-y-3">
+              {past.map((tournament) => {
+                const champion = championsMap.get(tournament.id);
+                return (
+                  <div key={tournament.id} className="relative">
+                    <TournamentCard tournament={tournament} />
+                    {champion && (
+                      <div className="absolute top-3.5 right-20 flex items-center gap-1 text-[10px] text-omega-gold font-bold">
+                        <Crown className="size-3 text-omega-gold" />
+                        {champion}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                );
+              })}
+            </div>
+          </section>
+        )}
 
-      {/* Empty state */}
-      {tournaments.length === 0 && (
-        <div className="omega-card p-12 text-center space-y-4">
-          <Trophy className="size-16 text-omega-muted/30 mx-auto" />
-          <div className="space-y-2">
-            <p className="text-lg font-bold text-omega-muted">
-              No hay torneos todavia
-            </p>
-            <p className="text-sm text-omega-muted/70">
-              Los torneos apareceran aca cuando un admin los cree.
-            </p>
+        {/* Empty state */}
+        {tournaments.length === 0 && (
+          <div className="omega-card p-12 text-center space-y-4">
+            <Trophy className="size-16 text-omega-muted/30 mx-auto" />
+            <div className="space-y-2">
+              <p className="text-lg font-bold text-omega-muted">
+                No hay torneos todavia
+              </p>
+              <p className="text-sm text-omega-muted/70">
+                Los torneos apareceran aca cuando un admin los cree.
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

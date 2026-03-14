@@ -242,10 +242,11 @@ export default function ProfilePage() {
           </Link>
         </div>
 
-        {/* ═══ HERO BANNER — bleeds edge-to-edge, avatar centered + stats ═══ */}
-        <div className="relative -mx-4 px-5 pt-8 pb-6 bg-gradient-to-br from-omega-purple/30 via-omega-surface to-omega-blue/15 rounded-b-[2rem] overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-omega-purple/20 rounded-full blur-[80px]" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-omega-blue/15 rounded-full blur-[60px]" />
+        {/* ═══ HERO BANNER ═══ */}
+        <div className="-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-purple/30 via-omega-surface to-omega-blue/15 px-6 pt-8 pb-10 shadow-lg shadow-omega-purple/40">
+          {/* Decorative orbs */}
+          <div className="absolute top-0 right-0 w-48 h-48 bg-omega-purple/20 rounded-full blur-[80px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-omega-blue/15 rounded-full blur-[60px] pointer-events-none" />
 
           {/* Avatar centered */}
           <div className="relative flex flex-col items-center">
@@ -313,13 +314,13 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Stats strip — inside hero */}
-          <div className="relative flex items-center justify-around bg-omega-dark/60 rounded-xl py-2.5 px-3 mt-5 border border-white/[0.06]">
+          {/* Stats strip inside hero */}
+          <div className="relative flex items-center justify-around rounded-xl bg-omega-dark/60 border border-white/[0.06] py-2.5 px-2 mt-5">
             <div className="flex items-center gap-1.5 text-sm">
               <Star className="size-3.5 text-omega-gold fill-omega-gold star-glow" />
               <span className="text-xl font-black neon-gold">{player.stars}</span>
             </div>
-            <div className="w-px h-5 bg-white/10" />
+            <div className="w-px h-4 bg-white/10" />
             {rank > 0 && (
               <>
                 <div className="flex items-center gap-1.5 text-sm">
@@ -327,7 +328,7 @@ export default function ProfilePage() {
                   <span className="font-bold text-omega-gold">#{rank}</span>
                   <span className="text-omega-muted text-xs">de {totalPlayers}</span>
                 </div>
-                <div className="w-px h-5 bg-white/10" />
+                <div className="w-px h-4 bg-white/10" />
               </>
             )}
             <div className="flex items-center gap-1.5 text-sm">
@@ -337,7 +338,7 @@ export default function ProfilePage() {
             </div>
             {winRate > 0 && (
               <>
-                <div className="w-px h-5 bg-white/10" />
+                <div className="w-px h-4 bg-white/10" />
                 <span className="font-bold text-omega-blue text-sm">{winRate}%</span>
               </>
             )}
@@ -349,14 +350,14 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* ═══ PERSONALIZAR — omega-card ═══ */}
-        <div className="omega-card mx-4">
-          <div className="omega-section-header">
+        {/* ═══ PERSONALIZAR ═══ */}
+        <div className="px-4 space-y-3">
+          <div className="flex items-center gap-2">
             <Palette className="size-4 text-omega-gold" />
-            Personalizar
+            <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Personalizar</h2>
           </div>
 
-          <div className="p-4 space-y-4">
+          <div className="omega-card p-4 space-y-4">
             {/* Badge emoji */}
             <div>
               <p className="text-xs text-omega-muted mb-2">Emoji de perfil</p>
@@ -417,41 +418,51 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ═══ BADGES — omega-card ═══ */}
+        {/* ═══ BADGES ═══ */}
         <div className="mx-4">
           <BadgesDisplay earnedBadgeIds={earnedBadgeIds} />
         </div>
 
-        {/* ═══ BEYS — horizontal cards ═══ */}
-        <div className="omega-card mx-4">
-          <div className="omega-section-header">
-            <Swords className="size-4 text-omega-blue" />
-            Mis Beys
+        {/* ═══ BEYS ═══ */}
+        <div className="px-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Swords className="size-4 text-omega-blue" />
+              <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Mis Beys</h2>
+            </div>
+            <span className="omega-badge omega-badge-blue">{beys.length}</span>
           </div>
 
           {beys.length === 0 ? (
-            <div className="p-6 text-center">
+            <div className="omega-card p-6 text-center">
               <Swords className="size-10 text-omega-muted/20 mx-auto mb-2" />
               <p className="text-sm text-omega-muted/70">No tenes beys cargados todavia</p>
             </div>
           ) : (
-            <div className="p-3 flex flex-wrap gap-2">
+            <div className="space-y-2">
               {beys.map((bey) => {
                 const config = beyTypeConfig[bey.type];
                 const Icon = config.icon;
                 return (
                   <div
                     key={bey.id}
-                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 ${config.bg} transition-all group`}
+                    className={`rounded-xl border-l-4 ${
+                      bey.type === "attack" ? "border-l-omega-red" :
+                      bey.type === "defense" ? "border-l-omega-blue" :
+                      bey.type === "stamina" ? "border-l-omega-green" :
+                      "border-l-omega-purple"
+                    } bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3 group`}
                   >
-                    <Icon className={`size-4 ${config.color} shrink-0`} />
-                    <div className="min-w-0">
+                    <div className={`size-8 rounded-lg border flex items-center justify-center ${config.bg}`}>
+                      <Icon className={`size-4 ${config.color}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-omega-text truncate leading-tight">{bey.name}</p>
                       <p className={`text-[10px] font-medium ${config.color} leading-tight`}>{config.label}</p>
                     </div>
                     <button
                       onClick={() => handleDeleteBey(bey.id)}
-                      className="size-6 rounded-md flex items-center justify-center text-omega-muted hover:text-omega-red hover:bg-omega-red/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                      className="size-7 rounded-md flex items-center justify-center text-omega-muted hover:text-omega-red hover:bg-omega-red/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
                     >
                       <Trash2 className="size-3.5" />
                     </button>
@@ -461,7 +472,8 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="p-4 border-t border-omega-border/30">
+          {/* Add bey form */}
+          <div className="omega-card p-4">
             <div className="flex gap-2">
               <input
                 type="text"

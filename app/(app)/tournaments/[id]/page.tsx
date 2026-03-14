@@ -25,27 +25,31 @@ const FORMAT_LABELS: Record<string, string> = {
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; badgeClass: string; icon: React.ReactNode }
+  { label: string; badgeClass: string; icon: React.ReactNode; gradient: string }
 > = {
   registration: {
     label: "INSCRIPCION ABIERTA",
     badgeClass: "omega-badge omega-badge-blue",
     icon: <Users className="size-3.5" />,
+    gradient: "from-omega-blue/20 via-omega-surface to-omega-black",
   },
   in_progress: {
     label: "EN CURSO",
     badgeClass: "omega-badge omega-badge-gold",
     icon: <Clock className="size-3.5" />,
+    gradient: "from-omega-gold/15 via-omega-surface to-omega-black",
   },
   completed: {
     label: "FINALIZADO",
     badgeClass: "omega-badge omega-badge-green",
     icon: <CheckCircle className="size-3.5" />,
+    gradient: "from-omega-green/15 via-omega-surface to-omega-black",
   },
   cancelled: {
     label: "CANCELADO",
     badgeClass: "omega-badge omega-badge-red",
     icon: <XCircle className="size-3.5" />,
+    gradient: "from-omega-red/15 via-omega-surface to-omega-black",
   },
 };
 
@@ -201,240 +205,245 @@ export default async function TournamentDetailPage({ params }: PageProps) {
   } as const;
 
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto space-y-5">
-      {/* Back */}
-      <Link
-        href="/tournaments"
-        className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors"
-      >
-        <ArrowLeft className="size-4" />
-        Torneos
-      </Link>
+    <div className="min-h-screen">
+      {/* Hero banner */}
+      <div className={`relative bg-gradient-to-b ${status.gradient} rounded-b-3xl shadow-lg overflow-hidden`}>
+        <div className="absolute inset-0 bg-grid opacity-20" />
+        <div className="relative px-4 pt-6 pb-8 max-w-2xl mx-auto">
+          <Link
+            href="/tournaments"
+            className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors mb-5"
+          >
+            <ArrowLeft className="size-4" />
+            Torneos
+          </Link>
 
-      {/* Tournament header */}
-      <div className="omega-card-elevated p-5 relative">
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-gold via-omega-purple to-omega-blue" />
-
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-black text-omega-text">
-              {tournament.name}
-            </h1>
-            <p className="text-[11px] text-omega-muted uppercase tracking-wider font-medium mt-0.5">
-              {FORMAT_LABELS[tournament.format]}
-            </p>
-          </div>
-          <span className={`${status.badgeClass} gap-1.5 shrink-0`}>
-            {status.icon}
-            {status.label}
-          </span>
-        </div>
-
-        {tournament.description && (
-          <p className="text-xs text-omega-muted/80 mb-3">
-            {tournament.description}
-          </p>
-        )}
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 pt-3 border-t border-omega-border/30">
-          <div className="flex items-center gap-1.5 text-xs">
-            <Users className="size-3.5 text-omega-purple" />
-            <span className="font-bold text-omega-text">
-              {participants.length}
-            </span>
-            <span className="text-omega-muted">
-              / {tournament.max_participants}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-omega-muted">
-            <Calendar className="size-3.5" />
-            {new Date(tournament.created_at).toLocaleDateString("es-AR", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
-          </div>
-          {tournament.status === "in_progress" && (
-            <div className="flex items-center gap-1.5 text-xs ml-auto">
-              <Trophy className="size-3.5 text-omega-gold" />
-              <span className="font-bold text-omega-gold">
-                Ronda {tournament.current_round}
+          {/* Tournament header info */}
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl font-black text-omega-text">
+                  {tournament.name}
+                </h1>
+                <p className="text-[11px] text-omega-muted uppercase tracking-wider font-medium mt-0.5">
+                  {FORMAT_LABELS[tournament.format]}
+                </p>
+              </div>
+              <span className={`${status.badgeClass} gap-1.5 shrink-0`}>
+                {status.icon}
+                {status.label}
               </span>
             </div>
-          )}
+
+            {tournament.description && (
+              <p className="text-xs text-omega-muted/80">
+                {tournament.description}
+              </p>
+            )}
+
+            {/* Stats row */}
+            <div className="flex items-center gap-4 pt-3 border-t border-white/10">
+              <div className="flex items-center gap-1.5 text-xs">
+                <Users className="size-3.5 text-omega-purple" />
+                <span className="font-bold text-omega-text">
+                  {participants.length}
+                </span>
+                <span className="text-omega-muted">
+                  / {tournament.max_participants}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-omega-muted">
+                <Calendar className="size-3.5" />
+                {new Date(tournament.created_at).toLocaleDateString("es-AR", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </div>
+              {tournament.status === "in_progress" && (
+                <div className="flex items-center gap-1.5 text-xs ml-auto">
+                  <Trophy className="size-3.5 text-omega-gold" />
+                  <span className="font-bold text-omega-gold">
+                    Ronda {tournament.current_round}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Podium -- completed tournaments */}
-      {tournament.status === "completed" && podium.length > 0 && (
-        <div className="omega-card-elevated p-5 space-y-4">
-          <div className="omega-section-header justify-center">
-            <Trophy className="size-4 text-omega-gold" />
-            Resultados Finales
-          </div>
+      <div className="px-4 py-6 max-w-2xl mx-auto space-y-5">
+        {/* Podium -- completed tournaments */}
+        {tournament.status === "completed" && podium.length > 0 && (
+          <section className="omega-card-elevated overflow-hidden">
+            <div className="omega-section-header justify-center">
+              <Trophy className="size-4 text-omega-gold" />
+              Resultados Finales
+            </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              podium.find((p) => p.position === 2),
-              podium.find((p) => p.position === 1),
-              podium.filter((p) => p.position === 3)[0],
-            ].map((entry, visualIndex) => {
-              if (!entry) return <div key={visualIndex} />;
-              const config = podiumColors[entry.position as 1 | 2 | 3];
-              return (
-                <Link
-                  key={entry.playerId}
-                  href={`/player/${entry.playerId}`}
-                  className={`${
-                    visualIndex === 1 ? "-mt-2" : "mt-4"
-                  } block omega-card ${config.aura} p-4 text-center space-y-2 transition-all hover:scale-[1.02] active:scale-[0.98]`}
-                >
-                  <div className="flex justify-center">{config.icon}</div>
-                  <div
-                    className={`size-12 rounded-full border-2 ${config.avatarBorder} overflow-hidden bg-omega-dark mx-auto`}
+            <div className="grid grid-cols-3 gap-3 p-5">
+              {[
+                podium.find((p) => p.position === 2),
+                podium.find((p) => p.position === 1),
+                podium.filter((p) => p.position === 3)[0],
+              ].map((entry, visualIndex) => {
+                if (!entry) return <div key={visualIndex} />;
+                const config = podiumColors[entry.position as 1 | 2 | 3];
+                return (
+                  <Link
+                    key={entry.playerId}
+                    href={`/player/${entry.playerId}`}
+                    className={`${
+                      visualIndex === 1 ? "-mt-2" : "mt-4"
+                    } block omega-card ${config.aura} p-4 text-center space-y-2 shadow-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]`}
                   >
-                    {entry.avatar_url ? (
+                    <div className="flex justify-center">{config.icon}</div>
+                    <div
+                      className={`size-12 rounded-full border-2 ${config.avatarBorder} overflow-hidden bg-omega-dark mx-auto`}
+                    >
+                      {entry.avatar_url ? (
+                        <img
+                          src={entry.avatar_url}
+                          alt=""
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <div className="size-full flex items-center justify-center text-lg font-black text-omega-purple">
+                          {entry.alias.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <p
+                      className={`text-sm font-black truncate ${config.text}`}
+                    >
+                      {entry.alias}
+                    </p>
+                    <p className="text-[10px] text-omega-muted font-bold">
+                      {config.label}
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* 3rd place ties (if multiple) */}
+            {podium.filter((p) => p.position === 3).length > 1 && (
+              <div className="flex items-center justify-center gap-2 text-xs text-omega-muted pb-4">
+                <Medal className="size-3.5 text-orange-500" />
+                <span>
+                  3er lugar compartido:{" "}
+                  {podium
+                    .filter((p) => p.position === 3)
+                    .map((p) => p.alias)
+                    .join(", ")}
+                </span>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Points awarded -- from tournament_points table */}
+        {tournament.status === "completed" && tournamentPoints.length > 0 && (
+          <section className="omega-card shadow-sm">
+            <div className="omega-section-header">
+              <Star className="size-4 text-omega-gold fill-omega-gold" />
+              Puntos Otorgados
+            </div>
+            <div>
+              {tournamentPoints.map((tp, index) => (
+                <div
+                  key={tp.player_id}
+                  className="omega-row border-l-4 border-l-transparent hover:border-l-omega-gold/50"
+                >
+                  <span className="text-sm font-black text-omega-muted/60 w-6 text-center shrink-0">
+                    {tp.position ? `#${tp.position}` : index + 1}
+                  </span>
+                  <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
+                    {tp.player.avatar_url ? (
                       <img
-                        src={entry.avatar_url}
+                        src={tp.player.avatar_url}
                         alt=""
                         className="size-full object-cover"
                       />
                     ) : (
-                      <div className="size-full flex items-center justify-center text-lg font-black text-omega-purple">
-                        {entry.alias.charAt(0).toUpperCase()}
+                      <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                        {tp.player.alias.charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
-                  <p
-                    className={`text-sm font-black truncate ${config.text}`}
-                  >
-                    {entry.alias}
-                  </p>
-                  <p className="text-[10px] text-omega-muted font-bold">
-                    {config.label}
-                  </p>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* 3rd place ties (if multiple) */}
-          {podium.filter((p) => p.position === 3).length > 1 && (
-            <div className="flex items-center justify-center gap-2 text-xs text-omega-muted">
-              <Medal className="size-3.5 text-orange-500" />
-              <span>
-                3er lugar compartido:{" "}
-                {podium
-                  .filter((p) => p.position === 3)
-                  .map((p) => p.alias)
-                  .join(", ")}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Points awarded -- from tournament_points table */}
-      {tournament.status === "completed" && tournamentPoints.length > 0 && (
-        <div className="omega-card">
-          <div className="omega-section-header">
-            <Star className="size-4 text-omega-gold fill-omega-gold" />
-            Puntos Otorgados
-          </div>
-          <div>
-            {tournamentPoints.map((tp, index) => (
-              <div
-                key={tp.player_id}
-                className="omega-row"
-              >
-                <span className="text-sm font-black text-omega-muted/60 w-6 text-center shrink-0">
-                  {tp.position ? `#${tp.position}` : index + 1}
-                </span>
-                <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
-                  {tp.player.avatar_url ? (
-                    <img
-                      src={tp.player.avatar_url}
-                      alt=""
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
-                      {tp.player.alias.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-                <span className="text-sm font-bold text-omega-text flex-1 truncate">
-                  {tp.player.alias}
-                </span>
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-sm font-black text-omega-gold">
-                    {tp.points}
+                  <span className="text-sm font-bold text-omega-text flex-1 truncate">
+                    {tp.player.alias}
                   </span>
-                  <span className="text-[10px] text-omega-muted">pts</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-sm font-black text-omega-gold">
+                      {tp.points}
+                    </span>
+                    <span className="text-[10px] text-omega-muted">pts</span>
+                  </div>
                 </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Register button -- only for registration phase */}
+        {tournament.status === "registration" && (
+          <div className="space-y-2">
+            {isRegistered ? (
+              <div className="omega-card shadow-sm p-3 text-center border-l-4 border-l-omega-green">
+                <p className="text-sm font-bold text-omega-green flex items-center justify-center gap-2">
+                  <CheckCircle className="size-4" />
+                  Ya estas inscripto en este torneo
+                </p>
               </div>
-            ))}
+            ) : isFull ? (
+              <div className="omega-card shadow-sm p-3 text-center border-l-4 border-l-omega-red">
+                <p className="text-sm font-bold text-omega-red">
+                  El torneo esta lleno
+                </p>
+              </div>
+            ) : (
+              <Link
+                href={`/tournaments/${tournament.id}/register`}
+                className="omega-btn omega-btn-primary w-full px-4 py-3 text-base shadow-lg shadow-omega-purple/20"
+              >
+                <UserPlus className="size-5" />
+                {user ? "Inscribirme" : "Registrarme e inscribirme"}
+              </Link>
+            )}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Register button -- only for registration phase */}
-      {tournament.status === "registration" && (
-        <div className="space-y-2">
-          {isRegistered ? (
-            <div className="omega-card p-3 text-center">
-              <p className="text-sm font-bold text-omega-green flex items-center justify-center gap-2">
-                <CheckCircle className="size-4" />
-                Ya estas inscripto en este torneo
-              </p>
+        {/* Bracket / matches */}
+        {matches.length > 0 && (
+          <section className="space-y-3">
+            <div className="omega-section-header !bg-transparent !border-0 !px-1">
+              <Trophy className="size-4 text-omega-gold" />
+              {tournament.format === "single_elimination"
+                ? "Bracket"
+                : "Rondas"}
             </div>
-          ) : isFull ? (
-            <div className="omega-card p-3 text-center">
-              <p className="text-sm font-bold text-omega-red">
-                El torneo esta lleno
-              </p>
-            </div>
-          ) : (
-            <Link
-              href={`/tournaments/${tournament.id}/register`}
-              className="omega-btn omega-btn-primary w-full px-4 py-3 text-base"
-            >
-              <UserPlus className="size-5" />
-              {user ? "Inscribirme" : "Registrarme e inscribirme"}
-            </Link>
-          )}
-        </div>
-      )}
+            <BracketView
+              matches={matches}
+              format={
+                tournament.format as
+                  | "single_elimination"
+                  | "round_robin"
+                  | "swiss"
+              }
+              currentRound={tournament.current_round}
+            />
+          </section>
+        )}
 
-      {/* Bracket / matches */}
-      {matches.length > 0 && (
-        <div className="space-y-3">
-          <div className="omega-section-header">
-            <Trophy className="size-4 text-omega-gold" />
-            {tournament.format === "single_elimination"
-              ? "Bracket"
-              : "Rondas"}
-          </div>
-          <BracketView
-            matches={matches}
-            format={
-              tournament.format as
-                | "single_elimination"
-                | "round_robin"
-                | "swiss"
-            }
-            currentRound={tournament.current_round}
-          />
-        </div>
-      )}
-
-      {/* Participants */}
-      <ParticipantsList
-        participants={participants}
-        showSeeds={tournament.format === "single_elimination"}
-        showPoints={isRoundBased}
-      />
+        {/* Participants */}
+        <ParticipantsList
+          participants={participants}
+          showSeeds={tournament.format === "single_elimination"}
+          showPoints={isRoundBased}
+        />
+      </div>
     </div>
   );
 }

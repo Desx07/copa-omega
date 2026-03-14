@@ -129,7 +129,7 @@ export default function PushToggle() {
 
   if (state === "loading") {
     return (
-      <div className="omega-row !border-0">
+      <div className="omega-row !border-0 border-l-4 border-l-transparent">
         <Bell className="size-4 text-omega-muted" />
         <span className="text-sm text-omega-muted flex-1">Notificaciones push</span>
         <Loader2 className="size-4 animate-spin text-omega-muted" />
@@ -139,7 +139,7 @@ export default function PushToggle() {
 
   if (state === "unsupported") {
     return (
-      <div className="omega-row !border-0">
+      <div className="omega-row !border-0 border-l-4 border-l-omega-muted/30">
         <BellOff className="size-4 text-omega-muted" />
         <span className="text-sm text-omega-muted flex-1">
           Tu navegador no soporta notificaciones push
@@ -150,7 +150,7 @@ export default function PushToggle() {
 
   if (state === "denied") {
     return (
-      <div className="omega-row !border-0">
+      <div className="omega-row !border-0 border-l-4 border-l-omega-red">
         <BellOff className="size-4 text-omega-red" />
         <span className="text-sm text-omega-muted flex-1">
           Notificaciones bloqueadas en el navegador
@@ -162,7 +162,7 @@ export default function PushToggle() {
   const isEnabled = state === "enabled";
 
   return (
-    <div className="omega-row !border-0">
+    <div className={`omega-row !border-0 border-l-4 ${isEnabled ? "border-l-omega-green" : "border-l-transparent"}`}>
       {isEnabled ? (
         <Bell className="size-4 text-omega-green" />
       ) : (
@@ -176,7 +176,7 @@ export default function PushToggle() {
       <button
         onClick={isEnabled ? handleDisable : handleEnable}
         disabled={busy}
-        className={`w-10 h-6 rounded-full transition-all relative ${
+        className={`w-10 h-6 rounded-full transition-all relative shadow-sm ${
           isEnabled ? "bg-omega-green" : "bg-omega-border"
         }`}
       >
@@ -184,7 +184,7 @@ export default function PushToggle() {
           <Loader2 className="size-3 animate-spin absolute top-1.5 left-3.5 text-white" />
         ) : (
           <div
-            className={`size-4 rounded-full bg-white absolute top-1 transition-all ${
+            className={`size-4 rounded-full bg-white absolute top-1 transition-all shadow-sm ${
               isEnabled ? "left-5" : "left-1"
             }`}
           />

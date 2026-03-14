@@ -64,12 +64,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-lg mx-auto pb-10 space-y-5">
-      {/* ═══ HERO BANNER — bleeds edge-to-edge, absorbs player + stats + progress ═══ */}
-      <div className="relative -mx-4 px-5 pt-6 pb-5 bg-gradient-to-br from-omega-purple/30 via-omega-surface to-omega-blue/15 rounded-b-[2rem] overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-omega-purple/20 rounded-full blur-[80px]" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-omega-blue/15 rounded-full blur-[60px]" />
+      {/* ═══ HERO BANNER ═══ */}
+      <div className="-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-purple/30 via-omega-surface to-omega-blue/15 px-6 pt-8 pb-10 shadow-lg shadow-omega-purple/40">
+        {/* Decorative orbs */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-omega-purple/20 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-omega-blue/15 rounded-full blur-[60px] pointer-events-none" />
 
-        {/* Player row */}
+        {/* Player identity row */}
         <div className="relative flex items-center gap-4">
           <Link href="/profile" className={`size-16 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark shrink-0 ring-4 ring-omega-card shadow-lg`}>
             {player.avatar_url ? (
@@ -95,8 +96,8 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats strip — inside hero */}
-        <div className="relative flex items-center justify-around bg-omega-dark/60 rounded-xl py-2.5 px-3 mt-4 border border-white/[0.06]">
+        {/* Stats strip inside hero */}
+        <div className="relative flex items-center justify-around rounded-xl bg-omega-dark/60 border border-white/[0.06] py-2.5 px-2 mt-5">
           {rank > 0 && (
             <>
               <div className="flex items-center gap-1.5 text-sm">
@@ -131,10 +132,10 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Progress bar — inside hero */}
-        <div className="relative mt-3 space-y-1.5">
+        {/* Progress bar inside hero */}
+        <div className="relative mt-4 space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-omega-muted font-bold uppercase tracking-wider">Clasificación</span>
+            <span className="text-omega-muted font-bold uppercase tracking-wider">Clasificacion</span>
             <span className="text-omega-gold font-bold">Top 16</span>
           </div>
           <div className="h-2 rounded-full bg-omega-dark overflow-hidden">
@@ -144,94 +145,120 @@ export default async function DashboardPage() {
             />
           </div>
           <div className="flex items-center justify-between text-[11px] text-omega-muted">
-            <span>Posición <span className="text-omega-gold font-bold">#{rank}</span> de {allPlayers.length}</span>
+            <span>Posicion <span className="text-omega-gold font-bold">#{rank}</span> de {allPlayers.length}</span>
             <span>{rank > 0 && rank <= 16 ? <span className="text-omega-green font-bold">Clasificado</span> : <span className="text-omega-red">Fuera del top 16</span>}</span>
           </div>
         </div>
       </div>
 
-      {/* ═══ PRIMARY ACTIONS — 2 big ═══ */}
+      {/* ═══ QUICK ACTIONS — 2x2 grid, same size ═══ */}
       <div className="grid grid-cols-2 gap-3 px-4">
         <QrScannerButton />
-        <Link href="/ranking" className="omega-btn omega-btn-gold flex flex-col items-start p-5">
-          <div className="size-11 rounded-xl bg-black/25 flex items-center justify-center mb-3">
+        <Link href="/ranking" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-5 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
             <Trophy className="size-5 text-white" />
           </div>
           <p className="font-bold text-white text-sm">Ranking</p>
           <p className="text-xs text-white/70 mt-0.5">Ver posiciones</p>
         </Link>
+        <Link href="/profile" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-5 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+            <User className="size-5 text-white" />
+          </div>
+          <p className="font-bold text-white text-sm">Perfil</p>
+          <p className="text-xs text-white/70 mt-0.5">Personalizar</p>
+        </Link>
+        <Link href="/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-green to-omega-green/60 p-5 shadow-md shadow-omega-green/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+            <Trophy className="size-5 text-white" />
+          </div>
+          <p className="font-bold text-white text-sm">Torneos</p>
+          <p className="text-xs text-white/70 mt-0.5">Competir</p>
+        </Link>
       </div>
 
-      {/* ═══ SECONDARY ACTIONS — 3 smaller ═══ */}
-      <div className="grid grid-cols-3 gap-2 px-4">
-        <Link href="/profile" className="omega-btn omega-btn-purple flex flex-col items-center p-4 text-center">
-          <User className="size-5 text-white mb-1.5" />
-          <p className="text-xs font-bold text-white">Perfil</p>
-        </Link>
-        <Link href="/tournaments" className="omega-btn omega-btn-green flex flex-col items-center p-4 text-center">
-          <Trophy className="size-5 text-white mb-1.5" />
-          <p className="text-xs font-bold text-white">Torneos</p>
-        </Link>
+      {/* ═══ STORE BUTTON — dynamic, outside the grid ═══ */}
+      <div className="px-4">
         <StoreButton />
       </div>
 
-      {/* ═══ MATCH HISTORY ═══ */}
-      <div className="omega-card mx-4">
-        <div className="omega-section-header">
-          <Swords className="size-4 text-omega-blue" />
-          Mis últimas batallas
+      {/* ═══ MATCH HISTORY — section header + list rows ═══ */}
+      <div className="px-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Swords className="size-4 text-omega-blue" />
+            <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Mis ultimas batallas</h2>
+          </div>
+          <span className="omega-badge omega-badge-blue">{matches.length}</span>
         </div>
+
         {matches.length === 0 ? (
-          <div className="p-10 text-center space-y-3">
+          <div className="omega-card p-10 text-center space-y-3">
             <Swords className="size-10 text-omega-muted/20 mx-auto" />
-            <p className="text-sm text-omega-muted/70">Todavía no tenés batallas</p>
+            <p className="text-sm text-omega-muted/70">Todavia no tenes batallas</p>
           </div>
         ) : (
-          matches.map((match) => {
-            const won = match.winner_id === user.id;
-            const isPlayer1 = match.player1_id === user.id;
-            const opponent = isPlayer1 ? match.player2 : match.player1;
-            const opponentAlias = (opponent as unknown as { alias: string })?.alias ?? "???";
-            return (
-              <div key={match.id} className="omega-row">
-                <div className={`size-9 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${won ? "bg-omega-green/20 border border-omega-green/40 text-omega-green" : "bg-omega-red/20 border border-omega-red/40 text-omega-red"}`}>
-                  {won ? "W" : "L"}
+          <div className="space-y-2">
+            {matches.map((match) => {
+              const won = match.winner_id === user.id;
+              const isPlayer1 = match.player1_id === user.id;
+              const opponent = isPlayer1 ? match.player2 : match.player1;
+              const opponentAlias = (opponent as unknown as { alias: string })?.alias ?? "???";
+              return (
+                <div
+                  key={match.id}
+                  className={`rounded-xl border-l-4 ${won ? "border-l-omega-green" : "border-l-omega-red"} bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3`}
+                >
+                  <div className={`size-9 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${won ? "bg-omega-green/20 border border-omega-green/40 text-omega-green" : "bg-omega-red/20 border border-omega-red/40 text-omega-red"}`}>
+                    {won ? "W" : "L"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-omega-text truncate">vs {opponentAlias}</p>
+                    <p className="text-xs text-omega-muted/70">
+                      {match.completed_at ? new Date(match.completed_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" }) : ""}
+                    </p>
+                  </div>
+                  <div className={`flex items-center gap-1 shrink-0 ${won ? "text-omega-green" : "text-omega-red"}`}>
+                    <span className="text-sm font-black">{won ? "+" : "-"}{match.stars_bet}</span>
+                    <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-omega-text truncate">vs {opponentAlias}</p>
-                  <p className="text-xs text-omega-muted/70">
-                    {match.completed_at ? new Date(match.completed_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" }) : ""}
-                  </p>
-                </div>
-                <div className={`flex items-center gap-1 shrink-0 ${won ? "text-omega-green" : "text-omega-red"}`}>
-                  <span className="text-sm font-black">{won ? "+" : "-"}{match.stars_bet}</span>
-                  <Star className="size-3.5 text-omega-gold fill-omega-gold" />
-                </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
 
       {/* ═══ ADMIN ZONE — visually separated ═══ */}
       {player.is_admin && (
-        <div className="mx-4 space-y-3">
-          <p className="text-xs font-bold text-omega-muted uppercase tracking-wider px-1">Administración</p>
+        <div className="px-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Shield className="size-4 text-omega-blue" />
+            <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Administracion</h2>
+          </div>
           <div className="grid grid-cols-2 gap-2">
-            <Link href="/admin/matches" className="omega-btn omega-btn-blue flex flex-col items-center p-4">
-              <Swords className="size-5 text-white mb-1.5" />
+            <Link href="/admin/matches" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Swords className="size-5 text-white" />
+              </div>
               <p className="text-xs font-bold text-white">Partidas</p>
             </Link>
-            <Link href="/admin/tournaments" className="omega-btn omega-btn-blue flex flex-col items-center p-4">
-              <Shield className="size-5 text-white mb-1.5" />
+            <Link href="/admin/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Shield className="size-5 text-white" />
+              </div>
               <p className="text-xs font-bold text-white">Torneos</p>
             </Link>
-            <Link href="/admin/products" className="omega-btn omega-btn-blue flex flex-col items-center p-4">
-              <Package className="size-5 text-white mb-1.5" />
+            <Link href="/admin/products" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Package className="size-5 text-white" />
+              </div>
               <p className="text-xs font-bold text-white">Productos</p>
             </Link>
-            <Link href="/admin/orders" className="omega-btn omega-btn-blue flex flex-col items-center p-4">
-              <ClipboardList className="size-5 text-white mb-1.5" />
+            <Link href="/admin/orders" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <ClipboardList className="size-5 text-white" />
+              </div>
               <p className="text-xs font-bold text-white">Pedidos</p>
             </Link>
           </div>

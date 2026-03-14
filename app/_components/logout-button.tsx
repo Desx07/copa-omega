@@ -21,7 +21,7 @@ export function LogoutButton() {
     <button
       onClick={handleLogout}
       disabled={loading}
-      className="omega-btn omega-btn-secondary px-3 py-1.5 text-xs hover:text-omega-red hover:border-omega-red/50"
+      className="omega-btn omega-btn-secondary px-3 py-1.5 text-xs shadow-sm hover:shadow-md hover:text-omega-red hover:border-omega-red/50 transition-all"
     >
       {loading ? (
         <Loader2 className="size-3.5 animate-spin" />

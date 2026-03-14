@@ -92,155 +92,178 @@ export default function AdminProductsPage() {
   const inactiveProducts = products.filter((p) => !p.is_active);
 
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto">
-      {/* Back */}
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors mb-4"
-      >
-        <ArrowLeft className="size-4" />
-        Dashboard
-      </Link>
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Package className="size-5 text-omega-blue" />
-          <h1 className="text-2xl font-black neon-blue">PRODUCTOS</h1>
-        </div>
-        <Link
-          href="/admin/products/new"
-          className="omega-btn omega-btn-primary px-4 py-2.5 text-sm"
-        >
-          <Plus className="size-4" />
-          Nuevo producto
-        </Link>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="omega-card p-3 text-center">
-          <Package className="size-4 text-omega-blue mx-auto mb-1" />
-          <p className="text-xl font-black text-omega-blue">
-            {products.length}
-          </p>
-          <p className="text-[11px] text-omega-muted">total</p>
-        </div>
-        <div className="omega-card p-3 text-center">
-          <ToggleRight className="size-4 text-omega-green mx-auto mb-1" />
-          <p className="text-xl font-black text-omega-green">
-            {activeProducts.length}
-          </p>
-          <p className="text-[11px] text-omega-muted">activos</p>
-        </div>
-        <div className="omega-card p-3 text-center">
-          <ToggleLeft className="size-4 text-omega-red mx-auto mb-1" />
-          <p className="text-xl font-black text-omega-red">
-            {inactiveProducts.length}
-          </p>
-          <p className="text-[11px] text-omega-muted">inactivos</p>
+    <div className="max-w-2xl mx-auto pb-8">
+      {/* Hero banner */}
+      <div className="-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-blue/20 via-omega-purple/10 to-omega-dark shadow-lg shadow-omega-blue/10 mb-6">
+        <div className="px-5 pt-5 pb-6">
+          <Link
+            href="/dashboard"
+            className="text-sm text-omega-muted hover:text-omega-purple transition-colors inline-flex items-center gap-1 mb-3"
+          >
+            <ArrowLeft className="size-3.5" />
+            Dashboard
+          </Link>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="size-10 rounded-xl bg-omega-blue/20 flex items-center justify-center">
+                <Package className="size-5 text-omega-blue" />
+              </div>
+              <h1 className="text-2xl font-black neon-blue">PRODUCTOS</h1>
+            </div>
+            <Link
+              href="/admin/products/new"
+              className="omega-btn omega-btn-primary px-4 py-2.5 text-sm"
+            >
+              <Plus className="size-4" />
+              Nuevo producto
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Products list */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="size-8 text-omega-purple animate-spin" />
+      <div className="px-4 space-y-6">
+        {/* Stats cards */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-2xl bg-gradient-to-br from-omega-blue/15 to-omega-blue/5 p-4 text-center shadow-sm border border-omega-blue/20">
+            <Package className="size-4 text-omega-blue mx-auto mb-1" />
+            <p className="text-xl font-black text-omega-blue">
+              {products.length}
+            </p>
+            <p className="text-[11px] text-omega-muted">total</p>
+          </div>
+          <div className="rounded-2xl bg-gradient-to-br from-omega-green/15 to-omega-green/5 p-4 text-center shadow-sm border border-omega-green/20">
+            <ToggleRight className="size-4 text-omega-green mx-auto mb-1" />
+            <p className="text-xl font-black text-omega-green">
+              {activeProducts.length}
+            </p>
+            <p className="text-[11px] text-omega-muted">activos</p>
+          </div>
+          <div className="rounded-2xl bg-gradient-to-br from-omega-red/15 to-omega-red/5 p-4 text-center shadow-sm border border-omega-red/20">
+            <ToggleLeft className="size-4 text-omega-red mx-auto mb-1" />
+            <p className="text-xl font-black text-omega-red">
+              {inactiveProducts.length}
+            </p>
+            <p className="text-[11px] text-omega-muted">inactivos</p>
+          </div>
         </div>
-      ) : products.length === 0 ? (
-        <div className="omega-card p-8 text-center space-y-3">
-          <Package className="size-10 text-omega-muted/20 mx-auto" />
-          <p className="text-omega-muted text-sm">
-            No hay productos creados todavia
-          </p>
+
+        {/* Section header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Package className="size-4 text-omega-blue" />
+            <span className="text-xs font-bold uppercase tracking-wider text-omega-text">Catalogo</span>
+            <span className="omega-badge omega-badge-blue">{products.length}</span>
+          </div>
           <Link
             href="/admin/products/new"
-            className="inline-flex items-center gap-2 text-sm text-omega-blue hover:underline font-medium"
+            className="text-xs text-omega-blue hover:text-omega-purple transition-colors font-medium"
           >
-            <Plus className="size-4" />
-            Crear primer producto
+            + Nuevo
           </Link>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {products.map((product) => {
-            const mainImage = product.images[0]?.image_url;
-            const isToggling = togglingId === product.id;
 
-            return (
-              <div
-                key={product.id}
-                className={`omega-card transition-all ${
-                  !product.is_active ? "opacity-60" : ""
-                }`}
-              >
-                <div className="flex items-center gap-4 p-4">
-                  {/* Image */}
-                  <div className="size-16 rounded-xl bg-omega-dark border border-omega-border/30 overflow-hidden shrink-0">
-                    {mainImage ? (
-                      <img
-                        src={mainImage}
-                        alt={product.name}
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <div className="size-full flex items-center justify-center">
-                        <ImageOff className="size-6 text-omega-muted/30" />
-                      </div>
-                    )}
-                  </div>
+        {/* Products list */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="size-8 text-omega-purple animate-spin" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="omega-card p-8 text-center space-y-3">
+            <Package className="size-10 text-omega-muted/20 mx-auto" />
+            <p className="text-omega-muted text-sm">
+              No hay productos creados todavia
+            </p>
+            <Link
+              href="/admin/products/new"
+              className="inline-flex items-center gap-2 text-sm text-omega-blue hover:underline font-medium"
+            >
+              <Plus className="size-4" />
+              Crear primer producto
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {products.map((product) => {
+              const mainImage = product.images[0]?.image_url;
+              const isToggling = togglingId === product.id;
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-omega-text truncate">
-                      {product.name}
-                    </p>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-sm font-black text-omega-gold">
-                        ${Number(product.price).toFixed(2)}
-                      </span>
-                      <span
-                        className={
-                          product.stock > 0
-                            ? "omega-badge omega-badge-green"
-                            : "omega-badge omega-badge-red"
-                        }
-                      >
-                        Stock: {product.stock}
-                      </span>
+              return (
+                <div
+                  key={product.id}
+                  className={`rounded-xl border-l-4 ${
+                    product.is_active ? "border-l-omega-green" : "border-l-omega-red"
+                  } bg-omega-card px-4 py-3 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all ${
+                    !product.is_active ? "opacity-60" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Image */}
+                    <div className="size-16 rounded-xl bg-omega-dark border border-omega-border/30 overflow-hidden shrink-0">
+                      {mainImage ? (
+                        <img
+                          src={mainImage}
+                          alt={product.name}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <div className="size-full flex items-center justify-center">
+                          <ImageOff className="size-6 text-omega-muted/30" />
+                        </div>
+                      )}
                     </div>
-                    {product.description && (
-                      <p className="text-[11px] text-omega-muted mt-1 truncate">
-                        {product.description}
-                      </p>
-                    )}
-                  </div>
 
-                  {/* Toggle */}
-                  <button
-                    onClick={() => toggleActive(product)}
-                    disabled={isToggling}
-                    className="shrink-0 p-2 rounded-xl hover:bg-omega-dark/50 transition-colors disabled:opacity-50"
-                    title={
-                      product.is_active
-                        ? "Desactivar producto"
-                        : "Activar producto"
-                    }
-                  >
-                    {isToggling ? (
-                      <Loader2 className="size-6 animate-spin text-omega-muted" />
-                    ) : product.is_active ? (
-                      <ToggleRight className="size-6 text-omega-green" />
-                    ) : (
-                      <ToggleLeft className="size-6 text-omega-red" />
-                    )}
-                  </button>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-omega-text truncate">
+                        {product.name}
+                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-sm font-black text-omega-gold">
+                          ${Number(product.price).toFixed(2)}
+                        </span>
+                        <span
+                          className={
+                            product.stock > 0
+                              ? "omega-badge omega-badge-green"
+                              : "omega-badge omega-badge-red"
+                          }
+                        >
+                          Stock: {product.stock}
+                        </span>
+                      </div>
+                      {product.description && (
+                        <p className="text-[11px] text-omega-muted mt-1 truncate">
+                          {product.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Toggle */}
+                    <button
+                      onClick={() => toggleActive(product)}
+                      disabled={isToggling}
+                      className="omega-btn omega-btn-secondary size-10 !rounded-xl !p-0 shrink-0 disabled:opacity-50"
+                      title={
+                        product.is_active
+                          ? "Desactivar producto"
+                          : "Activar producto"
+                      }
+                    >
+                      {isToggling ? (
+                        <Loader2 className="size-5 animate-spin text-omega-muted" />
+                      ) : product.is_active ? (
+                        <ToggleRight className="size-5 text-omega-green" />
+                      ) : (
+                        <ToggleLeft className="size-5 text-omega-red" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -76,55 +76,57 @@ export default function QrDisplay({
   }, [size, tournamentName]);
 
   return (
-    <div className="omega-card p-5 space-y-4">
+    <div className="omega-card shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="omega-section-header !p-0 !bg-transparent !border-0">
+      <div className="omega-section-header">
         <QrCode className="size-4 text-omega-purple" />
         QR de inscripcion
       </div>
 
-      {/* QR Code */}
-      <div className="flex justify-center">
-        <div
-          ref={svgRef}
-          className="rounded-xl bg-omega-dark p-4 border border-omega-border/30"
-        >
-          <QRCodeSVG
-            value={url}
-            size={size}
-            bgColor="transparent"
-            fgColor="#e8e8f0"
-            level="M"
-            includeMargin={false}
-          />
+      <div className="p-5 space-y-4">
+        {/* QR Code */}
+        <div className="flex justify-center">
+          <div
+            ref={svgRef}
+            className="rounded-xl bg-omega-dark p-4 border border-omega-border/30 shadow-sm"
+          >
+            <QRCodeSVG
+              value={url}
+              size={size}
+              bgColor="transparent"
+              fgColor="#e8e8f0"
+              level="M"
+              includeMargin={false}
+            />
+          </div>
         </div>
-      </div>
 
-      {/* URL preview */}
-      <div className="rounded-lg bg-omega-dark/60 border border-omega-border/30 px-3 py-2">
-        <p className="text-[11px] text-omega-muted truncate font-mono">{url}</p>
-      </div>
+        {/* URL preview */}
+        <div className="rounded-lg bg-omega-dark/60 border border-omega-border/30 px-3 py-2">
+          <p className="text-[11px] text-omega-muted truncate font-mono">{url}</p>
+        </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={handleDownload}
-          className="omega-btn omega-btn-primary flex-1 px-4 py-2.5 text-sm"
-        >
-          <Download className="size-4" />
-          Descargar PNG
-        </button>
-        <button
-          onClick={handleCopyLink}
-          className="omega-btn omega-btn-secondary px-4 py-2.5 text-sm"
-        >
-          {copied ? (
-            <Check className="size-4 text-omega-green" />
-          ) : (
-            <Copy className="size-4" />
-          )}
-          {copied ? "Copiado" : "Copiar"}
-        </button>
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleDownload}
+            className="omega-btn omega-btn-primary flex-1 px-4 py-2.5 text-sm shadow-sm hover:shadow-md"
+          >
+            <Download className="size-4" />
+            Descargar PNG
+          </button>
+          <button
+            onClick={handleCopyLink}
+            className="omega-btn omega-btn-secondary px-4 py-2.5 text-sm shadow-sm hover:shadow-md"
+          >
+            {copied ? (
+              <Check className="size-4 text-omega-green" />
+            ) : (
+              <Copy className="size-4" />
+            )}
+            {copied ? "Copiado" : "Copiar"}
+          </button>
+        </div>
       </div>
     </div>
   );

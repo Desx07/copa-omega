@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, UserPlus, Swords } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -62,14 +62,20 @@ export default function RegisterPage() {
   return (
     <div className="omega-card p-6 space-y-6">
       {/* Header */}
-      <div className="text-center space-y-1">
+      <div className="text-center space-y-2">
+        <div className="flex justify-center mb-1">
+          <Swords className="size-6 text-omega-purple neon-purple" />
+        </div>
         <h1 className="text-2xl font-black neon-gold">SUMATE A LA COPA</h1>
         <p className="text-sm text-omega-muted">Arma tu perfil de blader y empeza a competir</p>
       </div>
 
+      {/* Divider */}
+      <div className="energy-line" />
+
       {/* Form */}
       <form onSubmit={handleRegister} className="space-y-4">
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label htmlFor="name" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
             Nombre completo
           </label>
@@ -85,7 +91,7 @@ export default function RegisterPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label htmlFor="alias" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
             Tu nombre de batalla
           </label>
@@ -101,7 +107,7 @@ export default function RegisterPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label htmlFor="email" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
             Email
           </label>
@@ -116,7 +122,7 @@ export default function RegisterPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label htmlFor="password" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
             Contrasena
           </label>
@@ -147,6 +153,9 @@ export default function RegisterPage() {
           )}
         </button>
       </form>
+
+      {/* Divider */}
+      <div className="energy-line" />
 
       <p className="text-center text-sm text-omega-muted">
         Ya sos blader?{" "}

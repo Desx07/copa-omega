@@ -119,121 +119,125 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
     tournament.format === "round_robin" || tournament.format === "swiss";
 
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto space-y-5">
-      {/* Back */}
-      <Link
-        href="/admin/tournaments"
-        className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors"
-      >
-        <ArrowLeft className="size-4" />
-        Torneos
-      </Link>
+    <div className="max-w-2xl mx-auto pb-8">
+      {/* Hero banner */}
+      <div className="-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-gold/20 via-omega-purple/10 to-omega-dark shadow-lg shadow-omega-gold/10 mb-6">
+        <div className="px-5 pt-5 pb-6">
+          <Link
+            href="/admin/tournaments"
+            className="text-sm text-omega-muted hover:text-omega-purple transition-colors inline-flex items-center gap-1 mb-3"
+          >
+            <ArrowLeft className="size-3.5" />
+            Torneos
+          </Link>
 
-      {/* Tournament header card */}
-      <div className="omega-card-elevated p-5 relative">
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-gold via-omega-purple to-omega-blue" />
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl font-black text-omega-text">
+                {tournament.name}
+              </h1>
+              <p className="text-[11px] text-omega-muted uppercase tracking-wider font-medium mt-0.5">
+                {FORMAT_LABELS[tournament.format]}
+              </p>
+            </div>
+            <span className={`${status.badgeClass} gap-1.5 shrink-0`}>
+              {status.icon}
+              {status.label}
+            </span>
+          </div>
 
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-black text-omega-text">
-              {tournament.name}
-            </h1>
-            <p className="text-[11px] text-omega-muted uppercase tracking-wider font-medium mt-0.5">
-              {FORMAT_LABELS[tournament.format]}
+          {tournament.description && (
+            <p className="text-xs text-omega-muted/80 mb-3">
+              {tournament.description}
             </p>
-          </div>
-          <span className={`${status.badgeClass} gap-1.5 shrink-0`}>
-            {status.icon}
-            {status.label}
-          </span>
-        </div>
+          )}
 
-        {tournament.description && (
-          <p className="text-xs text-omega-muted/80 mb-3">
-            {tournament.description}
-          </p>
-        )}
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 pt-3 border-t border-omega-border/30">
-          <div className="flex items-center gap-1.5 text-xs">
-            <Users className="size-3.5 text-omega-purple" />
-            <span className="font-bold text-omega-text">
-              {participants.length}
-            </span>
-            <span className="text-omega-muted">
-              / {tournament.max_participants}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-omega-muted">
-            <Calendar className="size-3.5" />
-            {new Date(tournament.created_at).toLocaleDateString("es-AR", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
-          </div>
-          {tournament.status === "in_progress" && (
-            <div className="flex items-center gap-1.5 text-xs ml-auto">
-              <Trophy className="size-3.5 text-omega-gold" />
-              <span className="font-bold text-omega-gold">
-                Ronda {tournament.current_round}
+          {/* Stats row inside hero */}
+          <div className="flex items-center gap-4 pt-3 border-t border-white/10">
+            <div className="flex items-center gap-1.5 text-xs">
+              <Users className="size-3.5 text-omega-purple" />
+              <span className="font-bold text-omega-text">
+                {participants.length}
+              </span>
+              <span className="text-omega-muted">
+                / {tournament.max_participants}
               </span>
             </div>
-          )}
+            <div className="flex items-center gap-1.5 text-xs text-omega-muted">
+              <Calendar className="size-3.5" />
+              {new Date(tournament.created_at).toLocaleDateString("es-AR", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </div>
+            {tournament.status === "in_progress" && (
+              <div className="flex items-center gap-1.5 text-xs ml-auto">
+                <Trophy className="size-3.5 text-omega-gold" />
+                <span className="font-bold text-omega-gold">
+                  Ronda {tournament.current_round}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Admin actions */}
-      <TournamentAdminActions
-        tournamentId={tournament.id}
-        status={tournament.status}
-        participantCount={participants.length}
-        maxParticipants={tournament.max_participants}
-        format={tournament.format}
-      />
-
-      {/* QR Code -- show during registration */}
-      {tournament.status === "registration" && (
-        <QrDisplay
-          url={registerUrl}
-          tournamentName={tournament.name}
-          size={220}
+      <div className="px-4 space-y-5">
+        {/* Admin actions */}
+        <TournamentAdminActions
+          tournamentId={tournament.id}
+          status={tournament.status}
+          participantCount={participants.length}
+          maxParticipants={tournament.max_participants}
+          format={tournament.format}
         />
-      )}
 
-      {/* Bracket / matches */}
-      {matches.length > 0 && (
-        <div className="space-y-3">
-          <div className="omega-section-header">
-            <Trophy className="size-4 text-omega-gold" />
-            {tournament.format === "single_elimination"
-              ? "Bracket"
-              : "Rondas"}
-          </div>
-          <BracketView
-            matches={matches}
-            format={tournament.format as "single_elimination" | "round_robin" | "swiss"}
-            currentRound={tournament.current_round}
+        {/* QR Code -- show during registration */}
+        {tournament.status === "registration" && (
+          <QrDisplay
+            url={registerUrl}
+            tournamentName={tournament.name}
+            size={220}
           />
+        )}
+
+        {/* Bracket / matches */}
+        {matches.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Trophy className="size-4 text-omega-gold" />
+              <span className="text-xs font-bold uppercase tracking-wider text-omega-text">
+                {tournament.format === "single_elimination"
+                  ? "Bracket"
+                  : "Rondas"}
+              </span>
+              <span className="omega-badge omega-badge-gold">{matches.length}</span>
+            </div>
+            <BracketView
+              matches={matches}
+              format={tournament.format as "single_elimination" | "round_robin" | "swiss"}
+              currentRound={tournament.current_round}
+            />
+          </div>
+        )}
+
+        {/* Participants list */}
+        <ParticipantsList
+          participants={participants}
+          showSeeds={tournament.format === "single_elimination"}
+          showPoints={isRoundBased}
+        />
+
+        {/* Link to public view */}
+        <div className="text-center pt-2">
+          <Link
+            href={`/tournaments/${tournament.id}`}
+            className="text-xs text-omega-muted hover:text-omega-blue transition-colors"
+          >
+            Ver pagina publica del torneo &rarr;
+          </Link>
         </div>
-      )}
-
-      {/* Participants list */}
-      <ParticipantsList
-        participants={participants}
-        showSeeds={tournament.format === "single_elimination"}
-        showPoints={isRoundBased}
-      />
-
-      {/* Link to public view */}
-      <div className="text-center pt-2">
-        <Link
-          href={`/tournaments/${tournament.id}`}
-          className="text-xs text-omega-muted hover:text-omega-blue transition-colors"
-        >
-          Ver pagina publica del torneo &rarr;
-        </Link>
       </div>
     </div>
   );

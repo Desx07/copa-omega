@@ -78,138 +78,154 @@ export default function StorePage() {
 
   if (storeStatus !== "open") {
     return (
-      <div className="px-4 py-6 max-w-2xl mx-auto">
-        <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors mb-4">
-          <ArrowLeft className="size-4" />
-          Dashboard
-        </Link>
-        <div className="omega-card p-10 text-center space-y-3 mt-4">
-          <Package className="size-12 text-omega-muted/30 mx-auto" />
-          <h2 className="text-xl font-black text-omega-text">Tienda cerrada</h2>
-          <p className="text-sm text-omega-muted">La tienda esta en mantenimiento. Volve pronto!</p>
+      <div className="min-h-screen">
+        <div className="relative bg-gradient-to-b from-omega-red/15 via-omega-surface to-omega-black rounded-b-3xl shadow-lg overflow-hidden">
+          <div className="absolute inset-0 bg-grid opacity-20" />
+          <div className="relative px-4 pt-6 pb-8 max-w-2xl mx-auto">
+            <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors mb-6">
+              <ArrowLeft className="size-4" />
+              Dashboard
+            </Link>
+            <div className="text-center space-y-3 py-8">
+              <Package className="size-16 text-omega-muted/30 mx-auto" />
+              <h2 className="text-xl font-black text-omega-text">Tienda cerrada</h2>
+              <p className="text-sm text-omega-muted">La tienda esta en mantenimiento. Volve pronto!</p>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto">
-      {/* Back */}
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors mb-4"
-      >
-        <ArrowLeft className="size-4" />
-        Dashboard
-      </Link>
+    <div className="min-h-screen">
+      {/* Hero banner */}
+      <div className="relative bg-gradient-to-b from-omega-purple/20 via-omega-surface to-omega-black rounded-b-3xl shadow-lg shadow-omega-purple/5 overflow-hidden">
+        <div className="absolute inset-0 bg-grid opacity-20" />
+        <div className="relative px-4 pt-6 pb-8 max-w-2xl mx-auto">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors mb-6"
+          >
+            <ArrowLeft className="size-4" />
+            Dashboard
+          </Link>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Package className="size-5 text-omega-purple" />
-          <h1 className="text-2xl font-black neon-purple">TIENDA</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-omega-purple/15 ring-2 ring-omega-purple/30">
+                <Package className="size-6 text-omega-purple" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-black neon-purple">TIENDA</h1>
+                <p className="text-xs text-omega-muted">Productos disponibles</p>
+              </div>
+            </div>
+            <Link
+              href="/store/cart"
+              className="relative omega-btn omega-btn-secondary px-4 py-2.5 text-sm shadow-sm hover:shadow-md"
+            >
+              <ShoppingCart className="size-4" />
+              Carrito
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 size-5 rounded-full bg-omega-purple text-white text-[10px] font-black flex items-center justify-center shadow-lg shadow-omega-purple/30">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+          </div>
         </div>
-        <Link
-          href="/store/cart"
-          className="relative omega-btn omega-btn-secondary px-4 py-2.5 text-sm"
-        >
-          <ShoppingCart className="size-4" />
-          Carrito
-          {totalItems > 0 && (
-            <span className="absolute -top-2 -right-2 size-5 rounded-full bg-omega-purple text-white text-[10px] font-black flex items-center justify-center shadow-lg shadow-omega-purple/30">
-              {totalItems}
-            </span>
-          )}
-        </Link>
       </div>
 
-      {/* Products grid */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="size-8 text-omega-purple animate-spin" />
-        </div>
-      ) : products.length === 0 ? (
-        <div className="omega-card p-8 text-center space-y-3">
-          <Package className="size-10 text-omega-muted/20 mx-auto" />
-          <p className="text-omega-muted text-sm">
-            No hay productos disponibles todavia
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((product) => {
-            const mainImage = product.images[0]?.image_url;
-            const inStock = product.stock > 0;
+      <div className="px-4 py-6 max-w-2xl mx-auto">
+        {/* Products grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="size-8 text-omega-purple animate-spin" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="omega-card shadow-sm p-8 text-center space-y-3">
+            <Package className="size-10 text-omega-muted/20 mx-auto" />
+            <p className="text-omega-muted text-sm">
+              No hay productos disponibles todavia
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {products.map((product) => {
+              const mainImage = product.images[0]?.image_url;
+              const inStock = product.stock > 0;
 
-            return (
-              <div
-                key={product.id}
-                className="group omega-card hover:bg-omega-card-hover transition-all hover:-translate-y-0.5"
-              >
-                {/* Image */}
-                <div className="relative aspect-square bg-omega-dark overflow-hidden">
-                  {mainImage ? (
-                    <img
-                      src={mainImage}
-                      alt={product.name}
-                      className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="size-full flex items-center justify-center">
-                      <ImageOff className="size-12 text-omega-muted/20" />
-                    </div>
-                  )}
-
-                  {/* Stock badge */}
-                  <div className="absolute top-2 right-2">
-                    <span
-                      className={
-                        inStock
-                          ? "omega-badge omega-badge-green"
-                          : "omega-badge omega-badge-red"
-                      }
-                    >
-                      {inStock ? "En stock" : "Agotado"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Info */}
-                <div className="p-4 space-y-3">
-                  <div>
-                    <p className="text-sm font-bold text-omega-text truncate">
-                      {product.name}
-                    </p>
-                    {product.description && (
-                      <p className="text-[11px] text-omega-muted mt-0.5 line-clamp-2">
-                        {product.description}
-                      </p>
+              return (
+                <div
+                  key={product.id}
+                  className="group omega-card shadow-sm transition-all hover:shadow-md hover:scale-[1.01]"
+                >
+                  {/* Image */}
+                  <div className="relative aspect-square bg-omega-dark overflow-hidden">
+                    {mainImage ? (
+                      <img
+                        src={mainImage}
+                        alt={product.name}
+                        className="size-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="size-full flex items-center justify-center">
+                        <ImageOff className="size-12 text-omega-muted/20" />
+                      </div>
                     )}
+
+                    {/* Stock badge */}
+                    <div className="absolute top-2 right-2">
+                      <span
+                        className={
+                          inStock
+                            ? "omega-badge omega-badge-green"
+                            : "omega-badge omega-badge-red"
+                        }
+                      >
+                        {inStock ? "En stock" : "Agotado"}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-black text-omega-gold">
-                      ${Number(product.price).toFixed(2)}
-                    </span>
-                    <button
-                      onClick={() => handleAdd(product)}
-                      disabled={!inStock}
-                      className={
-                        inStock
-                          ? "omega-btn omega-btn-primary px-3 py-2 text-xs"
-                          : "omega-btn omega-btn-secondary px-3 py-2 text-xs opacity-50 cursor-not-allowed"
-                      }
-                    >
-                      <Plus className="size-3.5" />
-                      Agregar
-                    </button>
+                  {/* Info */}
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <p className="text-sm font-bold text-omega-text truncate">
+                        {product.name}
+                      </p>
+                      {product.description && (
+                        <p className="text-[11px] text-omega-muted mt-0.5 line-clamp-2">
+                          {product.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-black text-omega-gold">
+                        ${Number(product.price).toFixed(2)}
+                      </span>
+                      <button
+                        onClick={() => handleAdd(product)}
+                        disabled={!inStock}
+                        className={
+                          inStock
+                            ? "omega-btn omega-btn-primary px-3 py-2 text-xs shadow-sm hover:shadow-md"
+                            : "omega-btn omega-btn-secondary px-3 py-2 text-xs opacity-50 cursor-not-allowed"
+                        }
+                      >
+                        <Plus className="size-3.5" />
+                        Agregar
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -126,7 +126,7 @@ export default function TournamentAdminActions({
   // Cancel confirmation overlay
   if (confirmCancel) {
     return (
-      <div className="omega-card !border-omega-red/30 p-4 space-y-3">
+      <div className="omega-card shadow-sm !border-omega-red/30 border-l-4 border-l-omega-red p-4 space-y-3">
         <div className="flex items-center gap-2 text-omega-red">
           <AlertTriangle className="size-5" />
           <span className="text-sm font-bold">
@@ -140,7 +140,7 @@ export default function TournamentAdminActions({
           <button
             onClick={handleCancel}
             disabled={loading}
-            className="omega-btn omega-btn-red px-4 py-2.5 text-sm"
+            className="omega-btn omega-btn-red px-4 py-2.5 text-sm shadow-sm hover:shadow-md"
           >
             {loading ? (
               <Loader2 className="size-4 animate-spin" />
@@ -152,7 +152,7 @@ export default function TournamentAdminActions({
           <button
             onClick={() => setConfirmCancel(false)}
             disabled={loading}
-            className="omega-btn omega-btn-secondary px-4 py-2.5 text-sm"
+            className="omega-btn omega-btn-secondary px-4 py-2.5 text-sm shadow-sm"
           >
             Volver
           </button>
@@ -168,7 +168,7 @@ export default function TournamentAdminActions({
         <button
           onClick={handleStart}
           disabled={loading || participantCount < 2}
-          className="omega-btn omega-btn-green w-full px-4 py-3 text-base"
+          className="omega-btn omega-btn-green w-full px-4 py-3 text-base shadow-lg shadow-omega-green/20 hover:shadow-xl"
         >
           {loading ? (
             <Loader2 className="size-5 animate-spin" />
@@ -192,7 +192,7 @@ export default function TournamentAdminActions({
         <button
           onClick={handleComplete}
           disabled={loading}
-          className="omega-btn omega-btn-gold w-full px-4 py-3 text-base"
+          className="omega-btn omega-btn-gold w-full px-4 py-3 text-base shadow-lg shadow-omega-gold/20 hover:shadow-xl"
         >
           {loading ? (
             <Loader2 className="size-5 animate-spin" />
@@ -210,7 +210,7 @@ export default function TournamentAdminActions({
         <button
           onClick={() => setConfirmCancel(true)}
           disabled={loading}
-          className="omega-btn omega-btn-secondary w-full px-4 py-2.5 text-sm !text-omega-red !border-omega-red/30 hover:!bg-omega-red/10"
+          className="omega-btn omega-btn-secondary w-full px-4 py-2.5 text-sm shadow-sm hover:shadow-md !text-omega-red !border-omega-red/30 hover:!bg-omega-red/10 border-l-4 border-l-omega-red"
         >
           <XCircle className="size-4" />
           Cancelar torneo
@@ -221,7 +221,7 @@ export default function TournamentAdminActions({
       <button
         onClick={handleDelete}
         disabled={loading}
-        className="omega-btn omega-btn-secondary w-full px-4 py-2 text-xs !text-omega-muted hover:!text-omega-red hover:!border-omega-red/30"
+        className="omega-btn omega-btn-secondary w-full px-4 py-2 text-xs shadow-sm !text-omega-muted hover:!text-omega-red hover:!border-omega-red/30 hover:shadow-md"
       >
         <Trash2 className="size-3.5" />
         Eliminar torneo

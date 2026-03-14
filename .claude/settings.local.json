@@ -45,7 +45,8 @@
       "WebFetch(domain:dribbble.com)",
       "WebFetch(domain:www.pinterest.com)",
       "WebFetch(domain:muz.li)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

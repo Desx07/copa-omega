@@ -12,9 +12,9 @@ export function QrScannerButton() {
     <>
       <button
         onClick={() => setScanning(true)}
-        className="group flex flex-col omega-card-elevated !bg-gradient-to-br !from-omega-blue/25 !to-omega-purple/10 p-5 transition-all hover:scale-[1.02] active:scale-[0.98]"
+        className="group flex flex-col omega-card-elevated !bg-gradient-to-br !from-omega-blue/25 !to-omega-purple/10 p-5 shadow-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
       >
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors shadow-sm">
           <ScanLine className="size-6 text-white" />
         </div>
         <p className="font-bold text-white text-sm">Escanear QR</p>
@@ -87,14 +87,16 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-omega-black/95 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4">
+      <div className="flex items-center justify-between px-4 py-4 border-b border-omega-border/20">
         <div className="flex items-center gap-2">
-          <Camera className="size-5 text-omega-blue" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-omega-blue/20 ring-2 ring-omega-blue/30 shadow-sm">
+            <Camera className="size-4 text-omega-blue" />
+          </div>
           <span className="text-sm font-bold text-omega-text">Escanear QR del torneo</span>
         </div>
         <button
           onClick={onClose}
-          className="omega-btn omega-btn-secondary size-10 !p-0 !rounded-xl"
+          className="omega-btn omega-btn-secondary size-10 !p-0 !rounded-xl shadow-sm hover:shadow-md"
         >
           <X className="size-5" />
         </button>
@@ -106,7 +108,7 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
           <div
             id="qr-reader"
             ref={scannerRef}
-            className="rounded-2xl overflow-hidden"
+            className="rounded-2xl overflow-hidden shadow-lg"
           />
           <p className="text-center text-xs text-omega-muted mt-4">
             Apunta la camara al codigo QR del torneo

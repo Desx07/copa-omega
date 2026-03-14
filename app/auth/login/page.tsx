@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, LogIn } from "lucide-react";
+import { Loader2, LogIn, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -37,14 +37,20 @@ export default function LoginPage() {
   return (
     <div className="omega-card p-6 space-y-6">
       {/* Header */}
-      <div className="text-center space-y-1">
+      <div className="text-center space-y-2">
+        <div className="flex justify-center mb-1">
+          <Star className="size-6 text-omega-gold fill-omega-gold star-glow" />
+        </div>
         <h1 className="text-2xl font-black neon-gold">COPA OMEGA STAR</h1>
         <p className="text-sm text-omega-muted">Tu proximo combate te esta esperando</p>
       </div>
 
+      {/* Divider */}
+      <div className="energy-line" />
+
       {/* Form */}
       <form onSubmit={handleLogin} className="space-y-4">
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label htmlFor="email" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
             Email
           </label>
@@ -59,7 +65,7 @@ export default function LoginPage() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label htmlFor="password" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
             Contrasena
           </label>
@@ -89,6 +95,9 @@ export default function LoginPage() {
           )}
         </button>
       </form>
+
+      {/* Divider */}
+      <div className="energy-line" />
 
       <p className="text-center text-sm text-omega-muted">
         Primera vez?{" "}

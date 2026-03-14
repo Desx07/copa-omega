@@ -6,10 +6,10 @@ import { toast } from "sonner";
 
 type StoreStatus = "open" | "closed" | "hidden";
 
-const statusConfig: Record<StoreStatus, { label: string; desc: string; color: string; next: StoreStatus }> = {
-  open: { label: "Abierta", desc: "Visible y operativa", color: "text-omega-green", next: "closed" },
-  closed: { label: "Cerrada", desc: "Se ve el cartel de mantenimiento", color: "text-omega-gold", next: "hidden" },
-  hidden: { label: "Oculta", desc: "No aparece en el dashboard", color: "text-omega-red", next: "open" },
+const statusConfig: Record<StoreStatus, { label: string; desc: string; color: string; borderColor: string; next: StoreStatus }> = {
+  open: { label: "Abierta", desc: "Visible y operativa", color: "text-omega-green", borderColor: "border-l-omega-green", next: "closed" },
+  closed: { label: "Cerrada", desc: "Se ve el cartel de mantenimiento", color: "text-omega-gold", borderColor: "border-l-omega-gold", next: "hidden" },
+  hidden: { label: "Oculta", desc: "No aparece en el dashboard", color: "text-omega-red", borderColor: "border-l-omega-red", next: "open" },
 };
 
 export function StoreToggle() {
@@ -48,7 +48,7 @@ export function StoreToggle() {
   const config = statusConfig[status];
 
   return (
-    <div className="omega-row omega-card !rounded-2xl !p-4">
+    <div className={`omega-card shadow-sm border-l-4 ${config.borderColor} !rounded-2xl !p-4 flex items-center gap-3 transition-all hover:shadow-md`}>
       <Store className={`size-5 ${config.color}`} />
       <div className="flex-1">
         <p className="text-sm font-bold text-omega-text">Tienda: <span className={config.color}>{config.label}</span></p>
@@ -57,7 +57,7 @@ export function StoreToggle() {
       <button
         onClick={handleCycle}
         disabled={toggling}
-        className="omega-btn omega-btn-secondary px-3 py-1.5 text-xs"
+        className="omega-btn omega-btn-secondary px-3 py-1.5 text-xs shadow-sm hover:shadow-md"
       >
         {toggling ? <Loader2 className="size-3 animate-spin" /> : "Cambiar"}
       </button>

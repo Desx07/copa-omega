@@ -5,10 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 export default async function RankingPage() {
   const supabase = await createClient();
 
-  // Check if logged in (for back button)
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Leaderboard + recent matches + tournament points
   const [playersResult, matchesResult, tournamentPointsResult] = await Promise.all([
     supabase
       .from("players")
@@ -58,7 +56,6 @@ export default async function RankingPage() {
   // Calculate current win streaks for all players
   const streaks = new Map<string, number>();
   if (matches.length > 0) {
-    // Get all completed matches for streak calculation
     const { data: allCompleted } = await supabase
       .from("matches")
       .select("player1_id, player2_id, winner_id, completed_at")
@@ -82,49 +79,69 @@ export default async function RankingPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
-      {/* Back */}
-      {user ? (
-        <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors">
-          <ArrowLeft className="size-4" />
-          Dashboard
-        </Link>
-      ) : (
-        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors">
-          <ArrowLeft className="size-4" />
-          Inicio
-        </Link>
-      )}
+    <div className="mx-auto max-w-3xl pb-10 space-y-5">
+      {/* ═══ HERO BANNER ═══ */}
+      <div className="-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-gold/20 via-omega-surface to-omega-purple/15 px-6 pt-8 pb-10 shadow-lg shadow-omega-gold/40">
+        {/* Decorative orbs */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-omega-gold/15 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-omega-purple/15 rounded-full blur-[60px] pointer-events-none" />
 
-      {/* Header */}
-      <div className="omega-card-elevated relative p-5">
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-gold via-omega-purple to-omega-blue" />
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-black tracking-tight neon-gold">
-            RANKING
-          </h1>
-          <p className="text-sm text-omega-muted">
-            Copa Omega Star — Bladers Santa Fe
-          </p>
+        {/* Back button */}
+        <div className="relative mb-5">
+          {user ? (
+            <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
+              <ArrowLeft className="size-4" />
+              Dashboard
+            </Link>
+          ) : (
+            <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
+              <ArrowLeft className="size-4" />
+              Inicio
+            </Link>
+          )}
+        </div>
+
+        {/* Title */}
+        <div className="relative text-center space-y-1">
+          <h1 className="text-3xl font-black tracking-tight neon-gold">RANKING</h1>
+          <p className="text-sm text-omega-muted">Copa Omega Star — Bladers Santa Fe</p>
+        </div>
+
+        {/* Stats strip inside hero */}
+        <div className="relative flex items-center justify-around rounded-xl bg-omega-dark/60 border border-white/[0.06] py-2.5 px-2 mt-6">
+          <div className="flex items-center gap-1.5 text-sm">
+            <Trophy className="size-3.5 text-omega-gold" />
+            <span className="font-bold text-omega-gold">{leaderboard.length}</span>
+            <span className="text-omega-muted text-xs">bladers</span>
+          </div>
+          <div className="w-px h-4 bg-white/10" />
+          <div className="flex items-center gap-1.5 text-sm">
+            <Swords className="size-3.5 text-omega-blue" />
+            <span className="font-bold text-omega-blue">{matches.length}</span>
+            <span className="text-omega-muted text-xs">partidas recientes</span>
+          </div>
+          {tournamentRanking.length > 0 && (
+            <>
+              <div className="w-px h-4 bg-white/10" />
+              <div className="flex items-center gap-1.5 text-sm">
+                <Medal className="size-3.5 text-omega-purple" />
+                <span className="font-bold text-omega-purple">{tournamentRanking.length}</span>
+                <span className="text-omega-muted text-xs">en torneos</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       {/* Empty state */}
       {leaderboard.length === 0 && (
-        <div className="omega-card p-12 text-center space-y-4">
+        <div className="mx-4 omega-card p-12 text-center space-y-4">
           <Trophy className="size-16 text-omega-muted/30 mx-auto" />
           <div className="space-y-2">
-            <p className="text-lg font-bold text-omega-muted">
-              No hay jugadores todavia
-            </p>
-            <p className="text-sm text-omega-muted/70">
-              Registrate para ser el primero en la tabla
-            </p>
+            <p className="text-lg font-bold text-omega-muted">No hay jugadores todavia</p>
+            <p className="text-sm text-omega-muted/70">Registrate para ser el primero en la tabla</p>
           </div>
-          <Link
-            href="/auth/register"
-            className="omega-btn omega-btn-primary px-6 py-3"
-          >
+          <Link href="/auth/register" className="omega-btn omega-btn-primary px-6 py-3">
             <Star className="size-4" />
             Registrarme
           </Link>
@@ -133,7 +150,7 @@ export default async function RankingPage() {
 
       {/* Top 3 podium */}
       {leaderboard.length >= 3 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-3 px-4">
           <PodiumCard player={leaderboard[1]} rank={2} streak={streaks.get(leaderboard[1].id)} />
           <PodiumCard player={leaderboard[0]} rank={1} streak={streaks.get(leaderboard[0].id)} />
           <PodiumCard player={leaderboard[2]} rank={3} streak={streaks.get(leaderboard[2].id)} />
@@ -142,7 +159,7 @@ export default async function RankingPage() {
 
       {/* If only 1 or 2 players, show them inline */}
       {leaderboard.length > 0 && leaderboard.length < 3 && (
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 px-4">
           {leaderboard.slice(0, 3).map((player, i) => (
             <div key={player.id} className="w-48">
               <PodiumCard player={player} rank={(i + 1) as 1 | 2 | 3} streak={streaks.get(player.id)} />
@@ -151,7 +168,7 @@ export default async function RankingPage() {
         </div>
       )}
 
-      {/* Full leaderboard table -- skip top 3 if podium is shown */}
+      {/* Full leaderboard table */}
       {leaderboard.length > 0 && (() => {
         const hasPodium = leaderboard.length >= 3;
         const tableStart = hasPodium ? 3 : 0;
@@ -159,24 +176,27 @@ export default async function RankingPage() {
         if (tablePlayers.length === 0) return null;
 
         return (
-          <div className="omega-card">
-            <div className="omega-section-header">
-              <Trophy className="size-4 text-omega-purple" />
-              Tabla completa
+          <div className="px-4 space-y-3">
+            {/* Section header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Trophy className="size-4 text-omega-purple" />
+                <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Tabla completa</h2>
+              </div>
+              <span className="omega-badge omega-badge-purple">{tablePlayers.length}</span>
             </div>
 
-            {/* Table rows */}
-            <div>
+            {/* List rows with border-l-4 */}
+            <div className="space-y-2">
               {tablePlayers.map((player, index) => {
                 const rank = tableStart + index + 1;
                 const streak = streaks.get(player.id);
+                const isTop16 = rank <= 16;
                 return (
                   <Link
                     href={`/player/${player.id}`}
                     key={player.id}
-                    className={`omega-row ${
-                      player.is_eliminated ? "opacity-60" : ""
-                    }`}
+                    className={`rounded-xl border-l-4 ${isTop16 ? "border-l-omega-purple" : "border-l-omega-border"} bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3 ${player.is_eliminated ? "opacity-60" : ""}`}
                   >
                     {/* Rank */}
                     <span className="text-sm font-black text-omega-muted/70 w-6 text-center shrink-0">
@@ -184,7 +204,7 @@ export default async function RankingPage() {
                     </span>
 
                     {/* Avatar */}
-                    <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
+                    <div className="size-9 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
                       {player.avatar_url ? (
                         <img src={player.avatar_url} alt="" className="size-full object-cover" />
                       ) : (
@@ -197,13 +217,7 @@ export default async function RankingPage() {
                     {/* Player info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span
-                          className={`text-sm font-bold truncate ${
-                            player.is_eliminated
-                              ? "text-omega-muted line-through"
-                              : "text-omega-text"
-                          }`}
-                        >
+                        <span className={`text-sm font-bold truncate ${player.is_eliminated ? "text-omega-muted line-through" : "text-omega-text"}`}>
                           {player.alias}
                         </span>
                         {player.is_eliminated && (
@@ -226,9 +240,7 @@ export default async function RankingPage() {
                     {/* Stars */}
                     <div className="flex items-center gap-1 shrink-0">
                       <Star className="size-3.5 text-omega-gold fill-omega-gold" />
-                      <span className="text-sm font-black text-omega-gold">
-                        {player.stars}
-                      </span>
+                      <span className="text-sm font-black text-omega-gold">{player.stars}</span>
                     </div>
                   </Link>
                 );
@@ -240,68 +252,86 @@ export default async function RankingPage() {
 
       {/* Tournament Points Ranking */}
       {tournamentRanking.length > 0 && (
-        <div className="omega-card">
-          <div className="omega-section-header">
-            <Medal className="size-4 text-omega-gold" />
-            Ranking de Torneos
+        <div className="px-4 space-y-3">
+          {/* Section header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Medal className="size-4 text-omega-gold" />
+              <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Ranking de Torneos</h2>
+            </div>
+            <span className="omega-badge omega-badge-gold">{tournamentRanking.length}</span>
           </div>
-          <div>
-            {tournamentRanking.map((entry, index) => (
-              <Link
-                key={entry.id}
-                href={`/player/${entry.id}`}
-                className="omega-row"
-              >
-                {/* Rank */}
-                <span className={`text-sm font-black w-6 text-center shrink-0 ${
-                  index === 0 ? "text-omega-gold" : index === 1 ? "text-omega-muted" : index === 2 ? "text-orange-500" : "text-omega-muted/70"
-                }`}>
-                  {index + 1}
-                </span>
 
-                {/* Avatar */}
-                <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
-                  {entry.avatar_url ? (
-                    <img src={entry.avatar_url} alt="" className="size-full object-cover" />
-                  ) : (
-                    <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
-                      {entry.alias.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+          {/* List rows with border-l-4 */}
+          <div className="space-y-2">
+            {tournamentRanking.map((entry, index) => {
+              const borderColor = index === 0 ? "border-l-omega-gold" : index === 1 ? "border-l-gray-400" : index === 2 ? "border-l-orange-500" : "border-l-omega-border";
+              return (
+                <Link
+                  key={entry.id}
+                  href={`/player/${entry.id}`}
+                  className={`rounded-xl border-l-4 ${borderColor} bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3`}
+                >
+                  {/* Rank */}
+                  <span className={`text-sm font-black w-6 text-center shrink-0 ${
+                    index === 0 ? "text-omega-gold" : index === 1 ? "text-omega-muted" : index === 2 ? "text-orange-500" : "text-omega-muted/70"
+                  }`}>
+                    {index + 1}
+                  </span>
 
-                {/* Alias */}
-                <span className="text-sm font-bold text-omega-text flex-1 truncate">
-                  {index === 0 && <Crown className="size-3 text-omega-gold inline mr-1" />}
-                  {entry.alias}
-                </span>
+                  {/* Avatar */}
+                  <div className="size-9 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
+                    {entry.avatar_url ? (
+                      <img src={entry.avatar_url} alt="" className="size-full object-cover" />
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                        {entry.alias.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
 
-                {/* Points */}
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-sm font-black text-omega-gold">{entry.total}</span>
-                  <span className="text-[10px] text-omega-muted">pts</span>
-                </div>
-              </Link>
-            ))}
+                  {/* Alias */}
+                  <span className="text-sm font-bold text-omega-text flex-1 truncate">
+                    {index === 0 && <Crown className="size-3 text-omega-gold inline mr-1" />}
+                    {entry.alias}
+                  </span>
+
+                  {/* Points */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-sm font-black text-omega-gold">{entry.total}</span>
+                    <span className="text-[10px] text-omega-muted">pts</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}
 
       {/* Recent matches */}
       {matches.length > 0 && (
-        <div className="omega-card">
-          <div className="omega-section-header">
-            <Swords className="size-4 text-omega-blue" />
-            Ultimas partidas
+        <div className="px-4 space-y-3">
+          {/* Section header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Swords className="size-4 text-omega-blue" />
+              <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Ultimas partidas</h2>
+            </div>
+            <span className="omega-badge omega-badge-blue">{matches.length}</span>
           </div>
-          <div>
+
+          {/* Match rows with border-l-4 */}
+          <div className="space-y-2">
             {matches.map((match) => {
               const p1 = match.player1 as unknown as { alias: string } | null;
               const p2 = match.player2 as unknown as { alias: string } | null;
               const p1Won = match.winner_id === match.player1_id;
 
               return (
-                <div key={match.id} className="omega-row">
+                <div
+                  key={match.id}
+                  className="rounded-xl border-l-4 border-l-omega-blue bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3"
+                >
                   {/* Player 1 */}
                   <span className={`text-sm font-bold truncate flex-1 text-right ${p1Won ? "text-omega-green" : "text-omega-muted"}`}>
                     {p1Won && <Crown className="size-3 text-omega-gold inline mr-1" />}
@@ -366,6 +396,7 @@ const podiumConfig = {
     height: "pt-2",
     avatarBorder: "border-omega-gold",
     icon: <Crown className="size-6 text-omega-gold fill-omega-gold/30" />,
+    gradient: "from-omega-gold/20 to-omega-gold/5",
   },
   2: {
     aura: "aura-silver",
@@ -374,6 +405,7 @@ const podiumConfig = {
     height: "pt-6",
     avatarBorder: "border-omega-muted/50",
     icon: <Crown className="size-5 text-omega-muted/70" />,
+    gradient: "from-gray-400/15 to-gray-500/5",
   },
   3: {
     aura: "aura-bronze",
@@ -382,6 +414,7 @@ const podiumConfig = {
     height: "pt-8",
     avatarBorder: "border-orange-500/50",
     icon: <Crown className="size-5 text-orange-500/70" />,
+    gradient: "from-orange-500/15 to-orange-600/5",
   },
 } as const;
 
@@ -394,13 +427,13 @@ function PodiumCard({ player, rank, streak }: PodiumCardProps) {
     >
       <Link
         href={`/player/${player.id}`}
-        className={`omega-card block ${config.aura} p-4 text-center space-y-2 transition-all hover:scale-[1.02] active:scale-[0.98]`}
+        className={`group rounded-2xl bg-gradient-to-br ${config.gradient} ${config.aura} p-4 block text-center space-y-2 shadow-md transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]`}
       >
         {/* Crown */}
         <div className="flex justify-center">{config.icon}</div>
 
         {/* Avatar */}
-        <div className={`size-12 rounded-full border-2 ${config.avatarBorder} overflow-hidden bg-omega-dark mx-auto`}>
+        <div className={`size-14 rounded-full border-2 ${config.avatarBorder} overflow-hidden bg-omega-dark mx-auto`}>
           {player.avatar_url ? (
             <img src={player.avatar_url} alt="" className="size-full object-cover" />
           ) : (
@@ -411,22 +444,14 @@ function PodiumCard({ player, rank, streak }: PodiumCardProps) {
         </div>
 
         {/* Alias */}
-        <p
-          className={`text-sm font-black truncate ${
-            player.is_eliminated ? "text-omega-muted line-through" : "text-omega-text"
-          }`}
-        >
+        <p className={`text-sm font-black truncate ${player.is_eliminated ? "text-omega-muted line-through" : "text-omega-text"}`}>
           {player.alias}
         </p>
 
         {/* Stars */}
         <div className="flex items-center justify-center gap-1">
-          <Star
-            className={`size-4 ${config.starClass} ${rank === 1 ? "star-glow fill-omega-gold" : ""}`}
-          />
-          <span className={`text-xl font-black ${config.label}`}>
-            {player.stars}
-          </span>
+          <Star className={`size-4 ${config.starClass} ${rank === 1 ? "star-glow fill-omega-gold" : ""}`} />
+          <span className={`text-xl font-black ${config.label}`}>{player.stars}</span>
         </div>
 
         {/* W/L + streak */}

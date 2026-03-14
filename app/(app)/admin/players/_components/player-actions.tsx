@@ -87,10 +87,10 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
         onClick={handleToggleJudge}
         disabled={loading !== null}
         title={isJudge ? "Quitar rol de juez" : "Hacer juez"}
-        className={`size-8 rounded-lg flex items-center justify-center transition-all ${
+        className={`omega-btn size-8 !rounded-lg !p-0 ${
           isJudge
-            ? "text-omega-gold hover:text-omega-muted hover:bg-omega-muted/10"
-            : "text-omega-muted hover:text-omega-gold hover:bg-omega-gold/10"
+            ? "omega-btn-gold !shadow-none"
+            : "omega-btn-secondary"
         } disabled:opacity-50`}
       >
         {loading === "judge" ? (
@@ -105,10 +105,10 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
         onClick={handleToggleHidden}
         disabled={loading !== null}
         title={isHidden ? "Mostrar en ranking" : "Ocultar del ranking"}
-        className={`size-8 rounded-lg flex items-center justify-center transition-all ${
+        className={`omega-btn size-8 !rounded-lg !p-0 ${
           isHidden
-            ? "text-omega-muted hover:text-omega-green hover:bg-omega-green/10"
-            : "text-omega-muted hover:text-omega-gold hover:bg-omega-gold/10"
+            ? "omega-btn-green !shadow-none"
+            : "omega-btn-secondary"
         } disabled:opacity-50`}
       >
         {loading === "hide" ? (
@@ -146,7 +146,7 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
           onClick={() => setShowConfirm(true)}
           disabled={loading !== null}
           title="Eliminar jugador"
-          className="size-8 rounded-lg flex items-center justify-center text-omega-muted hover:text-omega-red hover:bg-omega-red/10 transition-all disabled:opacity-50"
+          className="omega-btn omega-btn-secondary size-8 !rounded-lg !p-0 hover:!bg-omega-red/20 hover:!text-omega-red disabled:opacity-50"
         >
           <Trash2 className="size-4" />
         </button>
