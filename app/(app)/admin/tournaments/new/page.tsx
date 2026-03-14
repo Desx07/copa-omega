@@ -30,8 +30,11 @@ export default function NewTournamentPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [format, setFormat] = useState<string>("single_elimination");
-  const [maxParticipants, setMaxParticipants] = useState(16);
+  const [maxParticipants, setMaxParticipants] = useState(32);
+  const [topCut, setTopCut] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const showTopCut = format === "round_robin" || format === "swiss";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,56 +44,34 @@ export default function NewTournamentPage() {
       return;
     }
 
-    if (maxParticipants < 2 || maxParticipants > 128) {
-      toast.error("El maximo de participantes debe ser entre 2 y 128");
+    if (maxParticipants < 2) {
+      toast.error("Mínimo 2 participantes");
       return;
     }
 
     setLoading(true);
 
     try {
-      const supabase = createClient();
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        toast.error("No estas autenticado");
-        setLoading(false);
-        return;
-      }
-
-      // Verify admin
-      const { data: profile } = await supabase
-        .from("players")
-        .select("is_admin")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile?.is_admin) {
-        toast.error("No tenes permisos de admin");
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("tournaments")
-        .insert({
+      const res = await fetch("/api/tournaments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           name: name.trim(),
           description: description.trim() || null,
           format,
           max_participants: maxParticipants,
-          created_by: user.id,
-        })
-        .select("id")
-        .single();
+          top_cut: showTopCut ? topCut : null,
+        }),
+      });
 
-      if (error) {
-        toast.error(error.message);
+      if (!res.ok) {
+        const errData = await res.json();
+        toast.error(errData.error || "Error creando torneo");
         setLoading(false);
         return;
       }
+
+      const data = await res.json();
 
       toast.success("Torneo creado!");
       router.push(`/admin/tournaments/${data.id}`);
@@ -216,7 +197,7 @@ export default function NewTournamentPage() {
             type="number"
             required
             min={2}
-            max={128}
+            max={256}
             value={maxParticipants}
             onChange={(e) => setMaxParticipants(Number(e.target.value))}
             className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all"
@@ -233,6 +214,32 @@ export default function NewTournamentPage() {
           )}
         </div>
 
+        {/* Top Cut — only for Round Robin and Swiss */}
+        {showTopCut && (
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-omega-muted uppercase tracking-wider">
+              Top Cut (clasifican a llaves finales)
+            </label>
+            <select
+              value={topCut ?? ""}
+              onChange={(e) => setTopCut(e.target.value ? Number(e.target.value) : null)}
+              className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all"
+            >
+              <option value="">Sin top cut (solo grupo)</option>
+              <option value="4">Top 4</option>
+              <option value="8">Top 8</option>
+              <option value="16">Top 16</option>
+              <option value="32">Top 32</option>
+            </select>
+            <div className="flex items-start gap-2 rounded-lg bg-omega-gold/5 border border-omega-gold/20 px-3 py-2">
+              <Info className="size-4 text-omega-gold shrink-0 mt-0.5" />
+              <p className="text-[11px] text-omega-gold/80">
+                Los mejores del grupo clasifican a un bracket de eliminación directa.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Preview */}
         <div className="rounded-xl bg-omega-card/60 border border-omega-border p-4 space-y-2">
           <p className="text-xs text-omega-muted text-center">Vista previa</p>
@@ -243,6 +250,7 @@ export default function NewTournamentPage() {
             <p className="text-[11px] text-omega-muted uppercase tracking-wider">
               {FORMAT_OPTIONS.find((f) => f.value === format)?.label} — Max{" "}
               {maxParticipants} jugadores
+              {topCut && showTopCut && ` → Top ${topCut} a llaves`}
             </p>
             {description && (
               <p className="text-xs text-omega-muted/70 italic">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Play, Loader2, XCircle, CheckCircle, AlertTriangle, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+// createClient used for direct DB updates (cancel/complete)
 
 interface TournamentAdminActionsProps {
   tournamentId: string;
@@ -52,8 +53,6 @@ export default function TournamentAdminActions({
     setLoading(true);
 
     try {
-      const supabase = createClient();
-
       // Generate bracket matches based on format
       const response = await fetch(`/api/admin/tournaments/${tournamentId}/start`, {
         method: "POST",
@@ -103,6 +102,7 @@ export default function TournamentAdminActions({
   async function handleComplete() {
     setLoading(true);
     try {
+      // First mark as completed
       const supabase = createClient();
       const { error } = await supabase
         .from("tournaments")
@@ -115,10 +115,13 @@ export default function TournamentAdminActions({
         return;
       }
 
+      // Then award points via API
+      await fetch(`/api/tournaments/${tournamentId}/complete`, { method: "POST" }).catch(() => {});
+
       toast.success("Torneo finalizado!");
       router.refresh();
     } catch {
-      toast.error("Error de conexion");
+      toast.error("Error de conexión");
     } finally {
       setLoading(false);
     }
