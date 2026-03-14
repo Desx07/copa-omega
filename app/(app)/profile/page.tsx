@@ -206,7 +206,7 @@ export default function ProfilePage() {
     <>
       <div className="mx-auto max-w-md px-4 py-6 space-y-6">
         {/* Avatar + Stats card */}
-        <div className="rounded-2xl border-l-4 border-l-omega-purple border border-omega-border bg-omega-card/60 p-6 text-center space-y-4 backdrop-blur-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-omega-purple/20 bg-gradient-to-br from-omega-card/60 to-omega-card/30 p-6 text-center space-y-4 backdrop-blur-sm">
           {/* Avatar */}
           <div className="relative inline-block">
             <div className={`size-32 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark mx-auto`}>
@@ -302,7 +302,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Personalización */}
-        <div className="rounded-2xl border-l-4 border-l-omega-gold border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+        <div className="rounded-2xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
             <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
               <Palette className="size-4 text-omega-gold" />
@@ -369,7 +369,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Beys section */}
-        <div className="rounded-2xl border-l-4 border-l-omega-blue border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+        <div className="rounded-2xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
             <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
               <Swords className="size-4 text-omega-blue" />

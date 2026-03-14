@@ -1,9 +1,7 @@
 import Link from "next/link";
 import {
   Star,
-  Trophy,
   Swords,
-  User,
   Flame,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -62,7 +60,8 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto max-w-lg px-4 py-6 space-y-5">
       {/* Player card */}
-      <div className="rounded-2xl border border-omega-border bg-omega-card/60 p-5 backdrop-blur-sm">
+      <div className="relative overflow-hidden rounded-2xl border border-omega-purple/20 bg-gradient-to-br from-omega-card/60 to-omega-card/30 p-5 backdrop-blur-sm">
+        <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-omega-purple/60 to-transparent" />
         <div className="flex items-center gap-4">
           <Link href="/profile" className={`size-16 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark shrink-0`}>
             {player.avatar_url ? (
@@ -95,8 +94,8 @@ export default async function DashboardPage() {
 
           <div className="text-center shrink-0">
             <div className="flex items-center gap-1">
-              <Star className="size-5 text-omega-gold fill-omega-gold star-glow" />
-              <span className="text-2xl font-black text-omega-gold">{player.stars}</span>
+              <Star className="size-6 text-omega-gold fill-omega-gold star-glow" />
+              <span className="text-3xl font-black neon-gold">{player.stars}</span>
             </div>
           </div>
         </div>
@@ -110,33 +109,22 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          href="/ranking"
-          className="flex items-center gap-3 rounded-xl border border-omega-border bg-omega-card/40 p-4 hover:border-omega-gold/40 hover:bg-omega-card/60 transition-all"
-        >
-          <div className="size-10 rounded-lg bg-omega-gold/10 flex items-center justify-center">
-            <Trophy className="size-5 text-omega-gold" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-omega-text">Ranking</p>
-            <p className="text-[11px] text-omega-muted">Ver tabla</p>
-          </div>
-        </Link>
-
-        <Link
-          href="/profile"
-          className="flex items-center gap-3 rounded-xl border border-omega-border bg-omega-card/40 p-4 hover:border-omega-purple/40 hover:bg-omega-card/60 transition-all"
-        >
-          <div className="size-10 rounded-lg bg-omega-purple/10 flex items-center justify-center">
-            <User className="size-5 text-omega-purple" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-omega-text">Mi Perfil</p>
-            <p className="text-[11px] text-omega-muted">Editar</p>
-          </div>
-        </Link>
+      {/* Tournament progress */}
+      <div className="rounded-xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4 space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-omega-muted uppercase tracking-wider font-bold">Clasificacion</span>
+          <span className="text-omega-gold font-bold">Top 16</span>
+        </div>
+        <div className="h-2 rounded-full bg-omega-dark overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-omega-purple to-omega-blue transition-all"
+            style={{ width: `${allPlayers.length > 0 ? Math.max(5, Math.min(100, ((allPlayers.length - rank + 1) / allPlayers.length) * 100)) : 0}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between text-[11px] text-omega-muted">
+          <span>Posicion <span className="text-omega-gold font-bold">#{rank}</span> de {allPlayers.length}</span>
+          <span>{rank > 0 && rank <= 16 ? <span className="text-omega-green font-bold">Clasificado</span> : <span className="text-omega-red">Fuera del top 16</span>}</span>
+        </div>
       </div>
 
       {/* Recent matches */}
