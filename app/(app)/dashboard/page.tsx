@@ -3,6 +3,10 @@ import {
   Star,
   Swords,
   Flame,
+  Trophy,
+  User,
+  Shield,
+  LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -19,7 +23,7 @@ export default async function DashboardPage() {
   const [playerResult, matchesResult, allPlayersResult] = await Promise.all([
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, created_at")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at")
       .eq("id", user.id)
       .single(),
     supabase
@@ -127,6 +131,50 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Quick actions */}
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          href="/ranking"
+          className="flex items-center gap-3 rounded-xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4 hover:border-omega-gold/40 hover:bg-omega-card/50 transition-all"
+        >
+          <div className="size-10 rounded-lg bg-omega-gold/10 flex items-center justify-center">
+            <Trophy className="size-5 text-omega-gold" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-omega-text">Ranking</p>
+            <p className="text-[11px] text-omega-muted">Ver tabla</p>
+          </div>
+        </Link>
+
+        <Link
+          href="/profile"
+          className="flex items-center gap-3 rounded-xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4 hover:border-omega-purple/40 hover:bg-omega-card/50 transition-all"
+        >
+          <div className="size-10 rounded-lg bg-omega-purple/10 flex items-center justify-center">
+            <User className="size-5 text-omega-purple" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-omega-text">Mi Perfil</p>
+            <p className="text-[11px] text-omega-muted">Editar</p>
+          </div>
+        </Link>
+
+        {player.is_admin && (
+          <Link
+            href="/admin/matches"
+            className="flex items-center gap-3 rounded-xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4 hover:border-omega-blue/40 hover:bg-omega-card/50 transition-all col-span-2"
+          >
+            <div className="size-10 rounded-lg bg-omega-blue/10 flex items-center justify-center">
+              <Shield className="size-5 text-omega-blue" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-omega-text">Admin</p>
+              <p className="text-[11px] text-omega-muted">Gestionar partidas y jugadores</p>
+            </div>
+          </Link>
+        )}
+      </div>
+
       {/* Recent matches */}
       <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
@@ -181,3 +229,4 @@ export default async function DashboardPage() {
     </div>
   );
 }
+

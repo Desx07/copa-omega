@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AppNavbar } from "@/app/_components/app-navbar";
 
 export default async function AppLayout({
   children,
@@ -16,16 +15,8 @@ export default async function AppLayout({
     redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase
-    .from("players")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
-
-  const isAdmin = profile?.is_admin ?? false;
-
   return (
-    <div className="min-h-screen flex flex-col bg-omega-black">
+    <div className="min-h-screen bg-omega-black text-omega-text">
       {/* Ambient background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-[10%] right-[20%] w-[500px] h-[500px] rounded-full bg-omega-purple/[0.08] blur-[120px]" />
@@ -34,11 +25,7 @@ export default async function AppLayout({
         <div className="absolute inset-0 hero-grid opacity-30" />
       </div>
 
-      <AppNavbar isAdmin={isAdmin} />
-
-      <main className="flex-1 pb-20 md:pb-0">
-        {children}
-      </main>
+      {children}
     </div>
   );
 }
