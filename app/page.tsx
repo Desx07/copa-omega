@@ -126,8 +126,8 @@ export default async function LandingPage() {
               <div className="space-y-6 text-center lg:text-left">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight">
                   Es hora de buscar las estrellas y{" "}
-                  <span className="bg-gradient-to-r from-omega-gold via-omega-gold-glow to-omega-gold bg-clip-text text-transparent text-glow-gold">
-                    llegar a lo mas alto
+                  <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-200 bg-clip-text text-transparent" style={{ textShadow: "0 0 40px rgba(255,230,50,0.4), 0 0 80px rgba(255,214,10,0.2)" }}>
+                    llegar a lo más alto
                   </span>
                 </h1>
 
