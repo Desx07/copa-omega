@@ -131,11 +131,16 @@ export async function PATCH(
     }
 
     // Fetch tournament to know the format
-    const { data: tournament } = await supabase
+    const { data: tournament, error: tournamentError } = await supabase
       .from("tournaments")
       .select("format, current_round")
       .eq("id", tournamentId)
       .single();
+
+    if (tournamentError || !tournament) {
+      console.error("Failed to fetch tournament:", tournamentError);
+      return Response.json({ error: "Error obteniendo torneo" }, { status: 500 });
+    }
 
     // Update participant stats
     // Winner: +1 win, +3 points
@@ -147,7 +152,7 @@ export async function PATCH(
       .single();
 
     if (winnerParticipant) {
-      await supabase
+      const { error: winErr } = await supabase
         .from("tournament_participants")
         .update({
           points: winnerParticipant.points + 3,
@@ -155,6 +160,7 @@ export async function PATCH(
         })
         .eq("tournament_id", tournamentId)
         .eq("player_id", winner_id);
+      if (winErr) console.error("Error updating winner stats:", winErr);
     }
 
     // Get current participant stats for loser
