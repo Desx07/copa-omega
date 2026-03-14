@@ -15,6 +15,7 @@ Si el usuario te pone un nombre, adoptalo. Si no, presentate simplemente como su
 
 ## Qué podés hacer
 - Responder CUALQUIER pregunta — sobre Beyblade X, el torneo, estrategias, combos, la app, lo que sea
+- Cuando te preguntan sobre combos, meta o estrategias, buscás info actualizada en internet para complementar tu respuesta
 - Analizar y recomendar combos competitivos con razonamiento (no solo listar)
 - Predecir batallas analizando stats de jugadores
 - Explicar mecánicas del juego (LAD, xtreme dash, over finish, burst, spin finish, etc.)
@@ -141,6 +142,57 @@ Si el usuario te pone un nombre, adoptalo. Si no, presentate simplemente como su
 - Ratchet Sniping = Cuando un bey golpea el ratchet del rival por debajo, desestabilizándolo. Ratchets cortos (4-50) son mejores para esto.
 - Hall of Fame / B4 = Blades baneados del formato 1on1 por ser demasiado dominantes.`;
 
+// Keywords that trigger a web search for fresh info
+const SEARCH_TRIGGERS = [
+  "combo", "tier", "meta", "mejor", "recomend", "recomienda", "top", "competitivo",
+  "ratchet", "blade", "bit", "bey", "nuevo", "lanzamiento", "release",
+  "torneo mundial", "world", "championship", "ban", "baneado", "hall of fame",
+  "counter", "contra", "ganarle", "vencer", "estrategia",
+  "qué me conviene", "que me conviene", "qué uso", "que uso", "armar",
+];
+
+function shouldSearch(text: string): boolean {
+  const lower = text.toLowerCase();
+  return SEARCH_TRIGGERS.some((trigger) => lower.includes(trigger));
+}
+
+async function searchWeb(query: string): Promise<string> {
+  try {
+    const searchQuery = `beyblade X ${query} competitive 2026`;
+    const res = await fetch(
+      `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_SEARCH_API_KEY}&cx=${process.env.GOOGLE_SEARCH_CX}&q=${encodeURIComponent(searchQuery)}&num=3`,
+      { signal: AbortSignal.timeout(5000) }
+    );
+
+    if (!res.ok) {
+      // Fallback: try DuckDuckGo instant answer
+      const ddg = await fetch(
+        `https://api.duckduckgo.com/?q=${encodeURIComponent(searchQuery)}&format=json&no_html=1`,
+        { signal: AbortSignal.timeout(3000) }
+      );
+      if (ddg.ok) {
+        const ddgData = await ddg.json();
+        if (ddgData.AbstractText) {
+          return `[Búsqueda web]: ${ddgData.AbstractText}`;
+        }
+      }
+      return "";
+    }
+
+    const data = await res.json();
+    if (!data.items?.length) return "";
+
+    const snippets = data.items
+      .slice(0, 3)
+      .map((item: { title: string; snippet: string }) => `- ${item.title}: ${item.snippet}`)
+      .join("\n");
+
+    return `[Resultados de búsqueda web actualizada]:\n${snippets}`;
+  } catch {
+    return "";
+  }
+}
+
 function extractAliases(text: string): string[] {
   const aliases: string[] = [];
   const patterns = [
@@ -247,8 +299,17 @@ export async function POST(request: Request) {
       }
     }
 
+    // Web search for fresh info if the question is about combos/meta/strategy
+    let searchContext = "";
+    if (lastUserMessage && shouldSearch(lastUserMessage.content)) {
+      searchContext = await searchWeb(lastUserMessage.content);
+    }
+
     const nameInstruction = botName !== "BeyBot" ? `\n\nEl usuario te puso de nombre "${botName}". Usá ese nombre cuando te presentes o te refieras a vos mismo.` : "";
-    const systemMessage = SYSTEM_PROMPT + nameInstruction + (statsContext ? "\n\n[DATOS DEL TORNEO]:" + statsContext : "");
+    const systemMessage = SYSTEM_PROMPT
+      + nameInstruction
+      + (statsContext ? "\n\n[DATOS DEL TORNEO]:" + statsContext : "")
+      + (searchContext ? "\n\n" + searchContext + "\n\nUsá esta info actualizada para complementar tu respuesta, pero verificá que tenga sentido con lo que ya sabés. Si contradice tu base de conocimiento, mencionalo." : "");
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
