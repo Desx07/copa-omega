@@ -16,7 +16,7 @@ const FORMAT_OPTIONS = [
   {
     value: "round_robin",
     label: "Round Robin",
-    description: "Todos contra todos. Gana el que mas puntos acumule.",
+    description: "Todos contra todos. Gana el que más puntos acumule.",
   },
   {
     value: "swiss",
@@ -211,7 +211,7 @@ export default function NewTournamentPage() {
               <div className="flex items-start gap-2 rounded-xl bg-gradient-to-br from-omega-blue/10 to-omega-blue/5 border border-omega-blue/20 px-3 py-2 text-[11px] text-omega-blue shadow-sm">
                 <Info className="size-4 shrink-0 mt-0.5" />
                 <p>
-                  Para eliminacion directa se recomienda potencia de 2 (4, 8, 16,
+                  Para eliminación directa se recomienda potencia de 2 (4, 8, 16,
                   32, 64). Si no es potencia de 2, algunos jugadores tendran BYE
                   en la primera ronda.
                 </p>
@@ -239,7 +239,7 @@ export default function NewTournamentPage() {
               <div className="flex items-start gap-2 rounded-xl bg-gradient-to-br from-omega-gold/10 to-omega-gold/5 border border-omega-gold/20 px-3 py-2 text-[11px] text-omega-gold shadow-sm">
                 <Info className="size-4 shrink-0 mt-0.5" />
                 <p>
-                  Los mejores del grupo clasifican a un bracket de eliminacion directa.
+                  Los mejores del grupo clasifican a un bracket de eliminación directa.
                 </p>
               </div>
             </div>

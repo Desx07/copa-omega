@@ -16,7 +16,7 @@ export function LogoutButtonFull() {
       className="omega-btn omega-btn-secondary w-full py-3 text-sm shadow-sm hover:shadow-md hover:text-omega-red hover:border-omega-red/30 transition-all"
     >
       <LogOut className="size-4" />
-      Cerrar sesion
+      Cerrar sesión
     </button>
   );
 }

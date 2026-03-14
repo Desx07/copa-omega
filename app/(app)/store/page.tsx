@@ -89,7 +89,7 @@ export default function StorePage() {
             <div className="text-center space-y-3 py-8">
               <Package className="size-16 text-omega-muted/30 mx-auto" />
               <h2 className="text-xl font-black text-omega-text">Tienda cerrada</h2>
-              <p className="text-sm text-omega-muted">La tienda esta en mantenimiento. Volve pronto!</p>
+              <p className="text-sm text-omega-muted">La tienda está en mantenimiento. Volvé pronto!</p>
             </div>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function StorePage() {
           <div className="omega-card shadow-sm p-8 text-center space-y-3">
             <Package className="size-10 text-omega-muted/20 mx-auto" />
             <p className="text-omega-muted text-sm">
-              No hay productos disponibles todavia
+              No hay productos disponibles todavía
             </p>
           </div>
         ) : (

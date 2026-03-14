@@ -79,7 +79,7 @@ export default function NewProductPage() {
 
     const priceNum = parseFloat(price);
     if (isNaN(priceNum) || priceNum < 0) {
-      toast.error("El precio debe ser un numero >= 0");
+      toast.error("El precio debe ser un número >= 0");
       return;
     }
 

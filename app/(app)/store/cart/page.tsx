@@ -62,7 +62,7 @@ export default function CartPage() {
 
   async function handleConfirm() {
     if (items.length === 0) {
-      toast.error("El carrito esta vacio");
+      toast.error("El carrito está vacío");
       return;
     }
 
@@ -210,7 +210,7 @@ export default function CartPage() {
         {items.length === 0 ? (
           <div className="omega-card shadow-sm p-8 text-center space-y-3">
             <ShoppingCart className="size-10 text-omega-muted/20 mx-auto" />
-            <p className="text-omega-muted text-sm">Tu carrito esta vacio</p>
+            <p className="text-omega-muted text-sm">Tu carrito está vacío</p>
             <Link
               href="/store"
               className="inline-flex items-center gap-2 text-sm text-omega-purple hover:underline font-medium"

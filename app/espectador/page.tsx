@@ -968,7 +968,7 @@ function WaitingScreen({
           COPA OMEGA <span className="neon-gold">STAR</span>
         </h2>
         <p className="text-xl text-omega-muted/60 font-medium">
-          Esperando el proximo torneo...
+          Esperando el próximo torneo...
         </p>
       </div>
 

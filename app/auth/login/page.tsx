@@ -28,7 +28,7 @@ export default function LoginPage() {
 
       router.push("/dashboard");
     } catch {
-      toast.error("Error de conexion, intenta de nuevo");
+      toast.error("Error de conexión, intentá de nuevo");
     } finally {
       setLoading(false);
     }
@@ -42,7 +42,7 @@ export default function LoginPage() {
           <Star className="size-6 text-omega-gold fill-omega-gold star-glow" />
         </div>
         <h1 className="text-2xl font-black neon-gold">COPA OMEGA STAR</h1>
-        <p className="text-sm text-omega-muted">Tu proximo combate te esta esperando</p>
+        <p className="text-sm text-omega-muted">Tu próximo combate te está esperando</p>
       </div>
 
       {/* Divider */}

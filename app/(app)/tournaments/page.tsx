@@ -145,10 +145,10 @@ export default async function TournamentsPage() {
             <Trophy className="size-16 text-omega-muted/30 mx-auto" />
             <div className="space-y-2">
               <p className="text-lg font-bold text-omega-muted">
-                No hay torneos todavia
+                No hay torneos todavía
               </p>
               <p className="text-sm text-omega-muted/70">
-                Los torneos apareceran aca cuando un admin los cree.
+                Los torneos aparecerán acá cuando un admin los cree.
               </p>
             </div>
           </div>

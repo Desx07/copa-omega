@@ -118,7 +118,7 @@ export default async function AdminTournamentsPage() {
             <div className="omega-card p-8 text-center space-y-3">
               <Trophy className="size-10 text-omega-muted/20 mx-auto" />
               <p className="text-omega-muted text-sm">
-                No hay torneos creados todavia
+                No hay torneos creados todavía
               </p>
               <Link
                 href="/admin/tournaments/new"

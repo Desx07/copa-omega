@@ -187,7 +187,7 @@ export default function AdminOrdersPage() {
         ) : orders.length === 0 ? (
           <div className="omega-card p-8 text-center space-y-3">
             <ShoppingBag className="size-10 text-omega-muted/20 mx-auto" />
-            <p className="text-omega-muted text-sm">No hay pedidos todavia</p>
+            <p className="text-omega-muted text-sm">No hay pedidos todavía</p>
           </div>
         ) : (
           <div className="space-y-2">

@@ -32,7 +32,7 @@ export default function ParticipantsList({
       <div className="omega-card shadow-sm p-8 text-center">
         <Star className="size-8 text-omega-muted/20 mx-auto mb-3" />
         <p className="text-sm text-omega-muted/70">
-          No hay participantes inscriptos todavia
+          No hay participantes inscriptos todavía
         </p>
       </div>
     );

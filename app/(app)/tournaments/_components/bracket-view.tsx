@@ -41,7 +41,7 @@ export default function BracketView({
       <div className="omega-card shadow-sm p-10 text-center">
         <Swords className="size-10 text-omega-muted/20 mx-auto mb-3" />
         <p className="text-sm text-omega-muted/70">
-          No hay partidas generadas todavia
+          No hay partidas generadas todavía
         </p>
       </div>
     );

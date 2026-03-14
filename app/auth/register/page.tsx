@@ -53,7 +53,7 @@ export default function RegisterPage() {
       toast.success("Bienvenido a la arena, blader!");
       router.push("/dashboard");
     } catch {
-      toast.error("Error de conexion, intenta de nuevo");
+      toast.error("Error de conexión, intentá de nuevo");
     } finally {
       setLoading(false);
     }

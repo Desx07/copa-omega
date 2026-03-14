@@ -111,7 +111,7 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
             className="rounded-2xl overflow-hidden shadow-lg"
           />
           <p className="text-center text-xs text-omega-muted mt-4">
-            Apunta la camara al codigo QR del torneo
+            Apuntá la cámara al código QR del torneo
           </p>
         </div>
       </div>

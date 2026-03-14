@@ -171,7 +171,7 @@ export default function AdminProductsPage() {
           <div className="omega-card p-8 text-center space-y-3">
             <Package className="size-10 text-omega-muted/20 mx-auto" />
             <p className="text-omega-muted text-sm">
-              No hay productos creados todavia
+              No hay productos creados todavía
             </p>
             <Link
               href="/admin/products/new"

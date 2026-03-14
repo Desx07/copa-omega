@@ -33,7 +33,7 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
       toast.success(isHidden ? `${alias} visible en ranking` : `${alias} oculto del ranking`);
       router.refresh();
     } catch {
-      toast.error("Error de conexion");
+      toast.error("Error de conexión");
     } finally {
       setLoading(null);
     }
@@ -55,7 +55,7 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
       toast.success(isJudge ? `${alias} ya no es juez` : `${alias} es ahora juez`);
       router.refresh();
     } catch {
-      toast.error("Error de conexion");
+      toast.error("Error de conexión");
     } finally {
       setLoading(null);
     }
@@ -73,7 +73,7 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
       toast.success(`${alias} eliminado`);
       router.refresh();
     } catch {
-      toast.error("Error de conexion");
+      toast.error("Error de conexión");
     } finally {
       setLoading(null);
       setShowConfirm(false);

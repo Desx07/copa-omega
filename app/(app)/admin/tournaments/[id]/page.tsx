@@ -235,7 +235,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
             href={`/tournaments/${tournament.id}`}
             className="text-xs text-omega-muted hover:text-omega-blue transition-colors"
           >
-            Ver pagina publica del torneo &rarr;
+            Ver página publica del torneo &rarr;
           </Link>
         </div>
       </div>

@@ -187,7 +187,7 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Swords className="size-4 text-omega-blue" />
-            <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Mis ultimas batallas</h2>
+            <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Mis últimas batallas</h2>
           </div>
           <span className="omega-badge omega-badge-blue">{matches.length}</span>
         </div>
@@ -195,7 +195,7 @@ export default async function DashboardPage() {
         {matches.length === 0 ? (
           <div className="omega-card p-10 text-center space-y-3">
             <Swords className="size-10 text-omega-muted/20 mx-auto" />
-            <p className="text-sm text-omega-muted/70">Todavia no tenes batallas</p>
+            <p className="text-sm text-omega-muted/70">Todavía no tenes batallas</p>
           </div>
         ) : (
           <div className="space-y-2">

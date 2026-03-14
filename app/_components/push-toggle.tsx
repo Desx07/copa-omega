@@ -54,13 +54,13 @@ export default function PushToggle() {
         return;
       }
       if (permission !== "granted") {
-        toast.error("No se otorgo permiso de notificaciones");
+        toast.error("No se otorgó permiso de notificaciones");
         return;
       }
 
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!vapidPublicKey) {
-        toast.error("Error de configuracion: falta clave VAPID");
+        toast.error("Error de configuración: falta clave VAPID");
         return;
       }
 

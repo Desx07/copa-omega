@@ -138,7 +138,7 @@ export default async function RankingPage() {
         <div className="mx-4 omega-card p-12 text-center space-y-4">
           <Trophy className="size-16 text-omega-muted/30 mx-auto" />
           <div className="space-y-2">
-            <p className="text-lg font-bold text-omega-muted">No hay jugadores todavia</p>
+            <p className="text-lg font-bold text-omega-muted">No hay jugadores todavía</p>
             <p className="text-sm text-omega-muted/70">Registrate para ser el primero en la tabla</p>
           </div>
           <Link href="/auth/register" className="omega-btn omega-btn-primary px-6 py-3">

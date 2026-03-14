@@ -400,7 +400,7 @@ export default async function TournamentDetailPage({ params }: PageProps) {
             ) : isFull ? (
               <div className="omega-card shadow-sm p-3 text-center border-l-4 border-l-omega-red">
                 <p className="text-sm font-bold text-omega-red">
-                  El torneo esta lleno
+                  El torneo está lleno
                 </p>
               </div>
             ) : (

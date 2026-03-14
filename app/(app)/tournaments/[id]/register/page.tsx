@@ -86,7 +86,7 @@ export default function TournamentRegisterPage() {
       setAlreadyRegistered(true);
       setParticipantCount((c) => c + 1);
     } catch {
-      toast.error("Error de conexion");
+      toast.error("Error de conexión");
     } finally {
       setRegistering(false);
     }
@@ -165,13 +165,13 @@ export default function TournamentRegisterPage() {
               <LogIn className="size-6 text-omega-blue" />
             </div>
             <p className="text-sm font-bold text-omega-text">Necesitas una cuenta para inscribirte</p>
-            <p className="text-xs text-omega-muted">Inicia sesion o crea tu cuenta de blader para participar.</p>
+            <p className="text-xs text-omega-muted">Iniciá sesión o crea tu cuenta de blader para participar.</p>
             <div className="flex flex-col gap-2">
               <Link
                 href={`/auth/login?redirect=/tournaments/${tournamentId}/register`}
                 className="omega-btn omega-btn-primary w-full px-4 py-3 shadow-lg shadow-omega-purple/20"
               >
-                Iniciar sesion
+                Iniciar sesión
               </Link>
               <Link
                 href={`/auth/register?redirect=/tournaments/${tournamentId}/register`}

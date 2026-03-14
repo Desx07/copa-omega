@@ -310,7 +310,7 @@ export default function MatchDetailPage() {
           {isPending && (
             <div className="space-y-3">
               <p className="text-xs text-omega-muted text-center">
-                Selecciona al ganador de esta batalla
+                Seleccioná al ganador de esta batalla
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <button

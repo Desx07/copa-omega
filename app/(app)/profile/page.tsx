@@ -154,7 +154,7 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("La imagen no puede pesar mas de 5MB");
+      toast.error("La imagen no puede pesar más de 5MB");
       return;
     }
     const reader = new FileReader();
@@ -187,7 +187,7 @@ export default function ProfilePage() {
       if (updateError) { toast.error("Error actualizando perfil"); return; }
       setPlayer({ ...player, avatar_url: avatarUrl });
       toast.success("Foto actualizada!");
-    } catch { toast.error("Error de conexion"); }
+    } catch { toast.error("Error de conexión"); }
     finally { setUploading(false); }
   }
 
@@ -204,7 +204,7 @@ export default function ProfilePage() {
       setBeys([...beys, data]);
       setNewBeyName("");
       toast.success("Bey agregado!");
-    } catch { toast.error("Error de conexion"); }
+    } catch { toast.error("Error de conexión"); }
     finally { setAddingBey(false); }
   }
 
@@ -436,7 +436,7 @@ export default function ProfilePage() {
           {beys.length === 0 ? (
             <div className="omega-card p-6 text-center">
               <Swords className="size-10 text-omega-muted/20 mx-auto mb-2" />
-              <p className="text-sm text-omega-muted/70">No tenes beys cargados todavia</p>
+              <p className="text-sm text-omega-muted/70">No tenés beys cargados todavía</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -514,7 +514,7 @@ export default function ProfilePage() {
             className="omega-btn omega-btn-secondary w-full py-3 text-sm hover:text-omega-red hover:border-omega-red/30"
           >
             <LogOut className="size-4" />
-            Cerrar sesion
+            Cerrar sesión
           </button>
         </div>
       </div>

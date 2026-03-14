@@ -37,7 +37,7 @@ export default function TournamentAdminActions({
       toast.success("Torneo eliminado");
       router.push("/admin/tournaments");
     } catch {
-      toast.error("Error de conexion");
+      toast.error("Error de conexión");
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ export default function TournamentAdminActions({
       toast.success("Torneo iniciado! Se generaron las partidas.");
       router.refresh();
     } catch {
-      toast.error("Error de conexion");
+      toast.error("Error de conexión");
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ export default function TournamentAdminActions({
       setConfirmCancel(false);
       router.refresh();
     } catch {
-      toast.error("Error de conexion");
+      toast.error("Error de conexión");
     } finally {
       setLoading(false);
     }
@@ -117,7 +117,7 @@ export default function TournamentAdminActions({
       toast.success("Torneo finalizado!");
       router.refresh();
     } catch {
-      toast.error("Error de conexion");
+      toast.error("Error de conexión");
     } finally {
       setLoading(false);
     }
@@ -134,7 +134,7 @@ export default function TournamentAdminActions({
           </span>
         </div>
         <p className="text-xs text-omega-muted">
-          Esta accion no se puede deshacer. El torneo quedara como cancelado.
+          Esta acción no se puede deshacer. El torneo quedará como cancelado.
         </p>
         <div className="flex items-center gap-2">
           <button
