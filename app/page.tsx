@@ -125,9 +125,9 @@ export default async function LandingPage() {
               {/* Text — SECOND on mobile, FIRST on desktop */}
               <div className="space-y-6 text-center lg:text-left">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight">
-                  Competi por las estrellas,{" "}
+                  Es hora de buscar las estrellas y{" "}
                   <span className="bg-gradient-to-r from-omega-gold via-omega-gold-glow to-omega-gold bg-clip-text text-transparent text-glow-gold">
-                    conquista el torneo
+                    llegar a lo mas alto
                   </span>
                 </h1>
 

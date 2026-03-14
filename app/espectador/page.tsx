@@ -9,6 +9,7 @@ import {
   Zap,
   Clock,
   Radio,
+  Scale,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BADGE_EMOJIS } from "@/lib/titles";
@@ -39,6 +40,7 @@ interface TournamentMatch {
   status: "pending" | "in_progress" | "completed" | "bye";
   bracket_position: string | null;
   completed_at: string | null;
+  judge_id: string | null;
 }
 
 interface Tournament {
@@ -119,7 +121,7 @@ export default function EspectadorPage() {
   const fetchMatches = useCallback(async (tournamentId: string) => {
     const { data } = await supabase
       .from("tournament_matches")
-      .select("id, tournament_id, round, match_order, player1_id, player2_id, winner_id, player1_score, player2_score, status, bracket_position, completed_at")
+      .select("id, tournament_id, round, match_order, player1_id, player2_id, winner_id, player1_score, player2_score, status, bracket_position, completed_at, judge_id")
       .eq("tournament_id", tournamentId)
       .order("round", { ascending: true })
       .order("match_order", { ascending: true });
@@ -627,6 +629,7 @@ function VSScreen({
 }) {
   const p1 = match.player1_id ? players.get(match.player1_id) : null;
   const p2 = match.player2_id ? players.get(match.player2_id) : null;
+  const judge = match.judge_id ? players.get(match.judge_id) : null;
 
   return (
     <div className="w-full max-w-5xl flex flex-col items-center gap-8">
@@ -642,6 +645,15 @@ function VSScreen({
         <span className="text-xs font-bold uppercase tracking-widest text-omega-blue">
           En juego
         </span>
+        {judge && (
+          <>
+            <span className="text-omega-border">|</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-omega-gold flex items-center gap-1.5">
+              <Scale className="size-3.5" />
+              Juez: {judge.alias}
+            </span>
+          </>
+        )}
       </div>
 
       {/* VS Layout */}

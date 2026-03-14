@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EyeOff, Eye, Trash2, Loader2 } from "lucide-react";
+import { EyeOff, Eye, Trash2, Loader2, Scale } from "lucide-react";
 import { toast } from "sonner";
 
 interface PlayerActionsProps {
   playerId: string;
   isHidden: boolean;
+  isJudge: boolean;
   alias: string;
 }
 
-export function PlayerActions({ playerId, isHidden, alias }: PlayerActionsProps) {
+export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActionsProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState<"hide" | "delete" | null>(null);
+  const [loading, setLoading] = useState<"hide" | "delete" | "judge" | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
   async function handleToggleHidden() {
@@ -33,6 +34,28 @@ export function PlayerActions({ playerId, isHidden, alias }: PlayerActionsProps)
       router.refresh();
     } catch {
       toast.error("Error de conexión");
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function handleToggleJudge() {
+    setLoading("judge");
+    try {
+      const res = await fetch(`/api/admin/players/${playerId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_judge: !isJudge }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Error");
+        return;
+      }
+      toast.success(isJudge ? `${alias} ya no es juez` : `${alias} es ahora juez`);
+      router.refresh();
+    } catch {
+      toast.error("Error de conexion");
     } finally {
       setLoading(null);
     }
@@ -59,6 +82,24 @@ export function PlayerActions({ playerId, isHidden, alias }: PlayerActionsProps)
 
   return (
     <div className="flex items-center gap-1 shrink-0">
+      {/* Toggle judge */}
+      <button
+        onClick={handleToggleJudge}
+        disabled={loading !== null}
+        title={isJudge ? "Quitar rol de juez" : "Hacer juez"}
+        className={`size-8 rounded-lg flex items-center justify-center transition-all ${
+          isJudge
+            ? "text-omega-gold hover:text-omega-muted hover:bg-omega-muted/10"
+            : "text-omega-muted hover:text-omega-gold hover:bg-omega-gold/10"
+        } disabled:opacity-50`}
+      >
+        {loading === "judge" ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Scale className="size-4" />
+        )}
+      </button>
+
       {/* Toggle hidden */}
       <button
         onClick={handleToggleHidden}

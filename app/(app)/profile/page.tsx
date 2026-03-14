@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 import { ImageCropper } from "@/app/_components/image-cropper";
 import BadgesDisplay from "@/app/_components/badges-display";
+import PushToggle from "@/app/_components/push-toggle";
 
 interface Player {
   id: string;
@@ -380,6 +381,9 @@ export default function ProfilePage() {
                 <div className={`size-4 rounded-full bg-white absolute top-1 transition-all ${player.hide_beys ? "left-1" : "left-5"}`} />
               </button>
             </div>
+
+            {/* Push notifications toggle */}
+            <PushToggle />
           </div>
         </div>
 

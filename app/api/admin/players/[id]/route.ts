@@ -29,9 +29,22 @@ export async function PATCH(
 
   const body = await request.json();
 
+  // Build update payload — support both is_hidden and is_judge toggles
+  const updateData: Record<string, boolean> = {};
+  if (typeof body.is_hidden === "boolean") {
+    updateData.is_hidden = body.is_hidden;
+  }
+  if (typeof body.is_judge === "boolean") {
+    updateData.is_judge = body.is_judge;
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return Response.json({ error: "No hay campos para actualizar" }, { status: 400 });
+  }
+
   const { error } = await supabase
     .from("players")
-    .update({ is_hidden: body.is_hidden })
+    .update(updateData)
     .eq("id", id);
 
   if (error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, Swords, User, Clock } from "lucide-react";
+import { Crown, Swords, User, Clock, Scale } from "lucide-react";
 
 /* ─── Types ─── */
 
@@ -16,9 +16,11 @@ export interface BracketMatch {
   status: "pending" | "in_progress" | "completed" | "bye";
   bracket_position: string | null;
   next_match_id: string | null;
+  judge_id?: string | null;
   player1?: { alias: string } | null;
   player2?: { alias: string } | null;
   winner?: { alias: string } | null;
+  judge?: { alias: string } | null;
 }
 
 interface BracketViewProps {
@@ -222,6 +224,16 @@ function EliminationMatchCard({ match }: { match: BracketMatch }) {
           </span>
         </div>
       )}
+
+      {/* Judge */}
+      {match.judge?.alias && (
+        <div className="px-3 py-1 bg-omega-gold/5 border-t border-omega-border/20 text-center">
+          <span className="text-[9px] font-bold text-omega-gold/80 flex items-center justify-center gap-1">
+            <Scale className="size-2.5" />
+            Juez: {match.judge.alias}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -358,6 +370,14 @@ function RoundMatchRow({ match }: { match: BracketMatch }) {
         {p2Alias}
         {p2Won && <Crown className="size-3 text-omega-gold inline ml-1" />}
       </span>
+
+      {/* Judge */}
+      {match.judge?.alias && (
+        <span className="text-[9px] text-omega-gold/70 flex items-center gap-0.5 shrink-0" title={`Juez: ${match.judge.alias}`}>
+          <Scale className="size-2.5" />
+          {match.judge.alias}
+        </span>
+      )}
     </div>
   );
 }

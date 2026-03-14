@@ -75,7 +75,7 @@ export default async function TournamentDetailPage({ params }: PageProps) {
       supabase
         .from("tournament_matches")
         .select(
-          "id, round, match_order, player1_id, player2_id, winner_id, player1_score, player2_score, status, bracket_position, next_match_id, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)"
+          "id, round, match_order, player1_id, player2_id, winner_id, player1_score, player2_score, status, bracket_position, next_match_id, judge_id, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias), judge:players!judge_id(alias)"
         )
         .eq("tournament_id", id)
         .order("round", { ascending: true })
@@ -107,6 +107,7 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     player1: m.player1 as unknown as { alias: string } | null,
     player2: m.player2 as unknown as { alias: string } | null,
     winner: m.winner as unknown as { alias: string } | null,
+    judge: m.judge as unknown as { alias: string } | null,
   }));
 
   const tournamentPoints = (pointsResult.data ?? []).map((tp) => ({

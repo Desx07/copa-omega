@@ -34,7 +34,7 @@ export default async function PlayerProfilePage({
   const [playerResult, beysResult, matchesResult, badgesResult] = await Promise.all([
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, created_at, tagline, hide_beys, badge, accent_color")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_judge, avatar_url, created_at, tagline, hide_beys, badge, accent_color")
       .eq("id", id)
       .eq("is_hidden", false)
       .single(),
@@ -142,6 +142,12 @@ export default async function PlayerProfilePage({
               <p className="text-xs text-omega-muted mt-1">
                 Ranking <span className="text-omega-gold font-bold">#{rank}</span>
               </p>
+            )}
+            {player.is_judge && (
+              <span className="inline-flex items-center gap-1.5 mt-2 rounded-full bg-omega-gold/10 border border-omega-gold/30 px-3 py-1 text-xs font-bold text-omega-gold">
+                <Scale className="size-3.5 text-omega-gold" />
+                Juez Oficial
+              </span>
             )}
             {(player as unknown as { tagline: string | null }).tagline && (
               <p className="text-sm text-omega-muted/80 italic mt-2">

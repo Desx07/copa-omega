@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Star, Users, Shield, UserCheck, EyeOff, ArrowLeft } from "lucide-react";
+import { Star, Users, Shield, UserCheck, EyeOff, ArrowLeft, Scale } from "lucide-react";
 import { PlayerActions } from "./_components/player-actions";
 
 export default async function AdminPlayersPage() {
@@ -19,7 +19,7 @@ export default async function AdminPlayersPage() {
     supabase.from("players").select("is_admin").eq("id", user.id).single(),
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_admin, is_hidden, created_at")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_admin, is_hidden, is_judge, created_at")
       .order("stars", { ascending: false }),
   ]);
 
@@ -34,6 +34,7 @@ export default async function AdminPlayersPage() {
   const totalPlayers = allPlayers.length;
   const activePlayers = allPlayers.filter((p) => !p.is_eliminated && !p.is_hidden).length;
   const hiddenPlayers = allPlayers.filter((p) => p.is_hidden).length;
+  const judgePlayers = allPlayers.filter((p) => p.is_judge).length;
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto">
@@ -58,7 +59,7 @@ export default async function AdminPlayersPage() {
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-4 gap-3 mb-6">
         <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
           <Users className="size-4 text-omega-blue mx-auto mb-1" />
           <p className="text-xl font-black text-omega-blue">{totalPlayers}</p>
@@ -73,6 +74,11 @@ export default async function AdminPlayersPage() {
           <EyeOff className="size-4 text-omega-gold mx-auto mb-1" />
           <p className="text-xl font-black text-omega-gold">{hiddenPlayers}</p>
           <p className="text-[11px] text-omega-muted">ocultos</p>
+        </div>
+        <div className="rounded-xl bg-omega-card border border-omega-border p-3 text-center">
+          <Scale className="size-4 text-omega-purple mx-auto mb-1" />
+          <p className="text-xl font-black text-omega-purple">{judgePlayers}</p>
+          <p className="text-[11px] text-omega-muted">jueces</p>
         </div>
       </div>
 
@@ -131,6 +137,9 @@ export default async function AdminPlayersPage() {
                       {player.is_admin && (
                         <Shield className="size-3.5 text-omega-purple shrink-0" />
                       )}
+                      {player.is_judge && (
+                        <Scale className="size-3.5 text-omega-gold shrink-0" />
+                      )}
                       {player.is_hidden && (
                         <EyeOff className="size-3.5 text-omega-gold shrink-0" />
                       )}
@@ -170,6 +179,7 @@ export default async function AdminPlayersPage() {
                     <PlayerActions
                       playerId={player.id}
                       isHidden={player.is_hidden}
+                      isJudge={player.is_judge}
                       alias={player.alias}
                     />
                   )}
