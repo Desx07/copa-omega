@@ -68,29 +68,28 @@ export default async function RankingPage() {
     <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
         {/* Back */}
         {user ? (
-          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
+          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors">
             <ArrowLeft className="size-4" />
             Dashboard
           </Link>
         ) : (
-          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-text transition-colors">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-omega-muted hover:text-omega-purple transition-colors">
             <ArrowLeft className="size-4" />
             Inicio
           </Link>
         )}
 
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-3">
-            <Star className="size-8 text-omega-gold star-glow fill-omega-gold" />
-            <h1 className="text-3xl font-black tracking-tight neon-gold">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-omega-gold/20 via-omega-card/60 to-omega-purple/10 p-5 shadow-lg shadow-omega-gold/10">
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-gold via-omega-purple to-omega-blue" />
+          <div className="text-center space-y-1">
+            <h1 className="text-2xl font-black tracking-tight neon-gold">
               RANKING
             </h1>
-            <Star className="size-8 text-omega-gold star-glow fill-omega-gold" />
+            <p className="text-sm text-omega-muted">
+              Copa Omega Star — Bladers Santa Fe
+            </p>
           </div>
-          <p className="text-sm text-omega-muted">
-            Copa Omega Star — Bladers Santa Fe
-          </p>
         </div>
 
         {/* Empty state */}

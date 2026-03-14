@@ -6,7 +6,6 @@ import {
   Trophy,
   User,
   Shield,
-  LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -62,12 +61,14 @@ export default async function DashboardPage() {
   const accentConfig = ACCENT_COLORS[player.accent_color] || ACCENT_COLORS.purple;
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-6 space-y-5">
-      {/* Player card */}
-      <div className="relative overflow-hidden rounded-2xl border border-omega-purple/20 bg-gradient-to-br from-omega-card/60 to-omega-card/30 p-5 backdrop-blur-sm">
-        <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-omega-purple/60 to-transparent" />
+    <div className="mx-auto max-w-lg px-4 pb-10 space-y-5">
+      {/* Player hero card */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-omega-purple/30 via-omega-card/80 to-omega-blue/20 p-5 shadow-lg shadow-omega-purple/10 backdrop-blur-sm">
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-omega-blue via-omega-purple to-omega-gold" />
+
         <div className="flex items-center gap-4">
-          <Link href="/profile" className={`size-16 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark shrink-0`}>
+          {/* Avatar */}
+          <Link href="/profile" className={`size-16 rounded-full border-2 ${accentConfig.border} overflow-hidden bg-omega-dark shrink-0 ring-4 ring-omega-card shadow-lg shadow-omega-purple/20`}>
             {player.avatar_url ? (
               <img src={player.avatar_url} alt={player.alias} className="size-full object-cover" />
             ) : (
@@ -77,25 +78,18 @@ export default async function DashboardPage() {
             )}
           </Link>
 
+          {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-lg font-black text-omega-text truncate">
+            <p className="text-xl font-black text-omega-text truncate">
               {player.badge && <span className="mr-1">{BADGE_EMOJIS[player.badge]}</span>}
               {player.alias}
             </p>
             {player.tagline && (
               <p className="text-xs text-omega-muted/80 italic truncate">&ldquo;{player.tagline}&rdquo;</p>
             )}
-            <div className="flex items-center gap-3 mt-1">
-              {rank > 0 && <span className="text-xs text-omega-gold font-bold">#{rank}</span>}
-              <span className="text-xs text-omega-muted">
-                <span className="text-omega-green font-bold">{player.wins}W</span>
-                {" / "}
-                <span className="text-omega-red font-bold">{player.losses}L</span>
-              </span>
-              {winRate > 0 && <span className="text-xs text-omega-blue font-bold">{winRate}%</span>}
-            </div>
           </div>
 
+          {/* Stars */}
           <div className="text-center shrink-0">
             <div className="flex items-center gap-1">
               <Star className="size-6 text-omega-gold fill-omega-gold star-glow" />
@@ -103,23 +97,51 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Stats strip */}
+        <div className="flex items-center justify-around rounded-xl bg-omega-dark/60 border border-omega-border/30 py-2.5 px-2 mt-4">
+          {rank > 0 && (
+            <>
+              <div className="flex items-center gap-1.5 text-sm">
+                <Trophy className="size-3.5 text-omega-gold" />
+                <span className="font-bold text-omega-gold">#{rank}</span>
+                <span className="text-omega-muted text-xs">puesto</span>
+              </div>
+              <div className="w-px h-4 bg-omega-border/50" />
+            </>
+          )}
+          <div className="flex items-center gap-1.5 text-sm">
+            <span className="font-bold text-omega-green">{player.wins}W</span>
+            <span className="text-omega-muted/50">/</span>
+            <span className="font-bold text-omega-red">{player.losses}L</span>
+          </div>
+          {winRate > 0 && (
+            <>
+              <div className="w-px h-4 bg-omega-border/50" />
+              <div className="flex items-center gap-1 text-sm">
+                <span className="font-bold text-omega-blue">{winRate}%</span>
+                <span className="text-omega-muted text-xs">win</span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Streak */}
       {currentStreak >= 2 && (
-        <div className="flex items-center justify-center gap-2 rounded-xl bg-omega-green/10 border border-omega-green/20 py-2 px-4">
-          <Flame className="size-4 text-omega-green" />
+        <div className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-omega-green/15 to-omega-green/5 border border-omega-green/30 py-3 px-5 shadow-sm shadow-omega-green/10">
+          <Flame className="size-5 text-omega-green" />
           <span className="text-sm font-bold text-omega-green">Racha de {currentStreak} victorias!</span>
         </div>
       )}
 
       {/* Tournament progress */}
-      <div className="rounded-xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4 space-y-2">
+      <div className="rounded-2xl border border-omega-border/40 bg-omega-card/40 backdrop-blur-sm p-5 space-y-2 shadow-md shadow-omega-purple/5">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-omega-muted uppercase tracking-wider font-bold">Clasificación</span>
+          <span className="text-omega-text/80 uppercase tracking-wider font-bold">Clasificación</span>
           <span className="text-omega-gold font-bold">Top 16</span>
         </div>
-        <div className="h-2 rounded-full bg-omega-dark overflow-hidden">
+        <div className="h-2.5 rounded-full bg-omega-dark overflow-hidden">
           <div
             className="h-full rounded-full bg-gradient-to-r from-omega-purple to-omega-blue transition-all"
             style={{ width: `${allPlayers.length > 0 ? Math.max(5, Math.min(100, ((allPlayers.length - rank + 1) / allPlayers.length) * 100)) : 0}%` }}
@@ -131,66 +153,60 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick actions */}
+      {/* Quick actions — PawGo style vertical cards */}
       <div className="grid grid-cols-2 gap-3">
         <Link
           href="/ranking"
-          className="flex items-center gap-3 rounded-xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4 hover:border-omega-gold/40 hover:bg-omega-card/50 transition-all"
+          className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-gold/25 to-omega-gold/5 p-5 shadow-md shadow-omega-gold/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
         >
-          <div className="size-10 rounded-lg bg-omega-gold/10 flex items-center justify-center">
-            <Trophy className="size-5 text-omega-gold" />
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+            <Trophy className="size-6 text-white" />
           </div>
-          <div>
-            <p className="text-sm font-bold text-omega-text">Ranking</p>
-            <p className="text-[11px] text-omega-muted">Ver tabla</p>
-          </div>
+          <p className="font-bold text-white text-sm">Ranking</p>
+          <p className="text-xs text-white/60 mt-0.5">Ver tabla de posiciones</p>
         </Link>
 
         <Link
           href="/profile"
-          className="flex items-center gap-3 rounded-xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4 hover:border-omega-purple/40 hover:bg-omega-card/50 transition-all"
+          className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-purple/25 to-omega-purple/5 p-5 shadow-md shadow-omega-purple/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
         >
-          <div className="size-10 rounded-lg bg-omega-purple/10 flex items-center justify-center">
-            <User className="size-5 text-omega-purple" />
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+            <User className="size-6 text-white" />
           </div>
-          <div>
-            <p className="text-sm font-bold text-omega-text">Mi Perfil</p>
-            <p className="text-[11px] text-omega-muted">Editar</p>
-          </div>
+          <p className="font-bold text-white text-sm">Mi Perfil</p>
+          <p className="text-xs text-white/60 mt-0.5">Editar y personalizar</p>
         </Link>
 
         {player.is_admin && (
           <Link
             href="/admin/matches"
-            className="flex items-center gap-3 rounded-xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4 hover:border-omega-blue/40 hover:bg-omega-card/50 transition-all col-span-2"
+            className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-blue/25 to-omega-blue/5 p-5 shadow-md shadow-omega-blue/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] col-span-2"
           >
-            <div className="size-10 rounded-lg bg-omega-blue/10 flex items-center justify-center">
-              <Shield className="size-5 text-omega-blue" />
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+              <Shield className="size-6 text-white" />
             </div>
-            <div>
-              <p className="text-sm font-bold text-omega-text">Admin</p>
-              <p className="text-[11px] text-omega-muted">Gestionar partidas y jugadores</p>
-            </div>
+            <p className="font-bold text-white text-sm">Admin</p>
+            <p className="text-xs text-white/60 mt-0.5">Gestionar partidas y jugadores</p>
           </Link>
         )}
       </div>
 
       {/* Recent matches */}
-      <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
-          <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
+      <div className="rounded-2xl border border-omega-border/50 bg-omega-card/40 backdrop-blur-sm overflow-hidden shadow-lg shadow-omega-dark/30">
+        <div className="px-5 py-3.5 border-b border-omega-border/50 bg-omega-card/60">
+          <h2 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center gap-2">
             <Swords className="size-4 text-omega-blue" />
-            Mis ultimas batallas
+            Mis últimas batallas
           </h2>
         </div>
 
         {matches.length === 0 ? (
-          <div className="p-8 text-center">
-            <Swords className="size-8 text-omega-muted/30 mx-auto mb-2" />
+          <div className="p-10 text-center space-y-3">
+            <Swords className="size-10 text-omega-muted/20 mx-auto" />
             <p className="text-sm text-omega-muted/70">Todavía no tenés batallas</p>
           </div>
         ) : (
-          <div className="divide-y divide-omega-border/30">
+          <div className="divide-y divide-omega-border/20">
             {matches.map((match) => {
               const won = match.winner_id === user.id;
               const isPlayer1 = match.player1_id === user.id;
@@ -198,9 +214,9 @@ export default async function DashboardPage() {
               const opponentAlias = (opponent as unknown as { alias: string })?.alias ?? "???";
 
               return (
-                <div key={match.id} className="flex items-center gap-3 px-4 py-3">
+                <div key={match.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-omega-card/40 transition-all">
                   <div
-                    className={`size-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                    className={`size-10 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
                       won
                         ? "bg-omega-green/10 border border-omega-green/30 text-omega-green"
                         : "bg-omega-red/10 border border-omega-red/30 text-omega-red"
@@ -209,8 +225,8 @@ export default async function DashboardPage() {
                     {won ? "W" : "L"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-omega-text truncate">vs {opponentAlias}</p>
-                    <p className="text-[11px] text-omega-muted">
+                    <p className="text-sm font-semibold text-omega-text truncate">vs {opponentAlias}</p>
+                    <p className="text-xs text-omega-muted/70">
                       {match.completed_at
                         ? new Date(match.completed_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
                         : ""}
@@ -229,4 +245,3 @@ export default async function DashboardPage() {
     </div>
   );
 }
-
