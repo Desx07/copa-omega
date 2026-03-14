@@ -6,6 +6,9 @@ import {
   Trophy,
   User,
   Shield,
+  ShoppingBag,
+  Package,
+  ClipboardList,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -179,26 +182,72 @@ export default async function DashboardPage() {
 
         <Link
           href="/tournaments"
-          className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-green/25 to-omega-green/5 p-5 shadow-md shadow-omega-green/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] col-span-2"
+          className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-green/25 to-omega-green/5 p-5 shadow-md shadow-omega-green/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
         >
           <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
             <Trophy className="size-6 text-white" />
           </div>
           <p className="font-bold text-white text-sm">Torneos</p>
-          <p className="text-xs text-white/60 mt-0.5">Ver torneos e historial</p>
+          <p className="text-xs text-white/60 mt-0.5">Inscripción e historial</p>
+        </Link>
+
+        <Link
+          href="/store"
+          className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-red/25 to-omega-red/5 p-5 shadow-md shadow-omega-red/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+            <ShoppingBag className="size-6 text-white" />
+          </div>
+          <p className="font-bold text-white text-sm">Tienda</p>
+          <p className="text-xs text-white/60 mt-0.5">Productos y pedidos</p>
         </Link>
 
         {player.is_admin && (
-          <Link
-            href="/admin/matches"
-            className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-blue/25 to-omega-blue/5 p-5 shadow-md shadow-omega-blue/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] col-span-2"
-          >
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
-              <Shield className="size-6 text-white" />
-            </div>
-            <p className="font-bold text-white text-sm">Admin</p>
-            <p className="text-xs text-white/60 mt-0.5">Gestionar partidas y jugadores</p>
-          </Link>
+          <>
+            <Link
+              href="/admin/matches"
+              className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-blue/25 to-omega-blue/5 p-5 shadow-md shadow-omega-blue/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+                <Swords className="size-6 text-white" />
+              </div>
+              <p className="font-bold text-white text-sm">Partidas</p>
+              <p className="text-xs text-white/60 mt-0.5">Crear y resolver</p>
+            </Link>
+
+            <Link
+              href="/admin/tournaments"
+              className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-blue/25 to-omega-blue/5 p-5 shadow-md shadow-omega-blue/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+                <Shield className="size-6 text-white" />
+              </div>
+              <p className="font-bold text-white text-sm">Admin Torneos</p>
+              <p className="text-xs text-white/60 mt-0.5">Gestionar torneos</p>
+            </Link>
+
+            <Link
+              href="/admin/products"
+              className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-blue/25 to-omega-blue/5 p-5 shadow-md shadow-omega-blue/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+                <Package className="size-6 text-white" />
+              </div>
+              <p className="font-bold text-white text-sm">Productos</p>
+              <p className="text-xs text-white/60 mt-0.5">Stock y catálogo</p>
+            </Link>
+
+            <Link
+              href="/admin/orders"
+              className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-blue/25 to-omega-blue/5 p-5 shadow-md shadow-omega-blue/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+                <ClipboardList className="size-6 text-white" />
+              </div>
+              <p className="font-bold text-white text-sm">Pedidos</p>
+              <p className="text-xs text-white/60 mt-0.5">Ver y gestionar</p>
+            </Link>
+          </>
         )}
       </div>
 
