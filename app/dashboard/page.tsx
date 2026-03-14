@@ -230,19 +230,6 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Top 3 preview */}
-        {allPlayers.length >= 3 && (
-          <Link
-            href="/ranking"
-            className="flex items-center justify-between rounded-xl border border-omega-border bg-omega-card/40 p-4 hover:border-omega-gold/30 transition-all group"
-          >
-            <div className="flex items-center gap-3">
-              <Crown className="size-5 text-omega-gold" />
-              <span className="text-sm font-bold text-omega-text">Ver ranking completo</span>
-            </div>
-            <ArrowRight className="size-4 text-omega-muted group-hover:text-omega-gold group-hover:translate-x-1 transition-all" />
-          </Link>
-        )}
       </div>
     </div>
   );

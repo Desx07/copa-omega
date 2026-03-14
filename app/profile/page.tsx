@@ -24,6 +24,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
+import { ImageCropper } from "@/app/_components/image-cropper";
 
 interface Player {
   id: string;
@@ -73,6 +74,9 @@ export default function ProfilePage() {
   // Tagline edit
   const [editingTagline, setEditingTagline] = useState(false);
   const [taglineInput, setTaglineInput] = useState("");
+
+  // Image cropper
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   useEffect(() => {
     loadProfile();
@@ -125,24 +129,31 @@ export default function ProfilePage() {
     setSavingField(null);
   }
 
-  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !player) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("La imagen no puede pesar mas de 2MB");
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no puede pesar mas de 5MB");
       return;
     }
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    // Reset input so same file can be selected again
+    e.target.value = "";
+  }
 
+  async function handleCroppedUpload(blob: Blob) {
+    if (!player) return;
+    setCropSrc(null);
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const path = `${player.id}/avatar.${ext}`;
+      const path = `${player.id}/avatar.jpeg`;
       await supabase.storage.from("avatars").remove([path]);
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { upsert: true });
+        .upload(path, blob, { upsert: true, contentType: "image/jpeg" });
 
       if (uploadError) {
         toast.error("Error subiendo imagen");
@@ -268,7 +279,7 @@ export default function ProfilePage() {
             >
               {uploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
             </button>
-            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarUpload} />
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileSelect} />
           </div>
 
           {/* Name, badge, title */}
@@ -492,6 +503,15 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Image cropper modal */}
+      {cropSrc && (
+        <ImageCropper
+          imageSrc={cropSrc}
+          onCropDone={handleCroppedUpload}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
     </div>
   );
 }
