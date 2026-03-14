@@ -14,6 +14,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
+import BadgesDisplay from "@/app/_components/badges-display";
 
 const beyTypeConfig = {
   attack: { label: "Ataque", icon: Swords, color: "text-omega-red", bg: "bg-omega-red/10 border-omega-red/30" },
@@ -30,7 +31,7 @@ export default async function PlayerProfilePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [playerResult, beysResult, matchesResult] = await Promise.all([
+  const [playerResult, beysResult, matchesResult, badgesResult] = await Promise.all([
     supabase
       .from("players")
       .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, created_at, tagline, hide_beys, badge, accent_color")
@@ -49,6 +50,10 @@ export default async function PlayerProfilePage({
       .eq("status", "completed")
       .order("completed_at", { ascending: false })
       .limit(20),
+    supabase
+      .from("player_badges")
+      .select("badge_id")
+      .eq("player_id", id),
   ]);
 
   if (!playerResult.data) {
@@ -58,6 +63,7 @@ export default async function PlayerProfilePage({
   const player = playerResult.data;
   const beys = beysResult.data ?? [];
   const matches = matchesResult.data ?? [];
+  const earnedBadgeIds = (badgesResult.data ?? []).map((b) => b.badge_id);
 
   // Calculate win streak
   let currentStreak = 0;
@@ -199,6 +205,11 @@ export default async function PlayerProfilePage({
             </span>
           )}
         </div>
+
+        {/* Badges / Achievements */}
+        {earnedBadgeIds.length > 0 && (
+          <BadgesDisplay earnedBadgeIds={earnedBadgeIds} />
+        )}
 
         {/* Beys — hidden if player chose to hide */}
         {!(player as unknown as { hide_beys: boolean }).hide_beys && beys.length > 0 && (

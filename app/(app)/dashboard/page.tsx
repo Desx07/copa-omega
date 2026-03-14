@@ -177,6 +177,17 @@ export default async function DashboardPage() {
           <p className="text-xs text-white/60 mt-0.5">Editar y personalizar</p>
         </Link>
 
+        <Link
+          href="/tournaments"
+          className="group flex flex-col rounded-2xl bg-gradient-to-br from-omega-green/25 to-omega-green/5 p-5 shadow-md shadow-omega-green/10 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] col-span-2"
+        >
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors">
+            <Trophy className="size-6 text-white" />
+          </div>
+          <p className="font-bold text-white text-sm">Torneos</p>
+          <p className="text-xs text-white/60 mt-0.5">Ver torneos e historial</p>
+        </Link>
+
         {player.is_admin && (
           <Link
             href="/admin/matches"

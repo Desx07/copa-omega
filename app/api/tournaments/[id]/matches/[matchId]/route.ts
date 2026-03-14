@@ -269,6 +269,15 @@ export async function PATCH(
               completed_at: new Date().toISOString(),
             })
             .eq("id", tournamentId);
+
+          // Auto-award tournament points
+          fetch(`${new URL(request.url).origin}/api/tournaments/${tournamentId}/complete`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              cookie: request.headers.get("cookie") ?? "",
+            },
+          }).catch(() => {});
         }
       }
     }
@@ -284,7 +293,30 @@ export async function PATCH(
             completed_at: new Date().toISOString(),
           })
           .eq("id", tournamentId);
+
+        // Auto-award tournament points
+        fetch(`${new URL(request.url).origin}/api/tournaments/${tournamentId}/complete`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            cookie: request.headers.get("cookie") ?? "",
+          },
+        }).catch(() => {});
       }
+    }
+
+    // Trigger badge checks for both players (fire-and-forget)
+    const baseUrl = new URL(request.url).origin;
+    const badgePlayers = [winner_id, loserId].filter(Boolean);
+    for (const playerId of badgePlayers) {
+      fetch(`${baseUrl}/api/badges/check`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          cookie: request.headers.get("cookie") ?? "",
+        },
+        body: JSON.stringify({ player_id: playerId }),
+      }).catch(() => {});
     }
 
     return Response.json(updatedMatch);

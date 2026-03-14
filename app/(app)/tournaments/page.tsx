@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Trophy, ArrowLeft, Calendar, Clock } from "lucide-react";
+import { Trophy, ArrowLeft, Calendar, Clock, Crown } from "lucide-react";
 import TournamentCard from "./_components/tournament-card";
 
 export default async function TournamentsPage() {
@@ -29,6 +29,43 @@ export default async function TournamentsPage() {
   const past = tournaments.filter(
     (t) => t.status === "completed" || t.status === "cancelled"
   );
+
+  // For completed tournaments, find the champion
+  const championsMap = new Map<string, string>();
+  for (const t of past) {
+    if (t.status !== "completed") continue;
+
+    if (t.format === "single_elimination") {
+      const { data: finalMatch } = await supabase
+        .from("tournament_matches")
+        .select("winner:players!winner_id(alias)")
+        .eq("tournament_id", t.id)
+        .eq("bracket_position", "F")
+        .single();
+
+      if (finalMatch?.winner) {
+        championsMap.set(
+          t.id,
+          (finalMatch.winner as unknown as { alias: string }).alias
+        );
+      }
+    } else {
+      const { data: topParticipant } = await supabase
+        .from("tournament_participants")
+        .select("player:players!player_id(alias)")
+        .eq("tournament_id", t.id)
+        .order("points", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (topParticipant?.player) {
+        championsMap.set(
+          t.id,
+          (topParticipant.player as unknown as { alias: string }).alias
+        );
+      }
+    }
+  }
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto space-y-6">
@@ -74,9 +111,20 @@ export default async function TournamentsPage() {
             <Calendar className="size-4 text-omega-muted" />
             Torneos anteriores
           </h2>
-          {past.map((tournament) => (
-            <TournamentCard key={tournament.id} tournament={tournament} />
-          ))}
+          {past.map((tournament) => {
+            const champion = championsMap.get(tournament.id);
+            return (
+              <div key={tournament.id} className="relative">
+                <TournamentCard tournament={tournament} />
+                {champion && (
+                  <div className="absolute top-3.5 right-20 flex items-center gap-1 text-[10px] text-omega-gold font-bold">
+                    <Crown className="size-3 text-omega-gold" />
+                    {champion}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 

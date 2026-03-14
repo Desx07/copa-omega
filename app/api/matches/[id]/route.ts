@@ -44,6 +44,29 @@ export async function PATCH(
       return Response.json({ error: error.message }, { status: 400 });
     }
 
+    // Fetch match to find both players for badge checking
+    const { data: matchData } = await supabase
+      .from("matches")
+      .select("player1_id, player2_id")
+      .eq("id", id)
+      .single();
+
+    // Trigger badge checks for both players (fire-and-forget)
+    if (matchData) {
+      const baseUrl = new URL(request.url).origin;
+      const badgePlayers = [matchData.player1_id, matchData.player2_id].filter(Boolean);
+      for (const playerId of badgePlayers) {
+        fetch(`${baseUrl}/api/badges/check`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            cookie: request.headers.get("cookie") ?? "",
+          },
+          body: JSON.stringify({ player_id: playerId }),
+        }).catch(() => {});
+      }
+    }
+
     return Response.json({ success: true, data });
   } catch (err) {
     console.error("PATCH /api/matches/[id] error:", err);

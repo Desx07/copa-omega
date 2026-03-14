@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ChatBot } from "@/app/_components/chat-bot";
+import BadgeNotification from "@/app/_components/badge-notification";
 
 export default async function AppLayout({
   children,
@@ -26,6 +28,9 @@ export default async function AppLayout({
       </div>
 
       {children}
+
+      <BadgeNotification />
+      <ChatBot />
     </div>
   );
 }

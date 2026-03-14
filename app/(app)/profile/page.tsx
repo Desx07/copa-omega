@@ -25,6 +25,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 import { ImageCropper } from "@/app/_components/image-cropper";
+import BadgesDisplay from "@/app/_components/badges-display";
 
 interface Player {
   id: string;
@@ -74,6 +75,7 @@ export default function ProfilePage() {
   const [taglineInput, setTaglineInput] = useState("");
 
   const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [earnedBadgeIds, setEarnedBadgeIds] = useState<string[]>([]);
 
   useEffect(() => {
     loadProfile();
@@ -89,7 +91,7 @@ export default function ProfilePage() {
       return;
     }
 
-    const [playerResult, beysResult] = await Promise.all([
+    const [playerResult, beysResult, badgesResult] = await Promise.all([
       supabase
         .from("players")
         .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at")
@@ -100,6 +102,10 @@ export default function ProfilePage() {
         .select("id, name, type")
         .eq("player_id", user.id)
         .order("created_at", { ascending: true }),
+      supabase
+        .from("player_badges")
+        .select("badge_id")
+        .eq("player_id", user.id),
     ]);
 
     if (playerResult.data) {
@@ -107,6 +113,7 @@ export default function ProfilePage() {
       setTaglineInput(playerResult.data.tagline || "");
     }
     if (beysResult.data) setBeys(beysResult.data);
+    if (badgesResult.data) setEarnedBadgeIds(badgesResult.data.map((b) => b.badge_id));
     setLoading(false);
   }
 
@@ -375,6 +382,9 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Badges / Achievements */}
+        <BadgesDisplay earnedBadgeIds={earnedBadgeIds} />
 
         {/* Beys section */}
         <div className="rounded-2xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm overflow-hidden">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, Trophy, Crown, Flame, Swords, ArrowLeft } from "lucide-react";
+import { Star, Trophy, Crown, Flame, Swords, ArrowLeft, Medal } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function RankingPage() {
@@ -8,8 +8,8 @@ export default async function RankingPage() {
   // Check if logged in (for back button)
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Leaderboard + recent matches
-  const [playersResult, matchesResult] = await Promise.all([
+  // Leaderboard + recent matches + tournament points
+  const [playersResult, matchesResult, tournamentPointsResult] = await Promise.all([
     supabase
       .from("players")
       .select("id, alias, full_name, stars, wins, losses, is_eliminated, avatar_url")
@@ -23,13 +23,37 @@ export default async function RankingPage() {
       .eq("status", "completed")
       .order("completed_at", { ascending: false })
       .limit(10),
+    supabase
+      .from("tournament_points")
+      .select("player_id, points, player:players!player_id(alias, avatar_url)"),
   ]);
 
   const players = playersResult.data;
   const { data: recentMatches } = matchesResult;
+  const rawTournamentPoints = tournamentPointsResult.data ?? [];
 
   const leaderboard = players ?? [];
   const matches = recentMatches ?? [];
+
+  // Aggregate tournament points by player
+  const pointsMap = new Map<string, { alias: string; avatar_url: string | null; total: number }>();
+  for (const tp of rawTournamentPoints) {
+    const player = tp.player as unknown as { alias: string; avatar_url: string | null };
+    if (!player) continue;
+    const existing = pointsMap.get(tp.player_id);
+    if (existing) {
+      existing.total += tp.points;
+    } else {
+      pointsMap.set(tp.player_id, {
+        alias: player.alias,
+        avatar_url: player.avatar_url,
+        total: tp.points,
+      });
+    }
+  }
+  const tournamentRanking = [...pointsMap.entries()]
+    .map(([id, data]) => ({ id, ...data }))
+    .sort((a, b) => b.total - a.total);
 
   // Calculate current win streaks for all players
   const streaks = new Map<string, number>();
@@ -222,6 +246,57 @@ export default async function RankingPage() {
             </div>
           );
         })()}
+
+        {/* Tournament Points Ranking */}
+        {tournamentRanking.length > 0 && (
+          <div className="rounded-2xl border border-omega-border bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-omega-border bg-omega-card/60">
+              <h2 className="text-sm font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
+                <Medal className="size-4 text-omega-gold" />
+                Ranking de Torneos
+              </h2>
+            </div>
+            <div className="divide-y divide-omega-border/30">
+              {tournamentRanking.map((entry, index) => (
+                <Link
+                  key={entry.id}
+                  href={`/player/${entry.id}`}
+                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-omega-card/60"
+                >
+                  {/* Rank */}
+                  <span className={`text-sm font-black w-6 text-center shrink-0 ${
+                    index === 0 ? "text-omega-gold" : index === 1 ? "text-omega-muted" : index === 2 ? "text-orange-500" : "text-omega-muted/70"
+                  }`}>
+                    {index + 1}
+                  </span>
+
+                  {/* Avatar */}
+                  <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
+                    {entry.avatar_url ? (
+                      <img src={entry.avatar_url} alt="" className="size-full object-cover" />
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                        {entry.alias.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Alias */}
+                  <span className="text-sm font-bold text-omega-text flex-1 truncate">
+                    {index === 0 && <Crown className="size-3 text-omega-gold inline mr-1" />}
+                    {entry.alias}
+                  </span>
+
+                  {/* Points */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-sm font-black text-omega-gold">{entry.total}</span>
+                    <span className="text-[10px] text-omega-muted">pts</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent matches */}
         {matches.length > 0 && (

@@ -11,6 +11,8 @@ import {
   XCircle,
   Crown,
   UserPlus,
+  Medal,
+  Star,
 } from "lucide-react";
 import BracketView from "@/app/(app)/tournaments/_components/bracket-view";
 import ParticipantsList from "@/app/(app)/tournaments/_components/participants-list";
@@ -59,8 +61,8 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch tournament + participants + matches in parallel
-  const [tournamentResult, participantsResult, matchesResult] =
+  // Fetch tournament + participants + matches + points in parallel
+  const [tournamentResult, participantsResult, matchesResult, pointsResult] =
     await Promise.all([
       supabase.from("tournaments").select("*").eq("id", id).single(),
       supabase
@@ -78,6 +80,11 @@ export default async function TournamentDetailPage({ params }: PageProps) {
         .eq("tournament_id", id)
         .order("round", { ascending: true })
         .order("match_order", { ascending: true }),
+      supabase
+        .from("tournament_points")
+        .select("player_id, points, position, player:players!player_id(alias, avatar_url)")
+        .eq("tournament_id", id)
+        .order("position", { ascending: true }),
     ]);
 
   const tournament = tournamentResult.data;
@@ -102,6 +109,14 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     winner: m.winner as unknown as { alias: string } | null,
   }));
 
+  const tournamentPoints = (pointsResult.data ?? []).map((tp) => ({
+    ...tp,
+    player: tp.player as unknown as {
+      alias: string;
+      avatar_url: string | null;
+    },
+  }));
+
   const status = STATUS_CONFIG[tournament.status];
   const isRoundBased =
     tournament.format === "round_robin" || tournament.format === "swiss";
@@ -111,27 +126,84 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     ? participants.some((p) => p.player.id === user.id)
     : false;
 
-  // Find the champion (winner of final match for elimination, or top points for others)
-  let champion: { alias: string } | null = null;
+  // Determine podium (1st, 2nd, 3rd) for completed tournaments
+  let podium: { position: number; alias: string; avatar_url: string | null; playerId: string }[] = [];
   if (tournament.status === "completed") {
     if (tournament.format === "single_elimination") {
-      // Winner of the final match
+      // 1st: winner of final, 2nd: loser of final, 3rd: losers of semis
       const finalMatch = matches.find((m) => m.bracket_position === "F");
-      if (finalMatch?.winner) {
-        champion = finalMatch.winner;
+      if (finalMatch?.winner_id) {
+        const winnerId = finalMatch.winner_id;
+        const loserId = finalMatch.player1_id === winnerId ? finalMatch.player2_id : finalMatch.player1_id;
+
+        const winnerP = participants.find((p) => p.player.id === winnerId);
+        if (winnerP) {
+          podium.push({ position: 1, alias: winnerP.player.alias, avatar_url: winnerP.player.avatar_url, playerId: winnerP.player.id });
+        }
+
+        if (loserId) {
+          const loserP = participants.find((p) => p.player.id === loserId);
+          if (loserP) {
+            podium.push({ position: 2, alias: loserP.player.alias, avatar_url: loserP.player.avatar_url, playerId: loserP.player.id });
+          }
+        }
+
+        // Semi-final losers = 3rd place
+        const semiMatches = matches.filter((m) => m.bracket_position?.startsWith("SF"));
+        for (const sm of semiMatches) {
+          if (sm.winner_id && sm.status === "completed") {
+            const semiLoserId = sm.player1_id === sm.winner_id ? sm.player2_id : sm.player1_id;
+            if (semiLoserId && semiLoserId !== winnerId && semiLoserId !== loserId) {
+              const semiLoserP = participants.find((p) => p.player.id === semiLoserId);
+              if (semiLoserP) {
+                podium.push({ position: 3, alias: semiLoserP.player.alias, avatar_url: semiLoserP.player.avatar_url, playerId: semiLoserP.player.id });
+              }
+            }
+          }
+        }
       }
     } else {
-      // Player with most points
-      const topParticipant = [...participants].sort(
-        (a, b) => b.points - a.points
-      )[0];
-      if (topParticipant) {
-        champion = { alias: topParticipant.player.alias };
+      // Round robin / Swiss: sorted by points
+      const sorted = [...participants].sort((a, b) => b.points - a.points);
+      for (let i = 0; i < Math.min(3, sorted.length); i++) {
+        podium.push({
+          position: i + 1,
+          alias: sorted[i].player.alias,
+          avatar_url: sorted[i].player.avatar_url,
+          playerId: sorted[i].player.id,
+        });
       }
     }
   }
 
   const isFull = participants.length >= tournament.max_participants;
+
+  const podiumColors = {
+    1: {
+      border: "border-omega-gold/50",
+      bg: "bg-gradient-to-b from-omega-gold/15 to-omega-card/60",
+      text: "neon-gold",
+      label: "1er Lugar",
+      avatarBorder: "border-omega-gold",
+      icon: <Crown className="size-6 text-omega-gold fill-omega-gold/30" />,
+    },
+    2: {
+      border: "border-omega-muted/40",
+      bg: "bg-gradient-to-b from-omega-muted/10 to-omega-card/60",
+      text: "text-omega-muted",
+      label: "2do Lugar",
+      avatarBorder: "border-omega-muted/50",
+      icon: <Medal className="size-5 text-omega-muted/70" />,
+    },
+    3: {
+      border: "border-orange-700/40",
+      bg: "bg-gradient-to-b from-orange-900/10 to-omega-card/60",
+      text: "text-orange-500",
+      label: "3er Lugar",
+      avatarBorder: "border-orange-500/50",
+      icon: <Medal className="size-5 text-orange-500/70" />,
+    },
+  } as const;
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto space-y-5">
@@ -201,14 +273,119 @@ export default async function TournamentDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Champion banner */}
-      {champion && (
-        <div className="rounded-2xl bg-gradient-to-r from-omega-gold/20 via-omega-gold/10 to-omega-gold/20 border border-omega-gold/30 p-5 text-center space-y-2 shadow-lg shadow-omega-gold/10">
-          <Crown className="size-8 text-omega-gold mx-auto star-glow" />
-          <p className="text-xs text-omega-muted uppercase tracking-widest font-bold">
-            Campeon
-          </p>
-          <p className="text-2xl font-black neon-gold">{champion.alias}</p>
+      {/* Podium — completed tournaments */}
+      {tournament.status === "completed" && podium.length > 0 && (
+        <div className="rounded-2xl bg-gradient-to-r from-omega-gold/10 via-omega-card/40 to-omega-gold/10 border border-omega-gold/20 p-5 space-y-4 shadow-lg shadow-omega-gold/5">
+          <h2 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center justify-center gap-2">
+            <Trophy className="size-4 text-omega-gold" />
+            Resultados Finales
+          </h2>
+
+          <div className="grid grid-cols-3 gap-3">
+            {/* Show 2nd, 1st, 3rd for visual podium */}
+            {[
+              podium.find((p) => p.position === 2),
+              podium.find((p) => p.position === 1),
+              podium.filter((p) => p.position === 3)[0],
+            ].map((entry, visualIndex) => {
+              if (!entry) return <div key={visualIndex} />;
+              const config = podiumColors[entry.position as 1 | 2 | 3];
+              return (
+                <Link
+                  key={entry.playerId}
+                  href={`/player/${entry.playerId}`}
+                  className={`${
+                    visualIndex === 1 ? "-mt-2" : "mt-4"
+                  } block rounded-2xl border ${config.border} ${config.bg} p-4 text-center space-y-2 backdrop-blur-sm transition-all hover:scale-[1.02] active:scale-[0.98]`}
+                >
+                  <div className="flex justify-center">{config.icon}</div>
+                  <div
+                    className={`size-12 rounded-full border-2 ${config.avatarBorder} overflow-hidden bg-omega-dark mx-auto`}
+                  >
+                    {entry.avatar_url ? (
+                      <img
+                        src={entry.avatar_url}
+                        alt=""
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-lg font-black text-omega-purple">
+                        {entry.alias.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <p
+                    className={`text-sm font-black truncate ${config.text}`}
+                  >
+                    {entry.alias}
+                  </p>
+                  <p className="text-[10px] text-omega-muted font-bold">
+                    {config.label}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* 3rd place ties (if multiple) */}
+          {podium.filter((p) => p.position === 3).length > 1 && (
+            <div className="flex items-center justify-center gap-2 text-xs text-omega-muted">
+              <Medal className="size-3.5 text-orange-500" />
+              <span>
+                3er lugar compartido:{" "}
+                {podium
+                  .filter((p) => p.position === 3)
+                  .map((p) => p.alias)
+                  .join(", ")}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Points awarded — from tournament_points table */}
+      {tournament.status === "completed" && tournamentPoints.length > 0 && (
+        <div className="rounded-2xl border border-omega-border/40 bg-omega-card/40 backdrop-blur-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-omega-border/40 bg-omega-card/60">
+            <h3 className="text-sm font-bold text-omega-text/80 uppercase tracking-wider flex items-center gap-2">
+              <Star className="size-4 text-omega-gold fill-omega-gold" />
+              Puntos Otorgados
+            </h3>
+          </div>
+          <div className="divide-y divide-omega-border/20">
+            {tournamentPoints.map((tp, index) => (
+              <div
+                key={tp.player_id}
+                className="flex items-center gap-3 px-4 py-3"
+              >
+                <span className="text-sm font-black text-omega-muted/60 w-6 text-center shrink-0">
+                  {tp.position ? `#${tp.position}` : index + 1}
+                </span>
+                <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
+                  {tp.player.avatar_url ? (
+                    <img
+                      src={tp.player.avatar_url}
+                      alt=""
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                      {tp.player.alias.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm font-bold text-omega-text flex-1 truncate">
+                  {tp.player.alias}
+                </span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-sm font-black text-omega-gold">
+                    {tp.points}
+                  </span>
+                  <span className="text-[10px] text-omega-muted">pts</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
