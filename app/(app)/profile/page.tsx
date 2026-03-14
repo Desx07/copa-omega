@@ -161,7 +161,7 @@ export default function ProfilePage() {
       if (updateError) { toast.error("Error actualizando perfil"); return; }
       setPlayer({ ...player, avatar_url: avatarUrl });
       toast.success("Foto actualizada!");
-    } catch { toast.error("Error de conexion"); }
+    } catch { toast.error("Error de conexión"); }
     finally { setUploading(false); }
   }
 
@@ -178,7 +178,7 @@ export default function ProfilePage() {
       setBeys([...beys, data]);
       setNewBeyName("");
       toast.success("Bey agregado!");
-    } catch { toast.error("Error de conexion"); }
+    } catch { toast.error("Error de conexión"); }
     finally { setAddingBey(false); }
   }
 
@@ -379,7 +379,7 @@ export default function ProfilePage() {
 
           {beys.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-sm text-omega-muted/70">No tenes beys cargados todavia</p>
+              <p className="text-sm text-omega-muted/70">No tenés beys cargados todavía</p>
             </div>
           ) : (
             <div className="divide-y divide-omega-border/30">
@@ -447,7 +447,7 @@ export default function ProfilePage() {
           className="w-full flex items-center justify-center gap-2 rounded-xl border border-omega-border bg-omega-card/40 py-3 text-sm font-medium text-omega-muted hover:text-omega-red hover:border-omega-red/30 transition-all"
         >
           <LogOut className="size-4" />
-          Cerrar sesion
+          Cerrar sesión
         </button>
       </div>
 

@@ -173,7 +173,7 @@ export default async function LandingPage() {
           <div className="absolute top-0 inset-x-0 section-divider" />
           <div className="mx-auto max-w-6xl">
             <p className="text-xs uppercase tracking-[0.3em] text-omega-purple font-bold mb-3 text-center">Como funciona</p>
-            <h2 className="text-2xl md:text-3xl font-black text-center">En tres pasos empezas a competir</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-center">En tres pasos empezás a competir</h2>
 
             <div className="relative grid gap-8 md:grid-cols-3 mt-14">
               {/* Connecting line desktop */}
@@ -217,14 +217,14 @@ export default async function LandingPage() {
               <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-omega-gold/60 to-transparent" />
               <Crown className="size-10 text-omega-gold mb-4 transition-transform group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(255,214,10,0.5)]" />
               <h3 className="text-xl font-bold mb-1">Ranking en vivo</h3>
-              <p className="text-sm text-omega-muted">Posiciones actualizadas despues de cada batalla.</p>
+              <p className="text-sm text-omega-muted">Posiciones actualizadas después de cada batalla.</p>
             </div>
 
             {/* Perfil */}
             <div className="group md:col-span-2 lg:col-span-2 rounded-xl bg-omega-card/30 border border-omega-border/30 p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-omega-card/50 hover:border-omega-blue/40 hover:shadow-[0_0_25px_rgba(0,180,216,0.1)]">
               <UserCircle className="size-8 text-omega-blue mb-3 transition-transform group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(0,180,216,0.5)]" />
               <h3 className="text-base font-bold mb-1">Perfil de blader</h3>
-              <p className="text-sm text-omega-muted">Tu foto, alias, beys y estadisticas.</p>
+              <p className="text-sm text-omega-muted">Tu foto, alias, beys y estadísticas.</p>
             </div>
 
             {/* Rachas */}
@@ -260,7 +260,7 @@ export default async function LandingPage() {
 
           <div className="mx-auto max-w-6xl">
             <p className="text-xs uppercase tracking-[0.3em] text-omega-gold font-bold mb-3 text-center">Torneo activo</p>
-            <h2 className="text-2xl md:text-3xl font-black text-center">El torneo ya empezo</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-center">El torneo ya empezó</h2>
             <p className="text-omega-muted mt-2 text-center">{totalPlayers} bladers compitiendo por {totalStars} estrellas</p>
 
             {/* Podium */}

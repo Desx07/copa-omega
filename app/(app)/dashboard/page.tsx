@@ -112,7 +112,7 @@ export default async function DashboardPage() {
       {/* Tournament progress */}
       <div className="rounded-xl border border-omega-border/40 bg-omega-card/30 backdrop-blur-sm p-4 space-y-2">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-omega-muted uppercase tracking-wider font-bold">Clasificacion</span>
+          <span className="text-omega-muted uppercase tracking-wider font-bold">Clasificación</span>
           <span className="text-omega-gold font-bold">Top 16</span>
         </div>
         <div className="h-2 rounded-full bg-omega-dark overflow-hidden">
@@ -122,7 +122,7 @@ export default async function DashboardPage() {
           />
         </div>
         <div className="flex items-center justify-between text-[11px] text-omega-muted">
-          <span>Posicion <span className="text-omega-gold font-bold">#{rank}</span> de {allPlayers.length}</span>
+          <span>Posición <span className="text-omega-gold font-bold">#{rank}</span> de {allPlayers.length}</span>
           <span>{rank > 0 && rank <= 16 ? <span className="text-omega-green font-bold">Clasificado</span> : <span className="text-omega-red">Fuera del top 16</span>}</span>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
         {matches.length === 0 ? (
           <div className="p-8 text-center">
             <Swords className="size-8 text-omega-muted/30 mx-auto mb-2" />
-            <p className="text-sm text-omega-muted/70">Todavia no tenes batallas</p>
+            <p className="text-sm text-omega-muted/70">Todavía no tenés batallas</p>
           </div>
         ) : (
           <div className="divide-y divide-omega-border/30">

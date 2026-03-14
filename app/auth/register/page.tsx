@@ -53,7 +53,7 @@ export default function RegisterPage() {
       toast.success("Bienvenido a la arena, blader!");
       router.push("/dashboard");
     } catch {
-      toast.error("Error de conexion, intenta de nuevo");
+      toast.error("Error de conexión, intentá de nuevo");
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ export default function RegisterPage() {
       {/* Header */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-black neon-gold">SUMATE A LA COPA</h1>
-        <p className="text-sm text-omega-muted">Arma tu perfil de blader y empeza a competir</p>
+        <p className="text-sm text-omega-muted">Armá tu perfil de blader y empezá a competir</p>
       </div>
 
       {/* Form */}
@@ -127,7 +127,7 @@ export default function RegisterPage() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Minimo 6 caracteres"
+            placeholder="Mínimo 6 caracteres"
             className="w-full rounded-lg border border-omega-border bg-omega-dark/80 px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-purple focus:ring-2 focus:ring-omega-purple/20 transition-all"
           />
         </div>
@@ -151,7 +151,7 @@ export default function RegisterPage() {
       <p className="text-center text-sm text-omega-muted">
         Ya sos blader?{" "}
         <Link href="/auth/login" className="text-omega-blue hover:underline font-medium">
-          Entra aca
+          Entrá acá
         </Link>
       </p>
     </div>

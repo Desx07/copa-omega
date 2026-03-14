@@ -55,6 +55,13 @@ export default async function RankingPage() {
   }
 
   return (
+    <div className="min-h-screen bg-omega-black text-omega-text">
+      {/* Ambient bg */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-[10%] right-[20%] w-[500px] h-[500px] rounded-full bg-omega-purple/[0.08] blur-[120px]" />
+        <div className="absolute top-[50%] left-[5%] w-[400px] h-[400px] rounded-full bg-omega-blue/[0.05] blur-[100px]" />
+        <div className="absolute inset-0 hero-grid opacity-30" />
+      </div>
     <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -76,7 +83,7 @@ export default async function RankingPage() {
             <Trophy className="size-16 text-omega-muted/30 mx-auto" />
             <div className="space-y-2">
               <p className="text-lg font-bold text-omega-muted">
-                No hay jugadores todavia
+                No hay jugadores todavía
               </p>
               <p className="text-sm text-omega-muted/70">
                 Registrate para ser el primero en la tabla
@@ -251,6 +258,7 @@ export default async function RankingPage() {
           </div>
         )}
 
+    </div>
     </div>
   );
 }
