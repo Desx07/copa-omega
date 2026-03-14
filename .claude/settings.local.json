@@ -38,7 +38,8 @@
       "WebFetch(domain:www.media.io)",
       "Bash(mkdir:*)",
       "WebFetch(domain:www.beycase.com)",
-      "WebFetch(domain:beybase.com)"
+      "WebFetch(domain:beybase.com)",
+      "WebFetch(domain:challonge.com)"
     ]
   }
 }

@@ -46,7 +46,7 @@ export async function POST(
     // Get tournament
     const { data: tournament, error: tournamentError } = await supabase
       .from("tournaments")
-      .select("id, format, status")
+      .select("id, format, status, top_cut, stage")
       .eq("id", tournamentId)
       .single();
 
@@ -93,16 +93,24 @@ export async function POST(
     // Get matches for this tournament (to count wins per player)
     const { data: matches } = await supabase
       .from("tournament_matches")
-      .select("winner_id, player1_id, player2_id, status, bracket_position")
+      .select("winner_id, player1_id, player2_id, status, bracket_position, stage")
       .eq("tournament_id", tournamentId)
       .eq("status", "completed");
 
     // Determine positions
     let positionMap = new Map<string, number>();
 
-    if (tournament.format === "single_elimination") {
+    const hadFinalsBracket = tournament.stage === "finals" && tournament.top_cut != null;
+
+    if (tournament.format === "single_elimination" || hadFinalsBracket) {
+      // For single_elimination or tournaments with a finals bracket,
+      // positions come from the elimination bracket
+      const bracketMatches = hadFinalsBracket
+        ? (matches ?? []).filter((m) => m.stage === "finals")
+        : (matches ?? []);
+
       // 1st: winner of final
-      const finalMatch = (matches ?? []).find((m) => m.bracket_position === "F");
+      const finalMatch = bracketMatches.find((m) => m.bracket_position === "F");
       if (finalMatch?.winner_id) {
         positionMap.set(finalMatch.winner_id, 1);
         // 2nd: loser of final
@@ -114,7 +122,7 @@ export async function POST(
       }
 
       // 3rd: losers of semifinals
-      const semiFinals = (matches ?? []).filter((m) =>
+      const semiFinals = bracketMatches.filter((m) =>
         m.bracket_position?.startsWith("SF")
       );
       for (const sf of semiFinals) {
@@ -126,8 +134,35 @@ export async function POST(
           }
         }
       }
+
+      // For multi-stage: assign positions to remaining top-cut players
+      // based on how far they got (QF losers = 5th, etc.), then remaining by group points
+      if (hadFinalsBracket) {
+        // QF losers get position 5
+        const qfMatches = bracketMatches.filter((m) =>
+          m.bracket_position?.startsWith("QF")
+        );
+        for (const qf of qfMatches) {
+          if (qf.winner_id) {
+            const loser =
+              qf.player1_id === qf.winner_id ? qf.player2_id : qf.player1_id;
+            if (loser && !positionMap.has(loser)) {
+              positionMap.set(loser, 5);
+            }
+          }
+        }
+
+        // Players who didn't make top cut: rank by group stage points
+        const sorted = [...participants].sort((a, b) => b.points - a.points);
+        let nextPosition = (tournament.top_cut ?? 0) + 1;
+        for (const p of sorted) {
+          if (!positionMap.has(p.player_id)) {
+            positionMap.set(p.player_id, nextPosition++);
+          }
+        }
+      }
     } else {
-      // Round robin / Swiss: sorted by tournament points
+      // Round robin / Swiss without top cut: sorted by tournament points
       const sorted = [...participants].sort((a, b) => b.points - a.points);
       sorted.forEach((p, index) => {
         positionMap.set(p.player_id, index + 1);

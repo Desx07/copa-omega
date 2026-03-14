@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, description, format, max_participants } = body;
+    const { name, description, format, max_participants, top_cut } = body;
 
     // Validate required fields
     if (!name || !format || max_participants == null) {
@@ -91,6 +91,29 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate top_cut (optional, only for round_robin and swiss)
+    if (top_cut != null) {
+      const validTopCuts = [2, 4, 8, 16, 32, 64];
+      if (!validTopCuts.includes(top_cut)) {
+        return Response.json(
+          { error: "top_cut debe ser una potencia de 2 (2, 4, 8, 16, 32, 64)" },
+          { status: 400 }
+        );
+      }
+      if (format === "single_elimination") {
+        return Response.json(
+          { error: "top_cut no aplica para single_elimination" },
+          { status: 400 }
+        );
+      }
+      if (top_cut >= max_participants) {
+        return Response.json(
+          { error: "top_cut debe ser menor que max_participants" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Insert tournament (without qr_code first to get the id)
     const { data: tournament, error: insertError } = await supabase
       .from("tournaments")
@@ -99,6 +122,7 @@ export async function POST(request: Request) {
         description: description || null,
         format,
         max_participants,
+        top_cut: top_cut ?? null,
         created_by: user.id,
       })
       .select()

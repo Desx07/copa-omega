@@ -17,6 +17,7 @@ interface MatchInsert {
   player2_id: string | null;
   status: "pending" | "bye";
   bracket_position: string | null;
+  stage: "group" | "finals" | null;
 }
 
 /** Fisher-Yates shuffle */
@@ -83,6 +84,7 @@ function generateRoundRobin(
         player2_id: p2.player_id,
         status: "pending",
         bracket_position: null,
+        stage: "group",
       });
     }
   }
@@ -141,6 +143,7 @@ function generateSingleElimination(
       player2_id: p2?.player_id ?? null,
       status: isBye ? "bye" : "pending",
       bracket_position: bracketLabel(1, i),
+      stage: null,
     });
   }
 
@@ -157,6 +160,7 @@ function generateSingleElimination(
         player2_id: null,
         status: "pending",
         bracket_position: bracketLabel(round, i),
+        stage: null,
       });
     }
     prevRoundCount = matchCount;
@@ -183,6 +187,7 @@ function generateSwissRound1(
       player2_id: shuffled[i + 1]?.player_id ?? null,
       status: shuffled[i + 1] ? "pending" : "bye",
       bracket_position: null,
+      stage: "group",
     });
   }
 
@@ -196,6 +201,7 @@ function generateSwissRound1(
       player2_id: null,
       status: "bye",
       bracket_position: null,
+      stage: "group",
     });
   }
 
@@ -429,12 +435,20 @@ export async function POST(
     }
 
     // Update tournament status
+    // If round_robin/swiss with top_cut, set stage to group_stage
+    const hasTopCut = tournament.top_cut != null && tournament.top_cut > 0;
+    const initialStage =
+      hasTopCut && (tournament.format === "round_robin" || tournament.format === "swiss")
+        ? "group_stage"
+        : null;
+
     const { error: updateError } = await supabase
       .from("tournaments")
       .update({
         status: "in_progress",
         current_round: 1,
         started_at: new Date().toISOString(),
+        stage: initialStage,
       })
       .eq("id", tournamentId);
 
