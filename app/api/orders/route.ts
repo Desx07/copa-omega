@@ -3,7 +3,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY || "");
+}
 
 // GET /api/orders — List orders (admin: all, user: own only)
 export async function GET() {
@@ -265,7 +267,7 @@ export async function POST(request: NextRequest) {
         )
         .join("");
 
-      await resend.emails.send({
+      await getResend().emails.send({
         from: "Copa Omega <onboarding@resend.dev>",
         to: "arieltsume@gmail.com",
         subject: `Nuevo pedido #${order.id.slice(0, 8)}`,

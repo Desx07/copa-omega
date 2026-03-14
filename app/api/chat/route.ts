@@ -1,7 +1,9 @@
 import Groq from "groq-sdk";
 import { createClient } from "@/lib/supabase/server";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+function getGroq() {
+  return new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
+}
 
 const SYSTEM_PROMPT = `Sos el asistente blader de Copa Omega Star, el torneo de Beyblade X de Bladers Santa Fe. Estás acá para ayudar en lo que necesiten.
 
@@ -311,7 +313,7 @@ export async function POST(request: Request) {
       + (statsContext ? "\n\n[DATOS DEL TORNEO]:" + statsContext : "")
       + (searchContext ? "\n\n" + searchContext + "\n\nUsá esta info actualizada para complementar tu respuesta, pero verificá que tenga sentido con lo que ya sabés. Si contradice tu base de conocimiento, mencionalo." : "");
 
-    const completion = await groq.chat.completions.create({
+    const completion = await getGroq().chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: systemMessage },
