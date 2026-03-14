@@ -1,0 +1,273 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Trophy, ArrowLeft, Loader2, Plus, Info } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
+
+const FORMAT_OPTIONS = [
+  {
+    value: "single_elimination",
+    label: "Eliminacion directa",
+    description: "Perdes y quedas afuera. Rapido e intenso.",
+  },
+  {
+    value: "round_robin",
+    label: "Round Robin",
+    description: "Todos contra todos. Gana el que mas puntos acumule.",
+  },
+  {
+    value: "swiss",
+    label: "Suizo",
+    description: "Rondas con emparejamiento por nivel. Ideal para muchos jugadores.",
+  },
+] as const;
+
+export default function NewTournamentPage() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [format, setFormat] = useState<string>("single_elimination");
+  const [maxParticipants, setMaxParticipants] = useState(16);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!name.trim()) {
+      toast.error("El nombre del torneo es obligatorio");
+      return;
+    }
+
+    if (maxParticipants < 2 || maxParticipants > 128) {
+      toast.error("El maximo de participantes debe ser entre 2 y 128");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const supabase = createClient();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast.error("No estas autenticado");
+        setLoading(false);
+        return;
+      }
+
+      // Verify admin
+      const { data: profile } = await supabase
+        .from("players")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.is_admin) {
+        toast.error("No tenes permisos de admin");
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("tournaments")
+        .insert({
+          name: name.trim(),
+          description: description.trim() || null,
+          format,
+          max_participants: maxParticipants,
+          created_by: user.id,
+        })
+        .select("id")
+        .single();
+
+      if (error) {
+        toast.error(error.message);
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Torneo creado!");
+      router.push(`/admin/tournaments/${data.id}`);
+    } catch {
+      toast.error("Error al crear el torneo");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="px-4 py-6 max-w-lg mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <Link
+          href="/admin/tournaments"
+          className="flex items-center justify-center size-10 rounded-xl bg-omega-card border border-omega-border text-omega-muted hover:text-omega-gold hover:border-omega-gold/50 transition-all"
+          aria-label="Volver a torneos"
+        >
+          <ArrowLeft className="size-5" />
+        </Link>
+        <div className="flex items-center gap-2">
+          <Trophy className="size-5 text-omega-gold" />
+          <h1 className="text-2xl font-black neon-gold">NUEVO TORNEO</h1>
+        </div>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Name */}
+        <div className="space-y-2">
+          <label
+            htmlFor="name"
+            className="text-xs font-bold text-omega-muted uppercase tracking-wider"
+          >
+            Nombre del torneo
+          </label>
+          <input
+            id="name"
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ej: Copa Omega Star #1"
+            maxLength={100}
+            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all"
+          />
+        </div>
+
+        {/* Description */}
+        <div className="space-y-2">
+          <label
+            htmlFor="description"
+            className="text-xs font-bold text-omega-muted uppercase tracking-wider"
+          >
+            Descripcion{" "}
+            <span className="text-omega-muted/50 normal-case font-normal">
+              (opcional)
+            </span>
+          </label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Reglas, premios, lugar del torneo..."
+            maxLength={500}
+            rows={3}
+            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text placeholder:text-omega-muted/50 outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all resize-none"
+          />
+        </div>
+
+        {/* Format */}
+        <div className="space-y-3">
+          <label className="text-xs font-bold text-omega-muted uppercase tracking-wider">
+            Formato
+          </label>
+          <div className="space-y-2">
+            {FORMAT_OPTIONS.map((opt) => (
+              <label
+                key={opt.value}
+                className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-all ${
+                  format === opt.value
+                    ? "border-omega-gold/50 bg-omega-gold/5 shadow-sm shadow-omega-gold/10"
+                    : "border-omega-border bg-omega-card/40 hover:border-omega-border/80"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="format"
+                  value={opt.value}
+                  checked={format === opt.value}
+                  onChange={(e) => setFormat(e.target.value)}
+                  className="mt-1 accent-[var(--color-omega-gold)]"
+                />
+                <div>
+                  <p
+                    className={`text-sm font-bold ${
+                      format === opt.value
+                        ? "text-omega-gold"
+                        : "text-omega-text"
+                    }`}
+                  >
+                    {opt.label}
+                  </p>
+                  <p className="text-[11px] text-omega-muted mt-0.5">
+                    {opt.description}
+                  </p>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Max participants */}
+        <div className="space-y-2">
+          <label
+            htmlFor="maxParticipants"
+            className="text-xs font-bold text-omega-muted uppercase tracking-wider"
+          >
+            Maximo de participantes
+          </label>
+          <input
+            id="maxParticipants"
+            type="number"
+            required
+            min={2}
+            max={128}
+            value={maxParticipants}
+            onChange={(e) => setMaxParticipants(Number(e.target.value))}
+            className="w-full rounded-xl border border-omega-border bg-omega-card px-4 py-3 text-sm text-omega-text outline-none focus:border-omega-gold focus:ring-2 focus:ring-omega-gold/20 transition-all"
+          />
+          {format === "single_elimination" && (
+            <div className="flex items-start gap-2 rounded-lg bg-omega-blue/5 border border-omega-blue/20 px-3 py-2">
+              <Info className="size-4 text-omega-blue shrink-0 mt-0.5" />
+              <p className="text-[11px] text-omega-blue/80">
+                Para eliminacion directa se recomienda potencia de 2 (4, 8, 16,
+                32, 64). Si no es potencia de 2, algunos jugadores tendran BYE
+                en la primera ronda.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Preview */}
+        <div className="rounded-xl bg-omega-card/60 border border-omega-border p-4 space-y-2">
+          <p className="text-xs text-omega-muted text-center">Vista previa</p>
+          <div className="text-center space-y-1">
+            <p className="text-base font-black text-omega-text">
+              {name || "Nombre del torneo"}
+            </p>
+            <p className="text-[11px] text-omega-muted uppercase tracking-wider">
+              {FORMAT_OPTIONS.find((f) => f.value === format)?.label} — Max{" "}
+              {maxParticipants} jugadores
+            </p>
+            {description && (
+              <p className="text-xs text-omega-muted/70 italic">
+                {description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={loading || !name.trim()}
+          className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-omega-gold/90 to-omega-gold px-4 py-3 font-bold text-omega-dark shadow-lg shadow-omega-gold/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+        >
+          {loading ? (
+            <Loader2 className="size-5 animate-spin" />
+          ) : (
+            <>
+              <Plus className="size-5" />
+              Crear torneo
+            </>
+          )}
+        </button>
+      </form>
+    </div>
+  );
+}

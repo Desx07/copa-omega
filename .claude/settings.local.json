@@ -35,7 +35,8 @@
       "WebFetch(domain:www.takaratomy.co.jp)",
       "WebFetch(domain:www.color-hex.com)",
       "WebFetch(domain:www.dorkaholics.com)",
-      "WebFetch(domain:www.media.io)"
+      "WebFetch(domain:www.media.io)",
+      "Bash(mkdir:*)"
     ]
   }
 }
