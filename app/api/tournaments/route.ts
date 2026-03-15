@@ -122,9 +122,9 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-      if (![2, 3, 4].includes(swiss_rounds)) {
+      if (![2, 3, 4, 5, 6].includes(swiss_rounds)) {
         return Response.json(
-          { error: "swiss_rounds debe ser 2, 3 o 4" },
+          { error: "swiss_rounds debe ser entre 2 y 6" },
           { status: 400 }
         );
       }

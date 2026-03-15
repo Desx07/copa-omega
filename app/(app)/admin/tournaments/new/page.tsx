@@ -21,7 +21,7 @@ const FORMAT_OPTIONS = [
   {
     value: "swiss",
     label: "Suizo",
-    description: "Rondas con emparejamiento por nivel. Ideal para muchos jugadores.",
+    description: "Fase suiza + top cut a eliminación. Ideal para 16-32 jugadores.",
   },
 ] as const;
 
@@ -263,11 +263,13 @@ export default function NewTournamentPage() {
                 className="omega-input"
               >
                 <option value="">
-                  Automatico (segun cantidad de jugadores)
+                  Automático (según cantidad de jugadores)
                 </option>
                 <option value="2">2 rondas</option>
-                <option value="3">3 rondas</option>
-                <option value="4">4 rondas</option>
+                <option value="3">3 rondas (recomendado para 8-16)</option>
+                <option value="4">4 rondas (recomendado para 16-24)</option>
+                <option value="5">5 rondas (recomendado para 24-32)</option>
+                <option value="6">6 rondas (32+)</option>
               </select>
               <div className="flex items-start gap-2 rounded-xl bg-gradient-to-br from-omega-purple/10 to-omega-purple/5 border border-omega-purple/20 px-3 py-2 text-[11px] text-omega-purple shadow-sm">
                 <Info className="size-4 shrink-0 mt-0.5" />
