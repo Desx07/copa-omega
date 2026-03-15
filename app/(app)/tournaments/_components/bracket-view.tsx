@@ -1,6 +1,9 @@
 "use client";
 
-import { Crown, Swords, User, Clock, Scale } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Crown, Swords, User, Clock, Scale, Loader2, Trophy, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 
 /* --- Types --- */
 
@@ -17,6 +20,7 @@ export interface BracketMatch {
   bracket_position: string | null;
   next_match_id: string | null;
   judge_id?: string | null;
+  stage?: string | null;
   player1?: { alias: string } | null;
   player2?: { alias: string } | null;
   winner?: { alias: string } | null;
@@ -27,6 +31,10 @@ interface BracketViewProps {
   matches: BracketMatch[];
   format: "single_elimination" | "round_robin" | "swiss";
   currentRound: number;
+  isAdmin?: boolean;
+  tournamentId?: string;
+  stage?: string | null;
+  participantCount?: number;
 }
 
 /* --- Main Component --- */
@@ -35,30 +43,105 @@ export default function BracketView({
   matches,
   format,
   currentRound,
+  isAdmin = false,
+  tournamentId,
+  stage,
+  participantCount,
 }: BracketViewProps) {
   if (matches.length === 0) {
     return (
       <div className="omega-card shadow-sm p-10 text-center">
         <Swords className="size-10 text-omega-muted/20 mx-auto mb-3" />
         <p className="text-sm text-omega-muted/70">
-          No hay partidas generadas todavía
+          No hay partidas generadas todavia
         </p>
       </div>
     );
   }
 
-  if (format === "single_elimination") {
-    return <EliminationBracket matches={matches} />;
+  // Separate group stage and finals matches
+  const groupMatches = matches.filter(
+    (m) => !m.stage || m.stage === "group"
+  );
+  const finalsMatches = matches.filter((m) => m.stage === "finals");
+
+  // If the tournament has both group and finals stages, show them separately
+  const hasGroupAndFinals = groupMatches.length > 0 && finalsMatches.length > 0;
+  const showingFinals = stage === "finals" || finalsMatches.length > 0;
+
+  if (format === "single_elimination" && !hasGroupAndFinals) {
+    return (
+      <EliminationBracket
+        matches={matches}
+        isAdmin={isAdmin}
+        tournamentId={tournamentId}
+      />
+    );
   }
 
-  return <RoundList matches={matches} currentRound={currentRound} />;
+  // Swiss / Round Robin: show group rounds + optional finals bracket
+  const expectedRounds =
+    format === "swiss" && participantCount
+      ? Math.ceil(Math.log2(participantCount))
+      : undefined;
+
+  return (
+    <div className="space-y-6">
+      {/* Group stage rounds */}
+      {groupMatches.length > 0 && (
+        <div className="space-y-2">
+          {hasGroupAndFinals && (
+            <div className="flex items-center gap-2 px-1">
+              <Swords className="size-4 text-omega-purple" />
+              <span className="text-xs font-bold uppercase tracking-wider text-omega-text">
+                Fase de grupos
+              </span>
+            </div>
+          )}
+          <RoundList
+            matches={groupMatches}
+            currentRound={showingFinals ? -1 : currentRound}
+            isAdmin={isAdmin}
+            tournamentId={tournamentId}
+            expectedRounds={expectedRounds}
+            allGroupsDone={showingFinals}
+          />
+        </div>
+      )}
+
+      {/* Finals bracket */}
+      {finalsMatches.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 px-1">
+            <Trophy className="size-4 text-omega-gold" />
+            <span className="text-xs font-bold uppercase tracking-wider text-omega-text">
+              Llaves finales
+            </span>
+          </div>
+          <EliminationBracket
+            matches={finalsMatches}
+            isAdmin={isAdmin}
+            tournamentId={tournamentId}
+          />
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* ===================================================
    SINGLE ELIMINATION -- horizontal tree bracket
    =================================================== */
 
-function EliminationBracket({ matches }: { matches: BracketMatch[] }) {
+function EliminationBracket({
+  matches,
+  isAdmin,
+  tournamentId,
+}: {
+  matches: BracketMatch[];
+  isAdmin?: boolean;
+  tournamentId?: string;
+}) {
   const rounds = new Map<number, BracketMatch[]>();
   for (const m of matches) {
     const arr = rounds.get(m.round) || [];
@@ -99,7 +182,12 @@ function EliminationBracket({ matches }: { matches: BracketMatch[] }) {
                 style={{ minWidth: 200 }}
               >
                 {roundMatches.map((match) => (
-                  <EliminationMatchCard key={match.id} match={match} />
+                  <EliminationMatchCard
+                    key={match.id}
+                    match={match}
+                    isAdmin={isAdmin}
+                    tournamentId={tournamentId}
+                  />
                 ))}
               </div>
             </div>
@@ -110,7 +198,18 @@ function EliminationBracket({ matches }: { matches: BracketMatch[] }) {
   );
 }
 
-function EliminationMatchCard({ match }: { match: BracketMatch }) {
+function EliminationMatchCard({
+  match,
+  isAdmin,
+  tournamentId,
+}: {
+  match: BracketMatch;
+  isAdmin?: boolean;
+  tournamentId?: string;
+}) {
+  const [submitting, setSubmitting] = useState<string | null>(null);
+  const router = useRouter();
+
   const p1Alias = match.player1?.alias ?? (match.player1_id ? "???" : "TBD");
   const p2Alias = match.player2?.alias ?? (match.player2_id ? "???" : "TBD");
 
@@ -120,6 +219,39 @@ function EliminationMatchCard({ match }: { match: BracketMatch }) {
   const isBye = match.status === "bye";
   const isPending = match.status === "pending";
   const isActive = match.status === "in_progress";
+
+  const canResolve =
+    isAdmin &&
+    tournamentId &&
+    (isPending || isActive) &&
+    match.player1_id &&
+    match.player2_id;
+
+  async function handleSelectWinner(winnerId: string) {
+    if (!tournamentId) return;
+    setSubmitting(winnerId);
+    try {
+      const res = await fetch(
+        `/api/tournaments/${tournamentId}/matches/${match.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ winner_id: winnerId }),
+        }
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Error guardando resultado");
+        return;
+      }
+      toast.success("Resultado guardado");
+      router.refresh();
+    } catch {
+      toast.error("Error de conexion");
+    } finally {
+      setSubmitting(null);
+    }
+  }
 
   const borderColor = isActive
     ? "border-l-omega-blue"
@@ -219,8 +351,47 @@ function EliminationMatchCard({ match }: { match: BracketMatch }) {
         )}
       </div>
 
+      {/* Admin: inline winner selection */}
+      {canResolve && (
+        <div className="px-3 py-2 bg-omega-purple/5 border-t border-omega-purple/20">
+          <p className="text-[9px] font-bold text-omega-muted uppercase tracking-wider mb-1.5 text-center">
+            Seleccionar ganador
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleSelectWinner(match.player1_id!)}
+              disabled={submitting !== null}
+              className="flex-1 omega-btn omega-btn-primary px-2 py-1.5 text-xs !rounded-md"
+            >
+              {submitting === match.player1_id ? (
+                <Loader2 className="size-3 animate-spin mx-auto" />
+              ) : (
+                <>
+                  <Crown className="size-3" />
+                  {match.player1?.alias ?? "J1"}
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => handleSelectWinner(match.player2_id!)}
+              disabled={submitting !== null}
+              className="flex-1 omega-btn omega-btn-blue px-2 py-1.5 text-xs !rounded-md"
+            >
+              {submitting === match.player2_id ? (
+                <Loader2 className="size-3 animate-spin mx-auto" />
+              ) : (
+                <>
+                  <Crown className="size-3" />
+                  {match.player2?.alias ?? "J2"}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Status indicator */}
-      {isActive && (
+      {isActive && !canResolve && (
         <div className="px-3 py-1.5 bg-omega-blue/10 border-t border-omega-blue/20 text-center">
           <span className="text-[10px] font-bold text-omega-blue uppercase tracking-wider flex items-center justify-center gap-1">
             <Clock className="size-3 animate-pulse" />
@@ -249,9 +420,17 @@ function EliminationMatchCard({ match }: { match: BracketMatch }) {
 function RoundList({
   matches,
   currentRound,
+  isAdmin,
+  tournamentId,
+  expectedRounds,
+  allGroupsDone,
 }: {
   matches: BracketMatch[];
   currentRound: number;
+  isAdmin?: boolean;
+  tournamentId?: string;
+  expectedRounds?: number;
+  allGroupsDone?: boolean;
 }) {
   const rounds = new Map<number, BracketMatch[]>();
   for (const m of matches) {
@@ -262,12 +441,26 @@ function RoundList({
 
   const sortedRoundKeys = [...rounds.keys()].sort((a, b) => a - b);
 
+  // For Swiss: show placeholders for future rounds not yet generated
+  const maxExistingRound =
+    sortedRoundKeys.length > 0
+      ? sortedRoundKeys[sortedRoundKeys.length - 1]
+      : 0;
+  const futureRounds: number[] = [];
+  if (expectedRounds && !allGroupsDone) {
+    for (let r = maxExistingRound + 1; r <= expectedRounds; r++) {
+      futureRounds.push(r);
+    }
+  }
+
   return (
     <div className="space-y-4">
       {sortedRoundKeys.map((roundNum) => {
         const roundMatches = rounds.get(roundNum)!;
         const isCurrentRound = roundNum === currentRound;
-        const allCompleted = roundMatches.every((m) => m.status === "completed" || m.status === "bye");
+        const allCompleted = roundMatches.every(
+          (m) => m.status === "completed" || m.status === "bye"
+        );
 
         const borderColor = isCurrentRound
           ? "border-l-omega-blue"
@@ -279,19 +472,23 @@ function RoundList({
           <div
             key={roundNum}
             className={`omega-card border-l-4 ${borderColor} shadow-sm transition-all hover:shadow-md ${
-              isCurrentRound
-                ? "!shadow-omega-blue/10"
-                : ""
+              isCurrentRound ? "!shadow-omega-blue/10" : ""
             }`}
           >
             {/* Round header */}
             <div
               className={`omega-section-header justify-between ${
-                isCurrentRound ? "!bg-omega-blue/10 !border-omega-blue/30" : ""
+                isCurrentRound
+                  ? "!bg-omega-blue/10 !border-omega-blue/30"
+                  : ""
               }`}
             >
               <div className="flex items-center gap-2">
-                <Swords className={`size-4 ${isCurrentRound ? "text-omega-blue" : "text-omega-muted"}`} />
+                <Swords
+                  className={`size-4 ${
+                    isCurrentRound ? "text-omega-blue" : "text-omega-muted"
+                  }`}
+                />
                 Ronda {roundNum}
               </div>
               <span
@@ -303,87 +500,227 @@ function RoundList({
                     : "omega-badge omega-badge-purple"
                 }
               >
-                {allCompleted ? "COMPLETADA" : isCurrentRound ? "EN CURSO" : "PENDIENTE"}
+                {allCompleted
+                  ? "COMPLETADA"
+                  : isCurrentRound
+                  ? "EN CURSO"
+                  : "PENDIENTE"}
               </span>
             </div>
 
             {/* Matches */}
             <div>
               {roundMatches.map((match) => (
-                <RoundMatchRow key={match.id} match={match} />
+                <RoundMatchRow
+                  key={match.id}
+                  match={match}
+                  isAdmin={isAdmin}
+                  tournamentId={tournamentId}
+                />
               ))}
             </div>
           </div>
         );
       })}
+
+      {/* Future rounds placeholder */}
+      {futureRounds.map((roundNum) => (
+        <div
+          key={`future-${roundNum}`}
+          className="omega-card border-l-4 border-l-omega-muted/20 shadow-sm opacity-50"
+        >
+          <div className="omega-section-header justify-between">
+            <div className="flex items-center gap-2">
+              <Swords className="size-4 text-omega-muted/40" />
+              <span className="text-omega-muted/60">Ronda {roundNum}</span>
+            </div>
+            <span className="omega-badge omega-badge-purple">PROXIMA</span>
+          </div>
+          <div className="px-4 py-6 text-center">
+            <p className="text-xs text-omega-muted/50 flex items-center justify-center gap-1.5">
+              <ChevronRight className="size-3" />
+              Se generara al completar la ronda anterior
+            </p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
-function RoundMatchRow({ match }: { match: BracketMatch }) {
+function RoundMatchRow({
+  match,
+  isAdmin,
+  tournamentId,
+}: {
+  match: BracketMatch;
+  isAdmin?: boolean;
+  tournamentId?: string;
+}) {
+  const [submitting, setSubmitting] = useState<string | null>(null);
+  const router = useRouter();
+
   const p1Alias = match.player1?.alias ?? "TBD";
   const p2Alias = match.player2?.alias ?? "TBD";
-  const p1Won = match.status === "completed" && match.winner_id === match.player1_id;
-  const p2Won = match.status === "completed" && match.winner_id === match.player2_id;
+  const p1Won =
+    match.status === "completed" && match.winner_id === match.player1_id;
+  const p2Won =
+    match.status === "completed" && match.winner_id === match.player2_id;
+
+  const isPending = match.status === "pending";
+  const isActive = match.status === "in_progress";
+  const canResolve =
+    isAdmin &&
+    tournamentId &&
+    (isPending || isActive) &&
+    match.player1_id &&
+    match.player2_id;
+
+  async function handleSelectWinner(winnerId: string) {
+    if (!tournamentId) return;
+    setSubmitting(winnerId);
+    try {
+      const res = await fetch(
+        `/api/tournaments/${tournamentId}/matches/${match.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ winner_id: winnerId }),
+        }
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Error guardando resultado");
+        return;
+      }
+      toast.success("Resultado guardado");
+      router.refresh();
+    } catch {
+      toast.error("Error de conexion");
+    } finally {
+      setSubmitting(null);
+    }
+  }
 
   return (
-    <div className="omega-row">
-      {/* Status dot */}
-      <div
-        className={`size-2 rounded-full shrink-0 ${
-          match.status === "completed"
-            ? "bg-omega-green"
-            : match.status === "in_progress"
-            ? "bg-omega-blue animate-pulse"
-            : match.status === "bye"
-            ? "bg-omega-muted/30"
-            : "bg-omega-muted/50"
-        }`}
-      />
+    <div className="omega-row flex-wrap">
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        {/* Status dot */}
+        <div
+          className={`size-2 rounded-full shrink-0 ${
+            match.status === "completed"
+              ? "bg-omega-green"
+              : match.status === "in_progress"
+              ? "bg-omega-blue animate-pulse"
+              : match.status === "bye"
+              ? "bg-omega-muted/30"
+              : "bg-omega-muted/50"
+          }`}
+        />
 
-      {/* Player 1 */}
-      <span
-        className={`text-sm font-bold truncate flex-1 text-right ${
-          p1Won ? "text-omega-green" : p2Won ? "text-omega-muted" : "text-omega-text"
-        }`}
-      >
-        {p1Won && <Crown className="size-3 text-omega-gold inline mr-1" />}
-        {p1Alias}
-      </span>
+        {/* Player 1 */}
+        <span
+          className={`text-sm font-bold truncate flex-1 text-right ${
+            p1Won
+              ? "text-omega-green"
+              : p2Won
+              ? "text-omega-muted"
+              : "text-omega-text"
+          }`}
+        >
+          {p1Won && (
+            <Crown className="size-3 text-omega-gold inline mr-1" />
+          )}
+          {p1Alias}
+        </span>
 
-      {/* Score */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        {match.status === "completed" ? (
-          <div className="flex items-center gap-1 rounded-full bg-omega-card border border-omega-border/50 px-2.5 py-0.5">
-            <span className={`text-xs font-black ${p1Won ? "text-omega-green" : "text-omega-muted"}`}>
-              {match.player1_score}
+        {/* Score */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {match.status === "completed" ? (
+            <div className="flex items-center gap-1 rounded-full bg-omega-card border border-omega-border/50 px-2.5 py-0.5">
+              <span
+                className={`text-xs font-black ${
+                  p1Won ? "text-omega-green" : "text-omega-muted"
+                }`}
+              >
+                {match.player1_score}
+              </span>
+              <span className="text-omega-muted/40 text-[10px]">-</span>
+              <span
+                className={`text-xs font-black ${
+                  p2Won ? "text-omega-green" : "text-omega-muted"
+                }`}
+              >
+                {match.player2_score}
+              </span>
+            </div>
+          ) : (
+            <span className="text-[10px] font-bold text-omega-muted uppercase">
+              vs
             </span>
-            <span className="text-omega-muted/40 text-[10px]">-</span>
-            <span className={`text-xs font-black ${p2Won ? "text-omega-green" : "text-omega-muted"}`}>
-              {match.player2_score}
-            </span>
-          </div>
-        ) : (
-          <span className="text-[10px] font-bold text-omega-muted uppercase">vs</span>
+          )}
+        </div>
+
+        {/* Player 2 */}
+        <span
+          className={`text-sm font-bold truncate flex-1 ${
+            p2Won
+              ? "text-omega-green"
+              : p1Won
+              ? "text-omega-muted"
+              : "text-omega-text"
+          }`}
+        >
+          {p2Alias}
+          {p2Won && (
+            <Crown className="size-3 text-omega-gold inline ml-1" />
+          )}
+        </span>
+
+        {/* Judge */}
+        {match.judge?.alias && (
+          <span
+            className="text-[9px] text-omega-gold/70 flex items-center gap-0.5 shrink-0"
+            title={`Juez: ${match.judge.alias}`}
+          >
+            <Scale className="size-2.5" />
+            {match.judge.alias}
+          </span>
         )}
       </div>
 
-      {/* Player 2 */}
-      <span
-        className={`text-sm font-bold truncate flex-1 ${
-          p2Won ? "text-omega-green" : p1Won ? "text-omega-muted" : "text-omega-text"
-        }`}
-      >
-        {p2Alias}
-        {p2Won && <Crown className="size-3 text-omega-gold inline ml-1" />}
-      </span>
-
-      {/* Judge */}
-      {match.judge?.alias && (
-        <span className="text-[9px] text-omega-gold/70 flex items-center gap-0.5 shrink-0" title={`Juez: ${match.judge.alias}`}>
-          <Scale className="size-2.5" />
-          {match.judge.alias}
-        </span>
+      {/* Admin: inline winner selection buttons */}
+      {canResolve && (
+        <div className="flex gap-1.5 w-full pt-1.5 border-t border-omega-border/20 mt-1">
+          <button
+            onClick={() => handleSelectWinner(match.player1_id!)}
+            disabled={submitting !== null}
+            className="flex-1 omega-btn omega-btn-primary px-2 py-1 text-[11px] !rounded-md"
+          >
+            {submitting === match.player1_id ? (
+              <Loader2 className="size-3 animate-spin mx-auto" />
+            ) : (
+              <>
+                <Crown className="size-3" />
+                {match.player1?.alias ?? "J1"}
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => handleSelectWinner(match.player2_id!)}
+            disabled={submitting !== null}
+            className="flex-1 omega-btn omega-btn-blue px-2 py-1 text-[11px] !rounded-md"
+          >
+            {submitting === match.player2_id ? (
+              <Loader2 className="size-3 animate-spin mx-auto" />
+            ) : (
+              <>
+                <Crown className="size-3" />
+                {match.player2?.alias ?? "J2"}
+              </>
+            )}
+          </button>
+        </div>
       )}
     </div>
   );

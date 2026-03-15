@@ -15,6 +15,7 @@ import ParticipantsList from "@/app/(app)/tournaments/_components/participants-l
 import QrDisplay from "@/app/(app)/tournaments/_components/qr-display";
 import TournamentAdminActions from "./_components/tournament-admin-actions";
 import ManualRegister from "./_components/manual-register";
+import EditTournament from "./_components/edit-tournament";
 
 const FORMAT_LABELS: Record<string, string> = {
   round_robin: "Round Robin",
@@ -78,7 +79,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
       supabase
         .from("tournament_matches")
         .select(
-          "id, round, match_order, player1_id, player2_id, winner_id, player1_score, player2_score, status, bracket_position, next_match_id, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)"
+          "id, round, match_order, player1_id, player2_id, winner_id, player1_score, player2_score, status, bracket_position, next_match_id, stage, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)"
         )
         .eq("tournament_id", id)
         .order("round", { ascending: true })
@@ -194,6 +195,16 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
           format={tournament.format}
         />
 
+        {/* Edit tournament (registration phase only) */}
+        <EditTournament
+          tournamentId={tournament.id}
+          currentName={tournament.name}
+          currentDescription={tournament.description}
+          currentMaxParticipants={tournament.max_participants}
+          participantCount={participants.length}
+          status={tournament.status}
+        />
+
         {/* Registration tools -- QR + manual add */}
         {tournament.status === "registration" && (
           <>
@@ -225,6 +236,10 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
               matches={matches}
               format={tournament.format as "single_elimination" | "round_robin" | "swiss"}
               currentRound={tournament.current_round}
+              isAdmin
+              tournamentId={tournament.id}
+              stage={tournament.stage}
+              participantCount={participants.length}
             />
           </div>
         )}
