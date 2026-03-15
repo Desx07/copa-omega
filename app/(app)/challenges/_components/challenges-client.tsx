@@ -12,7 +12,9 @@ import {
   Loader2,
   ArrowLeft,
   Zap,
+  Search,
 } from "lucide-react";
+import ChallengeButton from "@/app/_components/challenge-button";
 import Link from "next/link";
 
 type PlayerInfo = {
@@ -124,8 +126,13 @@ export default function ChallengesClient({ userId }: { userId: string }) {
           </div>
           <div>
             <h1 className="text-xl font-black text-omega-text">Retos</h1>
-            <p className="text-xs text-omega-muted">Desafia a otros bladers</p>
+            <p className="text-xs text-omega-muted">Buscá un rival y desafialo</p>
           </div>
+        </div>
+
+        {/* Search blader to challenge */}
+        <div className="mt-4">
+          <SearchAndChallenge />
         </div>
       </div>
 
@@ -320,6 +327,66 @@ export default function ChallengesClient({ userId }: { userId: string }) {
           })
         )}
       </div>
+    </div>
+  );
+}
+
+function SearchAndChallenge() {
+  const supabase = createClient();
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<{ id: string; alias: string; avatar_url: string | null; stars: number }[]>([]);
+  const [searching, setSearching] = useState(false);
+
+  async function handleSearch() {
+    if (!query.trim()) return;
+    setSearching(true);
+    const { data } = await supabase
+      .from("players")
+      .select("id, alias, avatar_url, stars")
+      .or(`alias.ilike.%${query.trim()}%,full_name.ilike.%${query.trim()}%`)
+      .eq("is_hidden", false)
+      .limit(8);
+    setResults(data ?? []);
+    setSearching(false);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          placeholder="Buscar blader por alias o nombre..."
+          className="omega-input flex-1"
+        />
+        <button onClick={handleSearch} disabled={searching || !query.trim()} className="omega-btn omega-btn-primary px-4 py-2">
+          {searching ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
+        </button>
+      </div>
+      {results.length > 0 && (
+        <div className="space-y-1">
+          {results.map((player) => (
+            <div key={player.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-omega-surface">
+              <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
+                {player.avatar_url ? (
+                  <img src={player.avatar_url} alt="" className="size-full object-cover" />
+                ) : (
+                  <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                    {player.alias.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-omega-text truncate">{player.alias}</p>
+                <p className="text-xs text-omega-muted">★ {player.stars}</p>
+              </div>
+              <ChallengeButton targetId={player.id} targetAlias={player.alias} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

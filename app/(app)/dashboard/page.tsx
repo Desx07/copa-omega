@@ -196,6 +196,14 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* ═══ SEARCH BAR — find bladers ═══ */}
+      <div className="px-4">
+        <Link href="/search" className="omega-card flex items-center gap-3 px-4 py-3 hover:border-omega-purple/30 transition-all">
+          <Search className="size-5 text-omega-muted" />
+          <span className="text-sm text-omega-muted">Buscar bladers...</span>
+        </Link>
+      </div>
+
       {/* ═══ ENGAGEMENT QUICK LINKS — compact row ═══ */}
       <div className="grid grid-cols-3 gap-2 px-4">
         <Link href="/predictions" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
@@ -235,51 +243,44 @@ export default async function DashboardPage() {
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
             <Zap className="size-5 text-white" />
           </div>
-          <p className="font-bold text-white text-sm">Retos</p>
-          <p className="text-xs text-white/70 mt-0.5">Desafiá a otros bladers</p>
+          <p className="font-bold text-white text-sm">Retar blader</p>
+          <p className="text-xs text-white/70 mt-0.5">Buscá y desafiá a un rival</p>
         </Link>
         <Link href="/ranking" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-5 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
             <Trophy className="size-5 text-white" />
           </div>
           <p className="font-bold text-white text-sm">Ranking</p>
-          <p className="text-xs text-white/70 mt-0.5">Ver posiciones</p>
+          <p className="text-xs text-white/70 mt-0.5">Tabla de estrellas y posiciones</p>
         </Link>
-        <Link href="/profile" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-5 shadow-md shadow-omega-purple/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] border border-omega-border/30">
-          <div className="size-12 rounded-2xl bg-omega-purple/20 mb-3 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
-            <User className="size-5 text-omega-purple" />
+        <Link href="/profile" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-5 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+            <User className="size-5 text-white" />
           </div>
-          <p className="font-bold text-omega-text text-sm">Perfil</p>
-          <p className="text-xs text-omega-muted mt-0.5">Personalizar</p>
+          <p className="font-bold text-white text-sm">Mi Perfil</p>
+          <p className="text-xs text-white/70 mt-0.5">Avatar, beys, ficha y medallas</p>
         </Link>
         <Link href="/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-green to-omega-green/60 p-5 shadow-md shadow-omega-green/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
             <Trophy className="size-5 text-white" />
           </div>
           <p className="font-bold text-white text-sm">Torneos</p>
-          <p className="text-xs text-white/70 mt-0.5">Competir</p>
+          <p className="text-xs text-white/70 mt-0.5">Inscribite y competí en copa</p>
         </Link>
         <Link href="/galeria" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-5 shadow-md shadow-omega-purple/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] border border-omega-border/30">
           <div className="size-12 rounded-2xl bg-omega-purple/20 mb-3 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
             <Image className="size-5 text-omega-purple" />
           </div>
-          <p className="font-bold text-omega-text text-sm">Galeria</p>
-          <p className="text-xs text-omega-muted mt-0.5">Fotos y videos</p>
-        </Link>
-        <Link href="/search" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-5 shadow-md shadow-omega-purple/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] border border-omega-border/30">
-          <div className="size-12 rounded-2xl bg-omega-purple/20 mb-3 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
-            <Search className="size-5 text-omega-purple" />
-          </div>
-          <p className="font-bold text-omega-text text-sm">Buscar</p>
-          <p className="text-xs text-omega-muted mt-0.5">Encontrá bladers</p>
+          <p className="font-bold text-omega-text text-sm">Galería</p>
+          <p className="text-xs text-omega-muted mt-0.5">Fotos y videos de torneos</p>
         </Link>
         <Link href="/chat" className="relative group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow/60 p-5 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
           <ChatUnread userId={user.id} />
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
             <MessageSquare className="size-5 text-white" />
           </div>
-          <p className="font-bold text-white text-sm">Chat General</p>
-          <p className="text-xs text-white/70 mt-0.5">Habla con otros bladers</p>
+          <p className="font-bold text-white text-sm">Chat</p>
+          <p className="text-xs text-white/70 mt-0.5">Hablá con la comunidad</p>
         </Link>
       </div>
 
