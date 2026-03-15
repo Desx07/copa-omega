@@ -32,6 +32,8 @@ interface BracketViewProps {
   format: "single_elimination" | "round_robin" | "swiss";
   currentRound: number;
   isAdmin?: boolean;
+  isJudge?: boolean;
+  currentUserId?: string;
   tournamentId?: string;
   stage?: string | null;
   participantCount?: number;
@@ -44,6 +46,8 @@ export default function BracketView({
   format,
   currentRound,
   isAdmin = false,
+  isJudge = false,
+  currentUserId,
   tournamentId,
   stage,
   participantCount,
@@ -74,6 +78,8 @@ export default function BracketView({
       <EliminationBracket
         matches={matches}
         isAdmin={isAdmin}
+        isJudge={isJudge}
+        currentUserId={currentUserId}
         tournamentId={tournamentId}
       />
     );
@@ -102,6 +108,8 @@ export default function BracketView({
             matches={groupMatches}
             currentRound={showingFinals ? -1 : currentRound}
             isAdmin={isAdmin}
+            isJudge={isJudge}
+            currentUserId={currentUserId}
             tournamentId={tournamentId}
             expectedRounds={expectedRounds}
             allGroupsDone={showingFinals}
@@ -121,6 +129,8 @@ export default function BracketView({
           <EliminationBracket
             matches={finalsMatches}
             isAdmin={isAdmin}
+            isJudge={isJudge}
+            currentUserId={currentUserId}
             tournamentId={tournamentId}
           />
         </div>
@@ -136,10 +146,14 @@ export default function BracketView({
 function EliminationBracket({
   matches,
   isAdmin,
+  isJudge,
+  currentUserId,
   tournamentId,
 }: {
   matches: BracketMatch[];
   isAdmin?: boolean;
+  isJudge?: boolean;
+  currentUserId?: string;
   tournamentId?: string;
 }) {
   const rounds = new Map<number, BracketMatch[]>();
@@ -186,6 +200,8 @@ function EliminationBracket({
                     key={match.id}
                     match={match}
                     isAdmin={isAdmin}
+                    isJudge={isJudge}
+                    currentUserId={currentUserId}
                     tournamentId={tournamentId}
                   />
                 ))}
@@ -201,10 +217,14 @@ function EliminationBracket({
 function EliminationMatchCard({
   match,
   isAdmin,
+  isJudge,
+  currentUserId,
   tournamentId,
 }: {
   match: BracketMatch;
   isAdmin?: boolean;
+  isJudge?: boolean;
+  currentUserId?: string;
   tournamentId?: string;
 }) {
   const [submitting, setSubmitting] = useState(false);
@@ -223,8 +243,9 @@ function EliminationMatchCard({
   const isPending = match.status === "pending";
   const isActive = match.status === "in_progress";
 
+  const isAssignedJudge = isJudge && currentUserId && match.judge_id === currentUserId;
   const canResolve =
-    isAdmin &&
+    (isAdmin || isAssignedJudge) &&
     tournamentId &&
     (isPending || isActive) &&
     match.player1_id &&
@@ -459,6 +480,8 @@ function RoundList({
   matches,
   currentRound,
   isAdmin,
+  isJudge,
+  currentUserId,
   tournamentId,
   expectedRounds,
   allGroupsDone,
@@ -466,6 +489,8 @@ function RoundList({
   matches: BracketMatch[];
   currentRound: number;
   isAdmin?: boolean;
+  isJudge?: boolean;
+  currentUserId?: string;
   tournamentId?: string;
   expectedRounds?: number;
   allGroupsDone?: boolean;
@@ -553,6 +578,8 @@ function RoundList({
                   key={match.id}
                   match={match}
                   isAdmin={isAdmin}
+                  isJudge={isJudge}
+                  currentUserId={currentUserId}
                   tournamentId={tournamentId}
                 />
               ))}
@@ -589,10 +616,14 @@ function RoundList({
 function RoundMatchRow({
   match,
   isAdmin,
+  isJudge,
+  currentUserId,
   tournamentId,
 }: {
   match: BracketMatch;
   isAdmin?: boolean;
+  isJudge?: boolean;
+  currentUserId?: string;
   tournamentId?: string;
 }) {
   const [submitting, setSubmitting] = useState(false);
@@ -610,8 +641,9 @@ function RoundMatchRow({
 
   const isPending = match.status === "pending";
   const isActive = match.status === "in_progress";
+  const isAssignedJudge = isJudge && currentUserId && match.judge_id === currentUserId;
   const canResolve =
-    isAdmin &&
+    (isAdmin || isAssignedJudge) &&
     tournamentId &&
     (isPending || isActive) &&
     match.player1_id &&

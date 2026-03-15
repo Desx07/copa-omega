@@ -66,6 +66,17 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Check if current user is a judge
+  let isJudge = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("players")
+      .select("is_judge")
+      .eq("id", user.id)
+      .single();
+    isJudge = profile?.is_judge === true;
+  }
+
   // Fetch tournament + participants + matches + points + media count in parallel
   const [tournamentResult, participantsResult, matchesResult, pointsResult, mediaCountResult] =
     await Promise.all([
@@ -448,6 +459,9 @@ export default async function TournamentDetailPage({ params }: PageProps) {
                   | "swiss"
               }
               currentRound={tournament.current_round}
+              isJudge={isJudge}
+              currentUserId={user?.id}
+              tournamentId={tournament.id}
               stage={tournament.stage}
               participantCount={participants.length}
             />
