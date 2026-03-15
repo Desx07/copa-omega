@@ -14,6 +14,7 @@ import BracketView from "@/app/(app)/tournaments/_components/bracket-view";
 import ParticipantsList from "@/app/(app)/tournaments/_components/participants-list";
 import QrDisplay from "@/app/(app)/tournaments/_components/qr-display";
 import TournamentAdminActions from "./_components/tournament-admin-actions";
+import ManualRegister from "./_components/manual-register";
 
 const FORMAT_LABELS: Record<string, string> = {
   round_robin: "Round Robin",
@@ -193,13 +194,19 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
           format={tournament.format}
         />
 
-        {/* QR Code -- show during registration */}
+        {/* Registration tools -- QR + manual add */}
         {tournament.status === "registration" && (
-          <QrDisplay
-            url={registerUrl}
-            tournamentName={tournament.name}
-            size={220}
-          />
+          <>
+            <QrDisplay
+              url={registerUrl}
+              tournamentName={tournament.name}
+              size={220}
+            />
+            <ManualRegister
+              tournamentId={tournament.id}
+              existingPlayerIds={participants.map((p: { player: { id: string } }) => p.player.id)}
+            />
+          </>
         )}
 
         {/* Bracket / matches */}

@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 
-// POST /api/tournaments/[id]/register — Register player to tournament (authenticated)
+// POST /api/tournaments/[id]/register — Register player to tournament
+// Body optional: { player_id } — admin can register other players
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -16,6 +17,26 @@ export async function POST(
 
     if (authError || !user) {
       return Response.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    // Check if admin is registering someone else
+    let targetPlayerId = user.id;
+    try {
+      const body = await request.json();
+      if (body.player_id) {
+        // Verify caller is admin
+        const { data: admin } = await supabase
+          .from("players")
+          .select("is_admin")
+          .eq("id", user.id)
+          .single();
+        if (!admin?.is_admin) {
+          return Response.json({ error: "Solo admins pueden inscribir a otros" }, { status: 403 });
+        }
+        targetPlayerId = body.player_id;
+      }
+    } catch {
+      // No body or invalid JSON — register self
     }
 
     // Fetch tournament
@@ -67,7 +88,7 @@ export async function POST(
     const { data: player, error: playerError } = await supabase
       .from("players")
       .select("id, alias")
-      .eq("id", user.id)
+      .eq("id", targetPlayerId)
       .single();
 
     if (playerError || !player) {
@@ -82,7 +103,7 @@ export async function POST(
       .from("tournament_participants")
       .insert({
         tournament_id: tournamentId,
-        player_id: user.id,
+        player_id: targetPlayerId,
       })
       .select("*, player:players!player_id(id, alias)")
       .single();
