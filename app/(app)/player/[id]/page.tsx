@@ -16,6 +16,7 @@ import {
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 import BadgesDisplay from "@/app/_components/badges-display";
 import TournamentBadgesDisplay from "@/app/_components/tournament-badges-display";
+import PodiumCardsAccordion from "@/app/_components/podium-cards-accordion";
 
 const beyTypeConfig = {
   attack: { label: "Ataque", icon: Swords, color: "text-omega-red", bg: "bg-omega-red/10 border-omega-red/30" },
@@ -35,7 +36,7 @@ export default async function PlayerProfilePage({
   const [playerResult, beysResult, matchesResult, badgesResult, tournamentBadgesResult] = await Promise.all([
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_judge, avatar_url, created_at, tagline, hide_beys, badge, accent_color")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_judge, avatar_url, created_at, tagline, hide_beys, badge, accent_color, profile_card_url")
       .eq("id", id)
       .eq("is_hidden", false)
       .single(),
@@ -57,7 +58,7 @@ export default async function PlayerProfilePage({
       .eq("player_id", id),
     supabase
       .from("tournament_badges")
-      .select("position, tournament:tournaments!tournament_id(name, logo_url)")
+      .select("position, card_image_url, tournament:tournaments!tournament_id(name, logo_url)")
       .eq("player_id", id)
       .order("created_at", { ascending: false }),
   ]);
@@ -76,6 +77,7 @@ export default async function PlayerProfilePage({
       tournament_name: tournament?.name ?? "Torneo",
       logo_url: tournament?.logo_url ?? null,
       position: tb.position,
+      card_image_url: (tb as unknown as { card_image_url: string | null }).card_image_url ?? null,
     };
   });
 
@@ -236,6 +238,31 @@ export default async function PlayerProfilePage({
       {earnedBadgeIds.length > 0 && (
         <div className="px-4">
           <BadgesDisplay earnedBadgeIds={earnedBadgeIds} />
+        </div>
+      )}
+
+      {/* ═══ PROFILE CARD (ficha de perfil) ═══ */}
+      {(player as unknown as { profile_card_url: string | null }).profile_card_url && (
+        <div className="px-4">
+          <div className="omega-card shadow-sm overflow-hidden">
+            <div className="omega-section-header">
+              <Trophy className="size-4 text-omega-purple" />
+              Ficha de jugador
+            </div>
+            <img
+              src={(player as unknown as { profile_card_url: string }).profile_card_url}
+              alt={`Ficha de ${player.alias}`}
+              className="w-full object-contain"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ═══ PODIUM CARDS (tarjetas de podio por torneo) ═══ */}
+      {tournamentBadges.some((b) => b.card_image_url) && (
+        <div className="px-4">
+          <PodiumCardsAccordion badges={tournamentBadges.filter((b) => b.card_image_url)} />
         </div>
       )}
 

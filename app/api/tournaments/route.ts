@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, description, format, max_participants, top_cut, logo_url } = body;
+    const { name, description, format, max_participants, top_cut, swiss_rounds, logo_url } = body;
 
     // Validate required fields
     if (!name || !format || max_participants == null) {
@@ -114,6 +114,22 @@ export async function POST(request: Request) {
       }
     }
 
+    // Validate swiss_rounds (optional, only for swiss)
+    if (swiss_rounds != null) {
+      if (format !== "swiss") {
+        return Response.json(
+          { error: "swiss_rounds solo aplica para formato suizo" },
+          { status: 400 }
+        );
+      }
+      if (![2, 3, 4].includes(swiss_rounds)) {
+        return Response.json(
+          { error: "swiss_rounds debe ser 2, 3 o 4" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Insert tournament (without qr_code first to get the id)
     const { data: tournament, error: insertError } = await supabase
       .from("tournaments")
@@ -123,6 +139,7 @@ export async function POST(request: Request) {
         format,
         max_participants,
         top_cut: top_cut ?? null,
+        swiss_rounds: format === "swiss" ? (swiss_rounds ?? null) : null,
         logo_url: logo_url || null,
         created_by: user.id,
       })

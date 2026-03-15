@@ -17,6 +17,7 @@ import TournamentAdminActions from "./_components/tournament-admin-actions";
 import ManualRegister from "./_components/manual-register";
 import EditTournament from "./_components/edit-tournament";
 import TournamentMediaManager from "./_components/tournament-media-manager";
+import PodiumCardsManager from "./_components/podium-cards-manager";
 
 const FORMAT_LABELS: Record<string, string> = {
   round_robin: "Round Robin",
@@ -252,6 +253,11 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
           showSeeds={tournament.format === "single_elimination"}
           showPoints={isRoundBased}
         />
+
+        {/* Podium cards (only for completed tournaments with badges) */}
+        {tournament.status === "completed" && (
+          <PodiumCardsManager tournamentId={tournament.id} />
+        )}
 
         {/* Media gallery management */}
         <TournamentMediaManager tournamentId={tournament.id} />

@@ -133,7 +133,7 @@ export async function PATCH(
     // Fetch tournament to know the format, top_cut, and stage
     const { data: tournament, error: tournamentError } = await supabase
       .from("tournaments")
-      .select("format, current_round, top_cut, stage")
+      .select("format, current_round, top_cut, stage, swiss_rounds")
       .eq("id", tournamentId)
       .single();
 
@@ -246,7 +246,7 @@ export async function PATCH(
 
       if (pendingCount === 0) {
         // All matches in current round are done — generate next round
-        await generateNextSwissRound(supabase, tournamentId, currentRound);
+        await generateNextSwissRound(supabase, tournamentId, currentRound, tournament.swiss_rounds ?? null);
       }
     }
 
@@ -269,12 +269,16 @@ export async function PATCH(
 
       // For Swiss, also check if all expected rounds are generated
       if (groupDone && tournament.format === "swiss") {
-        const { count: participantCount } = await supabase
-          .from("tournament_participants")
-          .select("id", { count: "exact", head: true })
-          .eq("tournament_id", tournamentId);
-
-        const expectedRounds = Math.ceil(Math.log2(participantCount ?? 2));
+        let expectedRounds: number;
+        if (tournament.swiss_rounds) {
+          expectedRounds = tournament.swiss_rounds;
+        } else {
+          const { count: participantCount } = await supabase
+            .from("tournament_participants")
+            .select("id", { count: "exact", head: true })
+            .eq("tournament_id", tournamentId);
+          expectedRounds = Math.ceil(Math.log2(participantCount ?? 2));
+        }
         if ((tournament.current_round ?? 0) < expectedRounds) {
           groupDone = false;
         }
@@ -304,12 +308,16 @@ export async function PATCH(
         let shouldComplete = true;
 
         if (tournament.format === "swiss") {
-          const { count: participantCount } = await supabase
-            .from("tournament_participants")
-            .select("id", { count: "exact", head: true })
-            .eq("tournament_id", tournamentId);
-
-          const expectedRounds = Math.ceil(Math.log2(participantCount ?? 2));
+          let expectedRounds: number;
+          if (tournament.swiss_rounds) {
+            expectedRounds = tournament.swiss_rounds;
+          } else {
+            const { count: participantCount } = await supabase
+              .from("tournament_participants")
+              .select("id", { count: "exact", head: true })
+              .eq("tournament_id", tournamentId);
+            expectedRounds = Math.ceil(Math.log2(participantCount ?? 2));
+          }
           if ((tournament.current_round ?? 0) < expectedRounds) {
             shouldComplete = false;
           }
@@ -607,7 +615,8 @@ async function generateFinalsBracket(
 async function generateNextSwissRound(
   supabase: Awaited<ReturnType<typeof createClient>>,
   tournamentId: string,
-  completedRound: number
+  completedRound: number,
+  configuredSwissRounds: number | null
 ) {
   const nextRound = completedRound + 1;
 
@@ -621,7 +630,7 @@ async function generateNextSwissRound(
   if (error || !participants) return;
 
   // Determine expected rounds for Swiss
-  const expectedRounds = Math.ceil(Math.log2(participants.length));
+  const expectedRounds = configuredSwissRounds ?? Math.ceil(Math.log2(participants.length));
   if (nextRound > expectedRounds) {
     // Swiss group rounds are done — check if we need top cut or complete
     // The completion logic is handled in the PATCH handler after this returns

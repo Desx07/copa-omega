@@ -32,6 +32,7 @@ export default function NewTournamentPage() {
   const [format, setFormat] = useState<string>("single_elimination");
   const [maxParticipants, setMaxParticipants] = useState(32);
   const [topCut, setTopCut] = useState<number | null>(null);
+  const [swissRounds, setSwissRounds] = useState<number | null>(null);
   const [logoUrl, setLogoUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -62,6 +63,7 @@ export default function NewTournamentPage() {
           format,
           max_participants: maxParticipants,
           top_cut: showTopCut ? topCut : null,
+          swiss_rounds: format === "swiss" ? swissRounds : null,
           logo_url: logoUrl.trim() || null,
         }),
       });
@@ -247,6 +249,37 @@ export default function NewTournamentPage() {
             </div>
           )}
 
+          {/* Swiss Rounds — only for Swiss format */}
+          {format === "swiss" && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-omega-muted uppercase tracking-wider">
+                Cantidad de rondas
+              </label>
+              <select
+                value={swissRounds ?? ""}
+                onChange={(e) =>
+                  setSwissRounds(e.target.value ? Number(e.target.value) : null)
+                }
+                className="omega-input"
+              >
+                <option value="">
+                  Automatico (segun cantidad de jugadores)
+                </option>
+                <option value="2">2 rondas</option>
+                <option value="3">3 rondas</option>
+                <option value="4">4 rondas</option>
+              </select>
+              <div className="flex items-start gap-2 rounded-xl bg-gradient-to-br from-omega-purple/10 to-omega-purple/5 border border-omega-purple/20 px-3 py-2 text-[11px] text-omega-purple shadow-sm">
+                <Info className="size-4 shrink-0 mt-0.5" />
+                <p>
+                  Si no elegis cantidad, se calcula automaticamente segun la
+                  cantidad de participantes (log2). Podes elegir 2, 3 o 4 rondas
+                  fijas.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Logo URL */}
           <div className="space-y-2">
             <label
@@ -290,6 +323,7 @@ export default function NewTournamentPage() {
                 {FORMAT_OPTIONS.find((f) => f.value === format)?.label} -- Max{" "}
                 {maxParticipants} jugadores
                 {topCut && showTopCut && ` -> Top ${topCut} a llaves`}
+                {format === "swiss" && swissRounds && ` -- ${swissRounds} rondas`}
               </p>
               {description && (
                 <p className="text-xs text-omega-muted/70 italic">

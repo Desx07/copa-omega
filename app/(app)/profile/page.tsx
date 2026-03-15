@@ -22,6 +22,9 @@ import {
   Calendar,
   Trophy,
   Flame,
+  ImageIcon,
+  Check,
+  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -45,6 +48,7 @@ interface Player {
   badge: string | null;
   accent_color: string;
   created_at: string;
+  profile_card_url: string | null;
 }
 
 interface Bey {
@@ -79,6 +83,8 @@ export default function ProfilePage() {
   const [taglineInput, setTaglineInput] = useState("");
 
   const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [editingProfileCard, setEditingProfileCard] = useState(false);
+  const [profileCardInput, setProfileCardInput] = useState("");
   const [earnedBadgeIds, setEarnedBadgeIds] = useState<string[]>([]);
   const [tournamentBadges, setTournamentBadges] = useState<
     { tournament_name: string; logo_url: string | null; position: number }[]
@@ -103,7 +109,7 @@ export default function ProfilePage() {
     const [playerResult, beysResult, badgesResult, allPlayersResult, tournamentBadgesResult] = await Promise.all([
       supabase
         .from("players")
-        .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at")
+        .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at, profile_card_url")
         .eq("id", user.id)
         .single(),
       supabase
@@ -437,6 +443,91 @@ export default function ProfilePage() {
             {/* Push notifications toggle */}
             <PushToggle />
           </div>
+        </div>
+
+        {/* ═══ FICHA DE JUGADOR (Profile Card) ═══ */}
+        <div className="px-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <ImageIcon className="size-4 text-omega-purple" />
+            <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Ficha de jugador</h2>
+          </div>
+
+          {/* Current profile card preview */}
+          {player.profile_card_url && !editingProfileCard && (
+            <div className="omega-card shadow-sm overflow-hidden">
+              <img
+                src={player.profile_card_url}
+                alt={`Ficha de ${player.alias}`}
+                className="w-full object-contain"
+                loading="lazy"
+              />
+            </div>
+          )}
+
+          {editingProfileCard ? (
+            <div className="omega-card p-4 space-y-3">
+              <input
+                type="url"
+                value={profileCardInput}
+                onChange={(e) => setProfileCardInput(e.target.value)}
+                placeholder="URL de tu ficha de jugador..."
+                className="omega-input"
+                autoFocus
+              />
+              {profileCardInput.trim() && (
+                <div className="rounded-xl overflow-hidden border border-omega-border/30 bg-omega-dark">
+                  <img
+                    src={profileCardInput.trim()}
+                    alt="Vista previa"
+                    className="w-full object-contain max-h-[300px]"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    updateField("profile_card_url", profileCardInput.trim() || null);
+                    setEditingProfileCard(false);
+                  }}
+                  disabled={savingField === "profile_card_url"}
+                  className="omega-btn omega-btn-green px-4 py-2 text-sm flex-1"
+                >
+                  {savingField === "profile_card_url" ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Check className="size-4" />
+                  )}
+                  Guardar
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingProfileCard(false);
+                    setProfileCardInput(player.profile_card_url ?? "");
+                  }}
+                  className="omega-btn omega-btn-secondary px-4 py-2 text-sm"
+                >
+                  <X className="size-4" />
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setProfileCardInput(player.profile_card_url ?? "");
+                setEditingProfileCard(true);
+              }}
+              className="omega-btn omega-btn-secondary w-full px-4 py-2 text-xs"
+            >
+              <ImageIcon className="size-3.5" />
+              {player.profile_card_url
+                ? "Cambiar ficha de jugador"
+                : "Agregar ficha de jugador"}
+            </button>
+          )}
         </div>
 
         {/* ═══ TOURNAMENT BADGES ═══ */}
