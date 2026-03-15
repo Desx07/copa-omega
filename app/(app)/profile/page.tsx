@@ -21,15 +21,13 @@ import {
   Palette,
   Calendar,
   Trophy,
-  Flame,
   ImageIcon,
-  Check,
-  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 import { ImageCropper } from "@/app/_components/image-cropper";
+import { uploadImage } from "@/lib/upload-image";
 import BadgesDisplay from "@/app/_components/badges-display";
 import TournamentBadgesDisplay from "@/app/_components/tournament-badges-display";
 import PushToggle from "@/app/_components/push-toggle";
@@ -83,8 +81,8 @@ export default function ProfilePage() {
   const [taglineInput, setTaglineInput] = useState("");
 
   const [cropSrc, setCropSrc] = useState<string | null>(null);
-  const [editingProfileCard, setEditingProfileCard] = useState(false);
-  const [profileCardInput, setProfileCardInput] = useState("");
+  const profileCardInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingProfileCard, setUploadingProfileCard] = useState(false);
   const [earnedBadgeIds, setEarnedBadgeIds] = useState<string[]>([]);
   const [tournamentBadges, setTournamentBadges] = useState<
     { tournament_name: string; logo_url: string | null; position: number }[]
@@ -216,6 +214,60 @@ export default function ProfilePage() {
       toast.success("Foto actualizada!");
     } catch { toast.error("Error de conexión"); }
     finally { setUploading(false); }
+  }
+
+  async function handleProfileCardUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !player) return;
+    e.target.value = "";
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("La imagen no puede pesar mas de 10MB");
+      return;
+    }
+
+    setUploadingProfileCard(true);
+    try {
+      const path = `${player.id}/profile-card.jpeg`;
+      const publicUrl = await uploadImage("avatars", path, file, 1200);
+
+      const { error: updateError } = await supabase
+        .from("players")
+        .update({ profile_card_url: publicUrl })
+        .eq("id", player.id);
+
+      if (updateError) {
+        toast.error("Error actualizando perfil");
+        return;
+      }
+      setPlayer({ ...player, profile_card_url: publicUrl });
+      toast.success("Ficha de jugador actualizada!");
+    } catch {
+      toast.error("Error subiendo imagen");
+    } finally {
+      setUploadingProfileCard(false);
+    }
+  }
+
+  async function handleRemoveProfileCard() {
+    if (!player) return;
+    setUploadingProfileCard(true);
+    try {
+      const { error } = await supabase
+        .from("players")
+        .update({ profile_card_url: null })
+        .eq("id", player.id);
+      if (error) {
+        toast.error("Error eliminando ficha");
+        return;
+      }
+      setPlayer({ ...player, profile_card_url: null });
+      toast.success("Ficha eliminada");
+    } catch {
+      toast.error("Error de conexion");
+    } finally {
+      setUploadingProfileCard(false);
+    }
   }
 
   async function handleAddBey() {
@@ -453,7 +505,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Current profile card preview */}
-          {player.profile_card_url && !editingProfileCard && (
+          {player.profile_card_url && (
             <div className="omega-card shadow-sm overflow-hidden">
               <img
                 src={player.profile_card_url}
@@ -464,70 +516,39 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {editingProfileCard ? (
-            <div className="omega-card p-4 space-y-3">
-              <input
-                type="url"
-                value={profileCardInput}
-                onChange={(e) => setProfileCardInput(e.target.value)}
-                placeholder="URL de tu ficha de jugador..."
-                className="omega-input"
-                autoFocus
-              />
-              {profileCardInput.trim() && (
-                <div className="rounded-xl overflow-hidden border border-omega-border/30 bg-omega-dark">
-                  <img
-                    src={profileCardInput.trim()}
-                    alt="Vista previa"
-                    className="w-full object-contain max-h-[300px]"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                </div>
-              )}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    updateField("profile_card_url", profileCardInput.trim() || null);
-                    setEditingProfileCard(false);
-                  }}
-                  disabled={savingField === "profile_card_url"}
-                  className="omega-btn omega-btn-green px-4 py-2 text-sm flex-1"
-                >
-                  {savingField === "profile_card_url" ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Check className="size-4" />
-                  )}
-                  Guardar
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingProfileCard(false);
-                    setProfileCardInput(player.profile_card_url ?? "");
-                  }}
-                  className="omega-btn omega-btn-secondary px-4 py-2 text-sm"
-                >
-                  <X className="size-4" />
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          ) : (
+          <input
+            ref={profileCardInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleProfileCardUpload}
+          />
+
+          <div className="flex gap-2">
             <button
-              onClick={() => {
-                setProfileCardInput(player.profile_card_url ?? "");
-                setEditingProfileCard(true);
-              }}
-              className="omega-btn omega-btn-secondary w-full px-4 py-2 text-xs"
+              onClick={() => profileCardInputRef.current?.click()}
+              disabled={uploadingProfileCard}
+              className="omega-btn omega-btn-secondary flex-1 px-4 py-2 text-xs"
             >
-              <ImageIcon className="size-3.5" />
+              {uploadingProfileCard ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <ImageIcon className="size-3.5" />
+              )}
               {player.profile_card_url
                 ? "Cambiar ficha de jugador"
-                : "Agregar ficha de jugador"}
+                : "Subir ficha de jugador"}
             </button>
-          )}
+            {player.profile_card_url && (
+              <button
+                onClick={handleRemoveProfileCard}
+                disabled={uploadingProfileCard}
+                className="omega-btn omega-btn-secondary px-3 py-2 text-xs text-omega-red hover:bg-omega-red/10"
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ═══ TOURNAMENT BADGES ═══ */}

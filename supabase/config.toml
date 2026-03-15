@@ -28,4 +28,14 @@ double_confirm_changes = false
 enable_confirmations = false
 
 [storage]
-enabled = false
+enabled = true
+
+[storage.buckets.avatars]
+public = true
+file_size_limit = "10MB"
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]
+
+[storage.buckets.media]
+public = true
+file_size_limit = "10MB"
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]

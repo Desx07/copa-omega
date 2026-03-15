@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ImageIcon, Film, Trash2, Plus, Loader2, Link2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ImageIcon, Film, Trash2, Plus, Loader2, Link2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { uploadImage } from "@/lib/upload-image";
 
 interface MediaItem {
   id: string;
@@ -23,9 +24,14 @@ export default function TournamentMediaManager({
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
 
-  const [url, setUrl] = useState("");
-  const [type, setType] = useState<"photo" | "video">("photo");
-  const [caption, setCaption] = useState("");
+  // Video URL input
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoCaption, setVideoCaption] = useState("");
+
+  // Photo upload
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoCaption, setPhotoCaption] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     loadMedia();
@@ -48,9 +54,9 @@ export default function TournamentMediaManager({
     }
   }
 
-  async function handleAdd() {
-    if (!url.trim()) {
-      toast.error("Pega una URL");
+  async function handleAddVideo() {
+    if (!videoUrl.trim()) {
+      toast.error("Pega una URL de video");
       return;
     }
 
@@ -62,9 +68,9 @@ export default function TournamentMediaManager({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            url: url.trim(),
-            type,
-            caption: caption.trim() || null,
+            url: videoUrl.trim(),
+            type: "video",
+            caption: videoCaption.trim() || null,
           }),
         }
       );
@@ -77,13 +83,66 @@ export default function TournamentMediaManager({
 
       const newItem = await res.json();
       setMediaItems([...mediaItems, newItem]);
-      setUrl("");
-      setCaption("");
-      toast.success("Agregado!");
+      setVideoUrl("");
+      setVideoCaption("");
+      toast.success("Video agregado!");
     } catch {
       toast.error("Error de conexion");
     } finally {
       setAdding(false);
+    }
+  }
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    e.target.value = "";
+
+    setUploadingPhoto(true);
+    const captionValue = photoCaption.trim() || null;
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`${file.name} pesa mas de 10MB, omitido`);
+          continue;
+        }
+
+        // Upload to storage
+        const filename = `${Date.now()}-${i}.jpeg`;
+        const path = `tournaments/${tournamentId}/${filename}`;
+        const publicUrl = await uploadImage("media", path, file, 1600);
+
+        // Save to DB via API
+        const res = await fetch(
+          `/api/admin/tournaments/${tournamentId}/media`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              url: publicUrl,
+              type: "photo",
+              caption: captionValue,
+            }),
+          }
+        );
+
+        if (res.ok) {
+          const newItem = await res.json();
+          setMediaItems((prev) => [...prev, newItem]);
+        } else {
+          const data = await res.json();
+          toast.error(data.error || "Error guardando foto");
+        }
+      }
+
+      setPhotoCaption("");
+      toast.success(files.length > 1 ? "Fotos subidas!" : "Foto subida!");
+    } catch {
+      toast.error("Error subiendo foto");
+    } finally {
+      setUploadingPhoto(false);
     }
   }
 
@@ -107,23 +166,6 @@ export default function TournamentMediaManager({
     }
   }
 
-  // Auto-detect type from URL
-  function handleUrlChange(value: string) {
-    setUrl(value);
-    const lower = value.toLowerCase();
-    if (
-      lower.includes("youtube.com") ||
-      lower.includes("youtu.be") ||
-      lower.includes("tiktok.com")
-    ) {
-      setType("video");
-    } else if (
-      lower.match(/\.(jpg|jpeg|png|gif|webp|avif|svg)(\?|$)/i)
-    ) {
-      setType("photo");
-    }
-  }
-
   return (
     <div className="omega-card shadow-sm">
       <div className="omega-section-header">
@@ -134,42 +176,76 @@ export default function TournamentMediaManager({
         </span>
       </div>
 
-      {/* Add form */}
+      {/* Photo upload section */}
       <div className="p-4 space-y-3 border-b border-omega-border/30">
-        <div className="flex gap-2">
-          <div className="relative flex-1 min-w-0">
-            <Link2 className="size-4 text-omega-muted absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="url"
-              value={url}
-              onChange={(e) => handleUrlChange(e.target.value)}
-              placeholder="Pegar URL de foto o video..."
-              className="omega-input pl-9"
-            />
-          </div>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value as "photo" | "video")}
-            className="omega-input w-auto"
-          >
-            <option value="photo">Foto</option>
-            <option value="video">Video</option>
-          </select>
+        <p className="text-[11px] font-bold text-omega-text uppercase tracking-wider flex items-center gap-1.5">
+          <ImageIcon className="size-3.5 text-omega-green" />
+          Subir fotos
+        </p>
+
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          className="hidden"
+          onChange={handlePhotoUpload}
+        />
+
+        <input
+          type="text"
+          value={photoCaption}
+          onChange={(e) => setPhotoCaption(e.target.value)}
+          placeholder="Descripcion (opcional)"
+          maxLength={200}
+          className="omega-input"
+        />
+
+        <button
+          onClick={() => photoInputRef.current?.click()}
+          disabled={uploadingPhoto}
+          className="omega-btn omega-btn-green w-full px-4 py-2.5 text-sm"
+        >
+          {uploadingPhoto ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Upload className="size-4" />
+          )}
+          {uploadingPhoto ? "Subiendo..." : "Seleccionar fotos"}
+        </button>
+      </div>
+
+      {/* Video URL section */}
+      <div className="p-4 space-y-3 border-b border-omega-border/30">
+        <p className="text-[11px] font-bold text-omega-text uppercase tracking-wider flex items-center gap-1.5">
+          <Film className="size-3.5 text-omega-blue" />
+          Agregar video (YouTube / TikTok)
+        </p>
+
+        <div className="relative">
+          <Link2 className="size-4 text-omega-muted absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="url"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="Pegar URL de YouTube o TikTok..."
+            className="omega-input pl-9"
+          />
         </div>
 
         <div className="flex gap-2">
           <input
             type="text"
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
+            value={videoCaption}
+            onChange={(e) => setVideoCaption(e.target.value)}
             placeholder="Descripcion (opcional)"
             maxLength={200}
             className="omega-input flex-1 min-w-0"
           />
           <button
-            onClick={handleAdd}
-            disabled={adding || !url.trim()}
-            className="omega-btn omega-btn-purple px-4 py-2.5 text-sm shrink-0"
+            onClick={handleAddVideo}
+            disabled={adding || !videoUrl.trim()}
+            className="omega-btn omega-btn-blue px-4 py-2.5 text-sm shrink-0"
           >
             {adding ? (
               <Loader2 className="size-4 animate-spin" />

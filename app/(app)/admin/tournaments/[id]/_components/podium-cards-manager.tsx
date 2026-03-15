@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Trophy, Loader2, Link2, Check, X, ImageIcon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Trophy, Loader2, ImageIcon, Upload, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { uploadImage } from "@/lib/upload-image";
 
 interface Badge {
   id: string;
@@ -30,9 +31,8 @@ export default function PodiumCardsManager({
 }: PodiumCardsManagerProps) {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [urlInput, setUrlInput] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     loadBadges();
@@ -60,25 +60,28 @@ export default function PodiumCardsManager({
     }
   }
 
-  function startEditing(badge: Badge) {
-    setEditingId(badge.id);
-    setUrlInput(badge.card_image_url ?? "");
-  }
+  async function handleFileUpload(badge: Badge, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
 
-  function cancelEditing() {
-    setEditingId(null);
-    setUrlInput("");
-  }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("La imagen no puede pesar mas de 10MB");
+      return;
+    }
 
-  async function saveCardUrl(badgeId: string) {
-    setSaving(true);
+    setUploadingId(badge.id);
     try {
+      const path = `podium-cards/${badge.id}.jpeg`;
+      const publicUrl = await uploadImage("avatars", path, file, 1200);
+
+      // Save URL to DB via existing API
       const res = await fetch(
-        `/api/admin/tournaments/${tournamentId}/badges/${badgeId}`,
+        `/api/admin/tournaments/${tournamentId}/badges/${badge.id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ card_image_url: urlInput.trim() || null }),
+          body: JSON.stringify({ card_image_url: publicUrl }),
         }
       );
 
@@ -90,18 +93,45 @@ export default function PodiumCardsManager({
 
       setBadges(
         badges.map((b) =>
-          b.id === badgeId
-            ? { ...b, card_image_url: urlInput.trim() || null }
-            : b
+          b.id === badge.id ? { ...b, card_image_url: publicUrl } : b
         )
       );
-      setEditingId(null);
-      setUrlInput("");
       toast.success("Tarjeta de podio actualizada!");
+    } catch {
+      toast.error("Error subiendo imagen");
+    } finally {
+      setUploadingId(null);
+    }
+  }
+
+  async function handleRemoveCard(badge: Badge) {
+    setUploadingId(badge.id);
+    try {
+      const res = await fetch(
+        `/api/admin/tournaments/${tournamentId}/badges/${badge.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ card_image_url: null }),
+        }
+      );
+
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Error eliminando");
+        return;
+      }
+
+      setBadges(
+        badges.map((b) =>
+          b.id === badge.id ? { ...b, card_image_url: null } : b
+        )
+      );
+      toast.success("Tarjeta eliminada");
     } catch {
       toast.error("Error de conexion");
     } finally {
-      setSaving(false);
+      setUploadingId(null);
     }
   }
 
@@ -136,7 +166,7 @@ export default function PodiumCardsManager({
       <div className="divide-y divide-omega-border/30">
         {badges.map((badge) => {
           const config = POSITION_LABELS[badge.position] ?? POSITION_LABELS[3];
-          const isEditing = editingId === badge.id;
+          const isUploading = uploadingId === badge.id;
 
           return (
             <div key={badge.id} className="p-4 space-y-3">
@@ -188,7 +218,7 @@ export default function PodiumCardsManager({
               </div>
 
               {/* Card image preview */}
-              {badge.card_image_url && !isEditing && (
+              {badge.card_image_url && (
                 <div className="rounded-xl overflow-hidden border border-omega-border/30 bg-omega-dark">
                   <img
                     src={badge.card_image_url}
@@ -199,66 +229,40 @@ export default function PodiumCardsManager({
                 </div>
               )}
 
-              {/* Edit form */}
-              {isEditing ? (
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Link2 className="size-4 text-omega-muted absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="url"
-                      value={urlInput}
-                      onChange={(e) => setUrlInput(e.target.value)}
-                      placeholder="URL de la tarjeta de podio..."
-                      className="omega-input pl-9"
-                      autoFocus
-                    />
-                  </div>
-                  {urlInput.trim() && (
-                    <div className="rounded-xl overflow-hidden border border-omega-border/30 bg-omega-dark">
-                      <img
-                        src={urlInput.trim()}
-                        alt="Vista previa"
-                        className="w-full object-contain max-h-[250px]"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => saveCardUrl(badge.id)}
-                      disabled={saving}
-                      className="omega-btn omega-btn-green px-4 py-2 text-sm flex-1"
-                    >
-                      {saving ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <Check className="size-4" />
-                      )}
-                      Guardar
-                    </button>
-                    <button
-                      onClick={cancelEditing}
-                      disabled={saving}
-                      className="omega-btn omega-btn-secondary px-4 py-2 text-sm"
-                    >
-                      <X className="size-4" />
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ) : (
+              {/* Upload button */}
+              <input
+                ref={(el) => { fileInputRefs.current[badge.id] = el; }}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => handleFileUpload(badge, e)}
+              />
+
+              <div className="flex gap-2">
                 <button
-                  onClick={() => startEditing(badge)}
-                  className="omega-btn omega-btn-secondary w-full px-4 py-2 text-xs"
+                  onClick={() => fileInputRefs.current[badge.id]?.click()}
+                  disabled={isUploading}
+                  className="omega-btn omega-btn-secondary flex-1 px-4 py-2 text-xs"
                 >
-                  <ImageIcon className="size-3.5" />
+                  {isUploading ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="size-3.5" />
+                  )}
                   {badge.card_image_url
-                    ? "Cambiar tarjeta de podio"
-                    : "Agregar tarjeta de podio"}
+                    ? "Cambiar tarjeta"
+                    : "Subir tarjeta de podio"}
                 </button>
-              )}
+                {badge.card_image_url && (
+                  <button
+                    onClick={() => handleRemoveCard(badge)}
+                    disabled={isUploading}
+                    className="omega-btn omega-btn-secondary px-3 py-2 text-xs text-omega-red hover:bg-omega-red/10"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
