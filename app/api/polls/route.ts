@@ -1,6 +1,80 @@
 import { createClient } from "@/lib/supabase/server";
 
 /**
+ * POST /api/polls
+ * Body: { question: string, options: string[], expires_at?: string }
+ * Any authenticated user can create a poll.
+ */
+export async function POST(request: Request) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return Response.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { question, options, expires_at } = body;
+
+    if (!question || typeof question !== "string") {
+      return Response.json(
+        { error: "Falta campo: question" },
+        { status: 400 }
+      );
+    }
+
+    if (!options || !Array.isArray(options) || options.length < 2) {
+      return Response.json(
+        { error: "Se necesitan al menos 2 opciones" },
+        { status: 400 }
+      );
+    }
+
+    if (options.length > 6) {
+      return Response.json(
+        { error: "Maximo 6 opciones" },
+        { status: 400 }
+      );
+    }
+
+    // Validate all options are non-empty strings
+    for (const opt of options) {
+      if (typeof opt !== "string" || opt.trim().length === 0) {
+        return Response.json(
+          { error: "Todas las opciones deben ser texto no vacio" },
+          { status: 400 }
+        );
+      }
+    }
+
+    const { data: poll, error } = await supabase
+      .from("polls")
+      .insert({
+        question,
+        options,
+        created_by: user.id,
+        expires_at: expires_at || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return Response.json({ error: error.message }, { status: 500 });
+    }
+
+    return Response.json(poll, { status: 201 });
+  } catch (err) {
+    console.error("POST /api/polls error:", err);
+    return Response.json({ error: "Error interno del servidor" }, { status: 500 });
+  }
+}
+
+/**
  * GET /api/polls
  * Returns active polls with vote counts and current user's vote.
  */

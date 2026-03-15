@@ -48,6 +48,15 @@ export default function RegisterPage() {
         if (updateError) {
           toast.error("Cuenta creada pero hubo un error guardando tu alias");
         }
+
+        // Insert new_player event into activity_feed
+        await supabase.from("activity_feed").insert({
+          type: "new_player",
+          actor_id: data.user.id,
+          target_id: null,
+          reference_id: null,
+          metadata: { alias: alias.trim() },
+        });
       }
 
       toast.success("Bienvenido a la arena, blader!");

@@ -45,15 +45,15 @@ const TITLES: { minWins: number; title: DynamicTitle }[] = [
   {
     minWins: 0,
     title: {
-      label: "Zona roja",
+      label: "Recuperándose",
       color: "text-omega-red",
       bg: "bg-omega-red/15 border-omega-red/40",
     },
   },
 ];
 
-const NOVATO_TITLE: DynamicTitle = {
-  label: "Novato",
+const DEFAULT_TITLE: DynamicTitle = {
+  label: "Blader",
   color: "text-omega-muted",
   bg: "bg-omega-muted/15 border-omega-muted/40",
 };
@@ -65,7 +65,7 @@ const NOVATO_TITLE: DynamicTitle = {
  */
 export function getDynamicTitle(last10Results: boolean[]): DynamicTitle {
   if (last10Results.length === 0) {
-    return NOVATO_TITLE;
+    return DEFAULT_TITLE;
   }
 
   const wins = last10Results.filter(Boolean).length;
@@ -76,7 +76,7 @@ export function getDynamicTitle(last10Results: boolean[]): DynamicTitle {
     }
   }
 
-  return NOVATO_TITLE;
+  return DEFAULT_TITLE;
 }
 
 /**

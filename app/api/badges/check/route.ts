@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { checkBadges, type PlayerStats } from "@/lib/badges";
+import { checkBadges, BADGE_DEFINITIONS, type PlayerStats } from "@/lib/badges";
 
 /**
  * POST /api/badges/check
@@ -216,6 +216,26 @@ export async function POST(request: Request) {
           { error: "Error guardando medallas" },
           { status: 500 }
         );
+      }
+
+      // Insert badge_unlocked events into activity_feed
+      for (const badge_id of newBadges) {
+        const def = BADGE_DEFINITIONS.find((b) => b.id === badge_id);
+        try {
+          await adminSupabase.from("activity_feed").insert({
+            type: "badge_unlocked",
+            actor_id: player_id,
+            target_id: null,
+            reference_id: badge_id,
+            metadata: {
+              badge_name: def?.name ?? badge_id,
+              badge_icon: def?.icon ?? "",
+              badge_description: def?.description ?? "",
+            },
+          });
+        } catch (feedErr) {
+          console.error("Error inserting badge_unlocked feed event:", feedErr);
+        }
       }
     }
 

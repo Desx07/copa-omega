@@ -67,12 +67,34 @@ export async function PATCH(
       return Response.json({ error: error.message }, { status: 400 });
     }
 
-    // Fetch match to find both players for badge checking
+    // Fetch match to find both players for badge checking and feed
     const { data: matchData } = await supabase
       .from("matches")
-      .select("player1_id, player2_id")
+      .select("player1_id, player2_id, stars_bet")
       .eq("id", id)
       .single();
+
+    // Insert match_result event into activity_feed
+    if (matchData) {
+      try {
+        const adminSupabase = createAdminClient();
+        const loserId = matchData.player1_id === winner_id
+          ? matchData.player2_id
+          : matchData.player1_id;
+
+        await adminSupabase.from("activity_feed").insert({
+          type: "match_result",
+          actor_id: winner_id,
+          target_id: loserId,
+          reference_id: id,
+          metadata: {
+            stars_bet: matchData.stars_bet ?? 0,
+          },
+        });
+      } catch (feedErr) {
+        console.error("Error inserting match_result feed event:", feedErr);
+      }
+    }
 
     // Trigger badge checks for both players (fire-and-forget)
     if (matchData) {

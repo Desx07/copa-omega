@@ -15,6 +15,7 @@ import {
   Target,
   BarChart3,
   Calendar,
+  Search,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -23,7 +24,8 @@ import { StoreToggle } from "@/app/_components/store-toggle";
 import { StoreButton } from "@/app/_components/store-button";
 import { QrScannerButton } from "@/app/_components/qr-scanner";
 import { LogoutButtonFull } from "@/app/_components/logout-button-full";
-import ChallengeBell from "@/app/_components/challenge-bell";
+import NotificationBell from "@/app/_components/notification-bell";
+import ChatUnread from "@/app/_components/chat-unread";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -96,7 +98,7 @@ export default async function DashboardPage() {
 
         {/* Notification bell — top right */}
         <div className="relative flex justify-end mb-2">
-          <ChallengeBell userId={user.id} />
+          <NotificationBell userId={user.id} />
         </div>
 
         {/* Player identity row */}
@@ -201,18 +203,21 @@ export default async function DashboardPage() {
             <Target className="size-5 text-omega-purple" />
           </div>
           <p className="text-xs font-bold text-omega-text">Predicciones</p>
+          <p className="text-[10px] text-omega-muted leading-tight">Adiviná quién gana</p>
         </Link>
         <Link href="/combos" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-green/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-10 rounded-xl bg-omega-green/20 flex items-center justify-center group-hover:bg-omega-green/30 transition-colors">
             <Swords className="size-5 text-omega-green" />
           </div>
           <p className="text-xs font-bold text-omega-text">Combos</p>
+          <p className="text-[10px] text-omega-muted leading-tight">Compartí tu combo</p>
         </Link>
         <Link href="/polls" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-blue/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-10 rounded-xl bg-omega-blue/20 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors">
             <BarChart3 className="size-5 text-omega-blue" />
           </div>
           <p className="text-xs font-bold text-omega-text">Encuestas</p>
+          <p className="text-[10px] text-omega-muted leading-tight">Votá y opiná</p>
         </Link>
       </div>
 
@@ -224,14 +229,14 @@ export default async function DashboardPage() {
             <Activity className="size-5 text-white" />
           </div>
           <p className="font-bold text-white text-sm">Feed</p>
-          <p className="text-xs text-white/70 mt-0.5">Actividad reciente</p>
+          <p className="text-xs text-white/70 mt-0.5">Qué está pasando</p>
         </Link>
         <Link href="/challenges" className="group rounded-2xl bg-gradient-to-br from-omega-red to-omega-red/60 p-5 shadow-md shadow-omega-red/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
             <Zap className="size-5 text-white" />
           </div>
           <p className="font-bold text-white text-sm">Retos</p>
-          <p className="text-xs text-white/70 mt-0.5">Desafiar bladers</p>
+          <p className="text-xs text-white/70 mt-0.5">Desafiá a otros bladers</p>
         </Link>
         <Link href="/ranking" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-5 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
@@ -261,7 +266,15 @@ export default async function DashboardPage() {
           <p className="font-bold text-omega-text text-sm">Galeria</p>
           <p className="text-xs text-omega-muted mt-0.5">Fotos y videos</p>
         </Link>
-        <Link href="/chat" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow/60 p-5 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+        <Link href="/search" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-5 shadow-md shadow-omega-purple/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] border border-omega-border/30">
+          <div className="size-12 rounded-2xl bg-omega-purple/20 mb-3 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
+            <Search className="size-5 text-omega-purple" />
+          </div>
+          <p className="font-bold text-omega-text text-sm">Buscar</p>
+          <p className="text-xs text-omega-muted mt-0.5">Encontrá bladers</p>
+        </Link>
+        <Link href="/chat" className="relative group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow/60 p-5 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+          <ChatUnread userId={user.id} />
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
             <MessageSquare className="size-5 text-white" />
           </div>

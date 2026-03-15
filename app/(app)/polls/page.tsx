@@ -30,6 +30,7 @@ export default function PollsPage() {
   const [loading, setLoading] = useState(true);
   const [votingPoll, setVotingPoll] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
 
@@ -42,6 +43,7 @@ export default function PollsPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setIsAuthenticated(true);
         const { data: player } = await supabase
           .from("players")
           .select("is_admin")
@@ -100,7 +102,7 @@ export default function PollsPage() {
 
     setCreating(true);
     try {
-      const res = await fetch("/api/admin/polls", {
+      const res = await fetch("/api/polls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,7 +151,7 @@ export default function PollsPage() {
               <p className="text-xs text-omega-muted">Vota y ve los resultados</p>
             </div>
           </div>
-          {isAdmin && (
+          {isAuthenticated && (
             <button
               onClick={() => setShowCreate(!showCreate)}
               className="omega-btn omega-btn-sm bg-omega-blue text-white rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-1.5 hover:bg-omega-blue-glow transition-colors"
@@ -161,8 +163,8 @@ export default function PollsPage() {
         </div>
       </div>
 
-      {/* Admin create poll form */}
-      {showCreate && isAdmin && (
+      {/* Create poll form — any authenticated user */}
+      {showCreate && isAuthenticated && (
         <div className="px-4">
           <form onSubmit={handleCreatePoll} className="omega-card p-4 space-y-3">
             <h3 className="text-sm font-bold text-omega-text">Nueva encuesta</h3>
