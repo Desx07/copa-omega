@@ -49,7 +49,9 @@
       "Bash(npx tsc:*)",
       "WebFetch(domain:www.beybladexmeta.com)",
       "WebFetch(domain:worldbeyblade.org)",
-      "WebFetch(domain:malloftoys.com)"
+      "WebFetch(domain:malloftoys.com)",
+      "Bash(SERVICE_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjZXlwZ3BneHVzZWJpYW9md3BiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzQzNjMzNCwiZXhwIjoyMDg5MDEyMzM0fQ.nvo7MmPmpnP32nVS2Kihls8pYAjye6vwxSjzYQqnyvI\"\nURL=\"https://dceypgpgxusebiaofwpb.supabase.co\"\n\ncurl -s -X PATCH \"$URL/rest/v1/badges?id=eq.executioner\" \\\\\n  -H \"Authorization: Bearer $SERVICE_KEY\" \\\\\n  -H \"apikey: $SERVICE_KEY\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"name\": \"Verdugo\", \"description\": \"Ganá 4 o más batallas en un mismo torneo\"}')",
+      "Bash(SERVICE_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjZXlwZ3BneHVzZWJpYW9md3BiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzQzNjMzNCwiZXhwIjoyMDg5MDEyMzM0fQ.nvo7MmPmpnP32nVS2Kihls8pYAjye6vwxSjzYQqnyvI\"\nURL=\"https://dceypgpgxusebiaofwpb.supabase.co\"\n\ncurl -s -X PATCH \"$URL/rest/v1/badges?id=eq.executioner\" \\\\\n  -H \"Authorization: Bearer $SERVICE_KEY\" \\\\\n  -H \"apikey: $SERVICE_KEY\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -H \"Prefer: return=representation\" \\\\\n  -d \"{\\\\\"name\\\\\": \\\\\"Verdugo\\\\\", \\\\\"description\\\\\": \\\\\"Gana 4 o mas batallas en un mismo torneo\\\\\"}\")"
     ]
   }
 }
