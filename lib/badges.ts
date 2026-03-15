@@ -16,6 +16,10 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
   { id: "sniper", name: "Francotirador", description: "Win rate mayor a 80% con mínimo 10 batallas", icon: "\u{1F3AF}" },
   { id: "legend", name: "Leyenda", description: "Ganá 3 torneos en total", icon: "\u{1F451}" },
   { id: "veteran", name: "Veterano", description: "Participá en 5 torneos", icon: "\u{1F91D}" },
+  // Login streak badges
+  { id: "streak_login_3", name: "Constante", description: "3 dias seguidos entrando a la app", icon: "\u{1F4C5}" },
+  { id: "streak_login_7", name: "Dedicado", description: "7 dias seguidos entrando a la app", icon: "\u{1F5D3}\uFE0F" },
+  { id: "streak_login_30", name: "Leyenda Diaria", description: "30 dias seguidos sin faltar", icon: "\u{1F48E}" },
 ];
 
 export interface PlayerStats {
@@ -25,6 +29,7 @@ export interface PlayerStats {
   tournaments_won: number;
   tournaments_played: number;
   tournament_eliminations: number; // max eliminations in a single tournament
+  login_streak?: number; // current daily login streak
 }
 
 /**
@@ -75,6 +80,18 @@ export function checkBadges(stats: PlayerStats): string[] {
   // veteran: tournaments_played >= 5
   if (stats.tournaments_played >= 5) {
     unlocked.push("veteran");
+  }
+
+  // Login streak badges
+  const loginStreak = stats.login_streak ?? 0;
+  if (loginStreak >= 3) {
+    unlocked.push("streak_login_3");
+  }
+  if (loginStreak >= 7) {
+    unlocked.push("streak_login_7");
+  }
+  if (loginStreak >= 30) {
+    unlocked.push("streak_login_30");
   }
 
   return unlocked;

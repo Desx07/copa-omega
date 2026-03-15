@@ -12,11 +12,14 @@ import {
   Flame,
   Crown,
   Calendar,
+  Users,
 } from "lucide-react";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
+import { computeTitleFromMatches } from "@/lib/dynamic-titles";
 import BadgesDisplay from "@/app/_components/badges-display";
 import TournamentBadgesDisplay from "@/app/_components/tournament-badges-display";
 import PodiumCardsAccordion from "@/app/_components/podium-cards-accordion";
+import ChallengeButton from "@/app/_components/challenge-button";
 
 const beyTypeConfig = {
   attack: { label: "Ataque", icon: Swords, color: "text-omega-red", bg: "bg-omega-red/10 border-omega-red/30" },
@@ -32,6 +35,8 @@ export default async function PlayerProfilePage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
+  const isOwnProfile = currentUser?.id === id;
 
   const [playerResult, beysResult, matchesResult, badgesResult, tournamentBadgesResult] = await Promise.all([
     supabase
@@ -121,6 +126,29 @@ export default async function PlayerProfilePage({
   const accentConfig = ACCENT_COLORS[(player as unknown as { accent_color: string }).accent_color] || ACCENT_COLORS.purple;
   const memberSince = new Date(player.created_at).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
 
+  // Dynamic title from last 10 matches
+  const dynamicTitle = computeTitleFromMatches(matches.slice(0, 10), id, 10);
+
+  // Head-to-Head stats (only if logged in and viewing another player's profile)
+  let h2h: { myWins: number; theirWins: number; total: number; lastDate: string | null } | null = null;
+  if (currentUser && !isOwnProfile) {
+    const h2hMatches = matches.filter(
+      (m) =>
+        (m.player1_id === currentUser.id && m.player2_id === id) ||
+        (m.player1_id === id && m.player2_id === currentUser.id)
+    );
+
+    if (h2hMatches.length > 0) {
+      const myWins = h2hMatches.filter((m) => m.winner_id === currentUser.id).length;
+      const theirWins = h2hMatches.filter((m) => m.winner_id === id).length;
+      const lastDate = h2hMatches[0]?.completed_at
+        ? new Date(h2hMatches[0].completed_at).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })
+        : null;
+
+      h2h = { myWins, theirWins, total: h2hMatches.length, lastDate };
+    }
+  }
+
   return (
     <div className="mx-auto max-w-md pb-10 space-y-5">
       {/* ═══ HERO BANNER ═══ */}
@@ -156,6 +184,12 @@ export default async function PlayerProfilePage({
             )}
             {player.alias}
           </p>
+
+          {/* Dynamic title */}
+          <span className={`inline-flex items-center gap-1 px-3 py-0.5 rounded-full border text-xs font-bold mt-1 ${dynamicTitle.bg} ${dynamicTitle.color}`}>
+            <Flame className="size-3" />
+            {dynamicTitle.label}
+          </span>
 
           {rank > 0 && (
             <p className="text-xs text-omega-muted mt-1">
@@ -225,7 +259,67 @@ export default async function PlayerProfilePage({
           <Calendar className="size-3" />
           Blader desde {memberSince}
         </p>
+
+        {/* Challenge button — only show on other players' profiles */}
+        {!isOwnProfile && currentUser && !player.is_eliminated && (
+          <div className="relative flex justify-center mt-3">
+            <ChallengeButton targetId={id} targetAlias={player.alias} />
+          </div>
+        )}
       </div>
+
+      {/* ═══ HEAD-TO-HEAD ═══ */}
+      {h2h && (
+        <div className="px-4">
+          <div className="omega-card overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2">
+              <Users className="size-4 text-omega-purple" />
+              <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">vs Yo</h2>
+            </div>
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                {/* My side */}
+                <div className="flex-1 text-center">
+                  <p className="text-3xl font-black text-omega-green">{h2h.myWins}</p>
+                  <p className="text-xs text-omega-muted font-bold mt-1">Mis victorias</p>
+                </div>
+
+                {/* Center divider */}
+                <div className="flex flex-col items-center gap-1 px-4">
+                  <Swords className="size-5 text-omega-muted/30" />
+                  <span className="text-xs font-black text-omega-muted">{h2h.total} partidas</span>
+                </div>
+
+                {/* Their side */}
+                <div className="flex-1 text-center">
+                  <p className="text-3xl font-black text-omega-red">{h2h.theirWins}</p>
+                  <p className="text-xs text-omega-muted font-bold mt-1">Sus victorias</p>
+                </div>
+              </div>
+
+              {/* Win bar */}
+              {h2h.total > 0 && (
+                <div className="mt-3 h-2 rounded-full overflow-hidden flex bg-omega-dark">
+                  <div
+                    className="h-full bg-omega-green rounded-l-full"
+                    style={{ width: `${(h2h.myWins / h2h.total) * 100}%` }}
+                  />
+                  <div
+                    className="h-full bg-omega-red rounded-r-full"
+                    style={{ width: `${(h2h.theirWins / h2h.total) * 100}%` }}
+                  />
+                </div>
+              )}
+
+              {h2h.lastDate && (
+                <p className="text-[11px] text-omega-muted/60 text-center mt-2">
+                  Ultima partida: {h2h.lastDate}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tournament Winner Badges */}
       {tournamentBadges.length > 0 && (

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ChatBot } from "@/app/_components/chat-bot";
 import BadgeNotification from "@/app/_components/badge-notification";
 import { PresenceProvider } from "@/app/_components/presence-provider";
+import { StreakTracker } from "@/app/_components/streak-tracker";
 
 export default async function AppLayout({
   children,
@@ -42,6 +43,7 @@ export default async function AppLayout({
 
         {children}
 
+        <StreakTracker />
         <BadgeNotification />
         <ChatBot />
       </div>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function PATCH(
   request: Request,
@@ -86,6 +87,81 @@ export async function PATCH(
           },
           body: JSON.stringify({ player_id: playerId }),
         }).catch(() => {});
+      }
+    }
+
+    // Resolve predictions for this match
+    try {
+      const adminSupabase = createAdminClient();
+      const { data: predictions } = await adminSupabase
+        .from("predictions")
+        .select("id, predictor_id, predicted_winner_id")
+        .eq("match_id", id)
+        .is("is_correct", null);
+
+      if (predictions && predictions.length > 0) {
+        const predictorIds = [...new Set(predictions.map((p) => p.predictor_id))];
+
+        for (const pred of predictions) {
+          const isCorrect = pred.predicted_winner_id === winner_id;
+          await adminSupabase
+            .from("predictions")
+            .update({ is_correct: isCorrect })
+            .eq("id", pred.id);
+        }
+
+        // Update prediction stats for each predictor
+        for (const pid of predictorIds) {
+          const { count: totalCount } = await adminSupabase
+            .from("predictions")
+            .select("id", { count: "exact", head: true })
+            .eq("predictor_id", pid)
+            .not("is_correct", "is", null);
+
+          const { count: correctCount } = await adminSupabase
+            .from("predictions")
+            .select("id", { count: "exact", head: true })
+            .eq("predictor_id", pid)
+            .eq("is_correct", true);
+
+          await adminSupabase
+            .from("players")
+            .update({
+              predictions_total: totalCount ?? 0,
+              predictions_correct: correctCount ?? 0,
+            })
+            .eq("id", pid);
+        }
+      }
+    } catch (predErr) {
+      console.error("Error resolving predictions:", predErr);
+      // Non-blocking — match is still resolved
+    }
+
+    // Update dynamic title for both players
+    if (matchData) {
+      try {
+        const adminSupabase = createAdminClient();
+        for (const playerId of [matchData.player1_id, matchData.player2_id].filter(Boolean)) {
+          const { data: last10 } = await adminSupabase
+            .from("matches")
+            .select("winner_id")
+            .or(`player1_id.eq.${playerId},player2_id.eq.${playerId}`)
+            .eq("status", "completed")
+            .order("completed_at", { ascending: false })
+            .limit(10);
+
+          if (last10) {
+            const { computeTitleFromMatches } = await import("@/lib/dynamic-titles");
+            const title = computeTitleFromMatches(last10, playerId, 10);
+            await adminSupabase
+              .from("players")
+              .update({ current_title: title.label })
+              .eq("id", playerId);
+          }
+        }
+      } catch (titleErr) {
+        console.error("Error updating dynamic titles:", titleErr);
       }
     }
 

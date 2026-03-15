@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     // Fetch the player's stats
     const { data: player, error: playerError } = await supabase
       .from("players")
-      .select("wins, losses")
+      .select("wins, losses, current_login_streak")
       .eq("id", player_id)
       .single();
 
@@ -176,6 +176,7 @@ export async function POST(request: Request) {
       tournaments_won: tournamentsWon,
       tournaments_played: tournamentsPlayed,
       tournament_eliminations: maxEliminations,
+      login_streak: player.current_login_streak ?? 0,
     };
 
     // Determine which badges should be unlocked

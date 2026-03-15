@@ -10,23 +10,30 @@ import {
   ClipboardList,
   MessageSquare,
   Image,
+  Zap,
+  Activity,
+  Target,
+  BarChart3,
+  Calendar,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
+import { computeTitleFromMatches } from "@/lib/dynamic-titles";
 import { StoreToggle } from "@/app/_components/store-toggle";
 import { StoreButton } from "@/app/_components/store-button";
 import { QrScannerButton } from "@/app/_components/qr-scanner";
 import { LogoutButtonFull } from "@/app/_components/logout-button-full";
+import ChallengeBell from "@/app/_components/challenge-bell";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [playerResult, matchesResult, allPlayersResult] = await Promise.all([
+  const [playerResult, matchesResult, allPlayersResult, last10Result] = await Promise.all([
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at, current_login_streak, max_login_streak")
       .eq("id", user.id)
       .single(),
     supabase
@@ -43,6 +50,14 @@ export default async function DashboardPage() {
       .order("stars", { ascending: false })
       .order("wins", { ascending: false })
       .order("created_at", { ascending: true }),
+    // Last 10 matches for dynamic title
+    supabase
+      .from("matches")
+      .select("winner_id")
+      .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
+      .eq("status", "completed")
+      .order("completed_at", { ascending: false })
+      .limit(10),
   ]);
 
   const player = playerResult.data;
@@ -64,6 +79,13 @@ export default async function DashboardPage() {
 
   const accentConfig = ACCENT_COLORS[player.accent_color] || ACCENT_COLORS.purple;
 
+  // Dynamic title from last 10 matches
+  const last10Matches = last10Result.data ?? [];
+  const dynamicTitle = computeTitleFromMatches(last10Matches, user.id, 10);
+
+  // Login streak
+  const loginStreak = (player as unknown as { current_login_streak: number }).current_login_streak ?? 0;
+
   return (
     <div className="max-w-lg mx-auto pb-10 space-y-5">
       {/* ═══ HERO BANNER ═══ */}
@@ -71,6 +93,11 @@ export default async function DashboardPage() {
         {/* Decorative orbs */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-omega-purple/20 rounded-full blur-[80px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-omega-blue/15 rounded-full blur-[60px] pointer-events-none" />
+
+        {/* Notification bell — top right */}
+        <div className="relative flex justify-end mb-2">
+          <ChallengeBell userId={user.id} />
+        </div>
 
         {/* Player identity row */}
         <div className="relative flex items-center gap-4">
@@ -98,8 +125,22 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* Dynamic title + login streak badges */}
+        <div className="relative flex items-center justify-center gap-2 mt-3 flex-wrap">
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${dynamicTitle.bg} ${dynamicTitle.color}`}>
+            <Flame className="size-3.5" />
+            {dynamicTitle.label}
+          </span>
+          {loginStreak >= 1 && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border bg-orange-400/15 border-orange-400/40 text-xs font-bold text-orange-400">
+              <Calendar className="size-3.5" />
+              {loginStreak} {loginStreak === 1 ? "dia" : "dias"}
+            </span>
+          )}
+        </div>
+
         {/* Stats strip inside hero */}
-        <div className="relative flex items-center justify-around rounded-xl bg-omega-dark/60 border border-white/[0.06] py-2.5 px-2 mt-5">
+        <div className="relative flex items-center justify-around rounded-xl bg-omega-dark/60 border border-white/[0.06] py-2.5 px-2 mt-4">
           {rank > 0 && (
             <>
               <div className="flex items-center gap-1.5 text-sm">
@@ -153,9 +194,45 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ═══ QUICK ACTIONS — 2x2 grid, same size ═══ */}
+      {/* ═══ ENGAGEMENT QUICK LINKS — compact row ═══ */}
+      <div className="grid grid-cols-3 gap-2 px-4">
+        <Link href="/predictions" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-10 rounded-xl bg-omega-purple/20 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
+            <Target className="size-5 text-omega-purple" />
+          </div>
+          <p className="text-xs font-bold text-omega-text">Predicciones</p>
+        </Link>
+        <Link href="/combos" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-green/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-10 rounded-xl bg-omega-green/20 flex items-center justify-center group-hover:bg-omega-green/30 transition-colors">
+            <Swords className="size-5 text-omega-green" />
+          </div>
+          <p className="text-xs font-bold text-omega-text">Combos</p>
+        </Link>
+        <Link href="/polls" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-blue/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-10 rounded-xl bg-omega-blue/20 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors">
+            <BarChart3 className="size-5 text-omega-blue" />
+          </div>
+          <p className="text-xs font-bold text-omega-text">Encuestas</p>
+        </Link>
+      </div>
+
+      {/* ═══ QUICK ACTIONS — grid ═══ */}
       <div className="grid grid-cols-2 gap-3 px-4">
         <QrScannerButton />
+        <Link href="/feed" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-5 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+            <Activity className="size-5 text-white" />
+          </div>
+          <p className="font-bold text-white text-sm">Feed</p>
+          <p className="text-xs text-white/70 mt-0.5">Actividad reciente</p>
+        </Link>
+        <Link href="/challenges" className="group rounded-2xl bg-gradient-to-br from-omega-red to-omega-red/60 p-5 shadow-md shadow-omega-red/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+            <Zap className="size-5 text-white" />
+          </div>
+          <p className="font-bold text-white text-sm">Retos</p>
+          <p className="text-xs text-white/70 mt-0.5">Desafiar bladers</p>
+        </Link>
         <Link href="/ranking" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-5 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
             <Trophy className="size-5 text-white" />
@@ -163,12 +240,12 @@ export default async function DashboardPage() {
           <p className="font-bold text-white text-sm">Ranking</p>
           <p className="text-xs text-white/70 mt-0.5">Ver posiciones</p>
         </Link>
-        <Link href="/profile" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-5 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-            <User className="size-5 text-white" />
+        <Link href="/profile" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-5 shadow-md shadow-omega-purple/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] border border-omega-border/30">
+          <div className="size-12 rounded-2xl bg-omega-purple/20 mb-3 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
+            <User className="size-5 text-omega-purple" />
           </div>
-          <p className="font-bold text-white text-sm">Perfil</p>
-          <p className="text-xs text-white/70 mt-0.5">Personalizar</p>
+          <p className="font-bold text-omega-text text-sm">Perfil</p>
+          <p className="text-xs text-omega-muted mt-0.5">Personalizar</p>
         </Link>
         <Link href="/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-green to-omega-green/60 p-5 shadow-md shadow-omega-green/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
@@ -203,7 +280,7 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Swords className="size-4 text-omega-blue" />
-            <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Mis últimas batallas</h2>
+            <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Mis ultimas batallas</h2>
           </div>
           <span className="omega-badge omega-badge-blue">{matches.length}</span>
         </div>
@@ -211,7 +288,7 @@ export default async function DashboardPage() {
         {matches.length === 0 ? (
           <div className="omega-card p-10 text-center space-y-3">
             <Swords className="size-10 text-omega-muted/20 mx-auto" />
-            <p className="text-sm text-omega-muted/70">Todavía no tenes batallas</p>
+            <p className="text-sm text-omega-muted/70">Todavia no tenes batallas</p>
           </div>
         ) : (
           <div className="space-y-2">
