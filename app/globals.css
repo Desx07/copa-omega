@@ -289,6 +289,18 @@ body {
 }
 
 /* ═══════════════════════════════════════════
+   CAROUSEL
+   ═══════════════════════════════════════════ */
+
+.carousel-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.carousel-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════
    REDUCED MOTION
    ═══════════════════════════════════════════ */
 

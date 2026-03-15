@@ -142,6 +142,16 @@ export async function PATCH(
       allowedFields.description = body.description;
     }
 
+    if (body.logo_url !== undefined) {
+      if (body.logo_url !== null && typeof body.logo_url !== "string") {
+        return Response.json(
+          { error: "logo_url debe ser un string o null" },
+          { status: 400 }
+        );
+      }
+      allowedFields.logo_url = body.logo_url;
+    }
+
     if (body.max_participants !== undefined) {
       const max = Number(body.max_participants);
       if (!Number.isInteger(max) || max < 2 || max > 256) {

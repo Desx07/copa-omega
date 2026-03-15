@@ -223,6 +223,34 @@ export async function POST(
       );
     }
 
+    // ── Grant tournament badges (top 3) ──
+    const badgesToInsert: {
+      player_id: string;
+      tournament_id: string;
+      position: number;
+    }[] = [];
+
+    for (const p of pointsToInsert) {
+      if (p.position != null && p.position >= 1 && p.position <= 3) {
+        badgesToInsert.push({
+          player_id: p.player_id,
+          tournament_id: tournamentId,
+          position: p.position,
+        });
+      }
+    }
+
+    if (badgesToInsert.length > 0) {
+      const { error: badgeError } = await adminSupabase
+        .from("tournament_badges")
+        .upsert(badgesToInsert, { onConflict: "player_id,tournament_id" });
+
+      if (badgeError) {
+        // Non-critical: log and continue
+        console.error("Error inserting tournament badges:", badgeError);
+      }
+    }
+
     // Trigger badge checks for all participants
     const baseUrl = new URL(_request.url).origin;
     for (const p of participants) {

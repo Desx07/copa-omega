@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, description, format, max_participants, top_cut } = body;
+    const { name, description, format, max_participants, top_cut, logo_url } = body;
 
     // Validate required fields
     if (!name || !format || max_participants == null) {
@@ -123,6 +123,7 @@ export async function POST(request: Request) {
         format,
         max_participants,
         top_cut: top_cut ?? null,
+        logo_url: logo_url || null,
         created_by: user.id,
       })
       .select()

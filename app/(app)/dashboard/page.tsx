@@ -8,6 +8,8 @@ import {
   Shield,
   Package,
   ClipboardList,
+  MessageSquare,
+  Image,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -175,6 +177,20 @@ export default async function DashboardPage() {
           <p className="font-bold text-white text-sm">Torneos</p>
           <p className="text-xs text-white/70 mt-0.5">Competir</p>
         </Link>
+        <Link href="/galeria" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-5 shadow-md shadow-omega-purple/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] border border-omega-border/30">
+          <div className="size-12 rounded-2xl bg-omega-purple/20 mb-3 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
+            <Image className="size-5 text-omega-purple" />
+          </div>
+          <p className="font-bold text-omega-text text-sm">Galeria</p>
+          <p className="text-xs text-omega-muted mt-0.5">Fotos y videos</p>
+        </Link>
+        <Link href="/chat" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow/60 p-5 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+            <MessageSquare className="size-5 text-white" />
+          </div>
+          <p className="font-bold text-white text-sm">Chat General</p>
+          <p className="text-xs text-white/70 mt-0.5">Habla con otros bladers</p>
+        </Link>
       </div>
 
       {/* ═══ STORE BUTTON — dynamic, outside the grid ═══ */}
@@ -260,6 +276,12 @@ export default async function DashboardPage() {
                 <ClipboardList className="size-5 text-white" />
               </div>
               <p className="text-xs font-bold text-white">Pedidos</p>
+            </Link>
+            <Link href="/admin/carousel" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Image className="size-5 text-white" />
+              </div>
+              <p className="text-xs font-bold text-white">Carousel</p>
             </Link>
           </div>
           <StoreToggle />

@@ -10,6 +10,7 @@ interface EditTournamentProps {
   currentName: string;
   currentDescription: string | null;
   currentMaxParticipants: number;
+  currentLogoUrl: string | null;
   participantCount: number;
   status: string;
 }
@@ -19,6 +20,7 @@ export default function EditTournament({
   currentName,
   currentDescription,
   currentMaxParticipants,
+  currentLogoUrl,
   participantCount,
   status,
 }: EditTournamentProps) {
@@ -28,6 +30,7 @@ export default function EditTournament({
   const [name, setName] = useState(currentName);
   const [description, setDescription] = useState(currentDescription ?? "");
   const [maxParticipants, setMaxParticipants] = useState(currentMaxParticipants);
+  const [logoUrl, setLogoUrl] = useState(currentLogoUrl ?? "");
 
   if (status !== "registration") return null;
 
@@ -41,6 +44,8 @@ export default function EditTournament({
         body.description = description || null;
       if (maxParticipants !== currentMaxParticipants)
         body.max_participants = maxParticipants;
+      if (logoUrl !== (currentLogoUrl ?? ""))
+        body.logo_url = logoUrl.trim() || null;
 
       if (Object.keys(body).length === 0) {
         setEditing(false);
@@ -133,6 +138,30 @@ export default function EditTournament({
             </p>
           )}
         </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-omega-muted uppercase tracking-wider block mb-1">
+            URL del logo (imagen)
+          </label>
+          <input
+            type="url"
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            className="omega-input w-full"
+            placeholder="https://ejemplo.com/logo.png"
+          />
+          {logoUrl && (
+            <div className="mt-2 flex items-center gap-2">
+              <img
+                src={logoUrl}
+                alt="Preview"
+                className="size-10 rounded-lg object-cover border border-omega-border"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+              <span className="text-[10px] text-omega-muted">Vista previa</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
@@ -154,6 +183,7 @@ export default function EditTournament({
             setName(currentName);
             setDescription(currentDescription ?? "");
             setMaxParticipants(currentMaxParticipants);
+            setLogoUrl(currentLogoUrl ?? "");
           }}
           disabled={loading}
           className="omega-btn omega-btn-secondary px-4 py-2.5 text-sm shadow-sm"

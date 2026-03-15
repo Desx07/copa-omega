@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Star, Trophy, Crown, Flame, Swords, ArrowLeft, Medal } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { OnlineDot } from "@/app/_components/online-dot";
 
 export default async function RankingPage() {
   const supabase = await createClient();
@@ -220,6 +221,7 @@ export default async function RankingPage() {
                         <span className={`text-sm font-bold truncate ${player.is_eliminated ? "text-omega-muted line-through" : "text-omega-text"}`}>
                           {player.alias}
                         </span>
+                        <OnlineDot playerId={player.id} />
                         {player.is_eliminated && (
                           <span className="size-1.5 rounded-full bg-omega-red shrink-0" />
                         )}
@@ -444,9 +446,12 @@ function PodiumCard({ player, rank, streak }: PodiumCardProps) {
         </div>
 
         {/* Alias */}
-        <p className={`text-sm font-black truncate ${player.is_eliminated ? "text-omega-muted line-through" : "text-omega-text"}`}>
-          {player.alias}
-        </p>
+        <div className="flex items-center justify-center gap-1.5">
+          <p className={`text-sm font-black truncate ${player.is_eliminated ? "text-omega-muted line-through" : "text-omega-text"}`}>
+            {player.alias}
+          </p>
+          <OnlineDot playerId={player.id} />
+        </div>
 
         {/* Stars */}
         <div className="flex items-center justify-center gap-1">

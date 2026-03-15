@@ -16,6 +16,7 @@ import QrDisplay from "@/app/(app)/tournaments/_components/qr-display";
 import TournamentAdminActions from "./_components/tournament-admin-actions";
 import ManualRegister from "./_components/manual-register";
 import EditTournament from "./_components/edit-tournament";
+import TournamentMediaManager from "./_components/tournament-media-manager";
 
 const FORMAT_LABELS: Record<string, string> = {
   round_robin: "Round Robin",
@@ -201,6 +202,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
           currentName={tournament.name}
           currentDescription={tournament.description}
           currentMaxParticipants={tournament.max_participants}
+          currentLogoUrl={tournament.logo_url}
           participantCount={participants.length}
           status={tournament.status}
         />
@@ -251,13 +253,22 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
           showPoints={isRoundBased}
         />
 
+        {/* Media gallery management */}
+        <TournamentMediaManager tournamentId={tournament.id} />
+
         {/* Link to public view */}
-        <div className="text-center pt-2">
+        <div className="text-center pt-2 space-y-1">
           <Link
             href={`/tournaments/${tournament.id}`}
-            className="text-xs text-omega-muted hover:text-omega-blue transition-colors"
+            className="text-xs text-omega-muted hover:text-omega-blue transition-colors block"
           >
-            Ver página publica del torneo &rarr;
+            Ver pagina publica del torneo &rarr;
+          </Link>
+          <Link
+            href={`/galeria/${tournament.id}`}
+            className="text-xs text-omega-muted hover:text-omega-purple transition-colors block"
+          >
+            Ver galeria publica &rarr;
           </Link>
         </div>
       </div>

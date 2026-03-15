@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 import BadgesDisplay from "@/app/_components/badges-display";
+import TournamentBadgesDisplay from "@/app/_components/tournament-badges-display";
 
 const beyTypeConfig = {
   attack: { label: "Ataque", icon: Swords, color: "text-omega-red", bg: "bg-omega-red/10 border-omega-red/30" },
@@ -31,7 +32,7 @@ export default async function PlayerProfilePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [playerResult, beysResult, matchesResult, badgesResult] = await Promise.all([
+  const [playerResult, beysResult, matchesResult, badgesResult, tournamentBadgesResult] = await Promise.all([
     supabase
       .from("players")
       .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_judge, avatar_url, created_at, tagline, hide_beys, badge, accent_color")
@@ -54,6 +55,11 @@ export default async function PlayerProfilePage({
       .from("player_badges")
       .select("badge_id")
       .eq("player_id", id),
+    supabase
+      .from("tournament_badges")
+      .select("position, tournament:tournaments!tournament_id(name, logo_url)")
+      .eq("player_id", id)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (!playerResult.data) {
@@ -64,6 +70,14 @@ export default async function PlayerProfilePage({
   const beys = beysResult.data ?? [];
   const matches = matchesResult.data ?? [];
   const earnedBadgeIds = (badgesResult.data ?? []).map((b) => b.badge_id);
+  const tournamentBadges = (tournamentBadgesResult.data ?? []).map((tb) => {
+    const tournament = tb.tournament as unknown as { name: string; logo_url: string | null };
+    return {
+      tournament_name: tournament?.name ?? "Torneo",
+      logo_url: tournament?.logo_url ?? null,
+      position: tb.position,
+    };
+  });
 
   // Calculate win streak
   let currentStreak = 0;
@@ -210,6 +224,13 @@ export default async function PlayerProfilePage({
           Blader desde {memberSince}
         </p>
       </div>
+
+      {/* Tournament Winner Badges */}
+      {tournamentBadges.length > 0 && (
+        <div className="px-4">
+          <TournamentBadgesDisplay badges={tournamentBadges} />
+        </div>
+      )}
 
       {/* Badges / Achievements */}
       {earnedBadgeIds.length > 0 && (

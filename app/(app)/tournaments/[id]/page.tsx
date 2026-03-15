@@ -14,6 +14,7 @@ import {
   Medal,
   Star,
 } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 import BracketView from "@/app/(app)/tournaments/_components/bracket-view";
 import ParticipantsList from "@/app/(app)/tournaments/_components/participants-list";
 
@@ -65,8 +66,8 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch tournament + participants + matches + points in parallel
-  const [tournamentResult, participantsResult, matchesResult, pointsResult] =
+  // Fetch tournament + participants + matches + points + media count in parallel
+  const [tournamentResult, participantsResult, matchesResult, pointsResult, mediaCountResult] =
     await Promise.all([
       supabase.from("tournaments").select("*").eq("id", id).single(),
       supabase
@@ -89,6 +90,10 @@ export default async function TournamentDetailPage({ params }: PageProps) {
         .select("player_id, points, position, player:players!player_id(alias, avatar_url)")
         .eq("tournament_id", id)
         .order("position", { ascending: true }),
+      supabase
+        .from("tournament_media")
+        .select("id", { count: "exact", head: true })
+        .eq("tournament_id", id),
     ]);
 
   const tournament = tournamentResult.data;
@@ -122,6 +127,7 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     },
   }));
 
+  const mediaCount = mediaCountResult.count ?? 0;
   const status = STATUS_CONFIG[tournament.status];
   const isRoundBased =
     tournament.format === "round_robin" || tournament.format === "swiss";
@@ -221,13 +227,22 @@ export default async function TournamentDetailPage({ params }: PageProps) {
           {/* Tournament header info */}
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-black text-omega-text">
-                  {tournament.name}
-                </h1>
-                <p className="text-[11px] text-omega-muted uppercase tracking-wider font-medium mt-0.5">
-                  {FORMAT_LABELS[tournament.format]}
-                </p>
+              <div className="min-w-0 flex-1 flex items-center gap-3">
+                {tournament.logo_url && (
+                  <img
+                    src={tournament.logo_url}
+                    alt=""
+                    className="size-12 rounded-xl object-cover border border-omega-border shadow-sm shrink-0"
+                  />
+                )}
+                <div className="min-w-0">
+                  <h1 className="text-2xl font-black text-omega-text">
+                    {tournament.name}
+                  </h1>
+                  <p className="text-[11px] text-omega-muted uppercase tracking-wider font-medium mt-0.5">
+                    {FORMAT_LABELS[tournament.format]}
+                  </p>
+                </div>
               </div>
               <span className={`${status.badgeClass} gap-1.5 shrink-0`}>
                 {status.icon}
@@ -437,6 +452,17 @@ export default async function TournamentDetailPage({ params }: PageProps) {
               participantCount={participants.length}
             />
           </section>
+        )}
+
+        {/* Gallery link */}
+        {mediaCount > 0 && (
+          <Link
+            href={`/galeria/${tournament.id}`}
+            className="omega-btn omega-btn-secondary w-full px-4 py-3 text-sm shadow-sm hover:shadow-md"
+          >
+            <ImageIcon className="size-4" />
+            Ver galeria ({mediaCount} {mediaCount === 1 ? "archivo" : "archivos"})
+          </Link>
         )}
 
         {/* Participants */}

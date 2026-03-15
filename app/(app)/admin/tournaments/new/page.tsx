@@ -32,6 +32,7 @@ export default function NewTournamentPage() {
   const [format, setFormat] = useState<string>("single_elimination");
   const [maxParticipants, setMaxParticipants] = useState(32);
   const [topCut, setTopCut] = useState<number | null>(null);
+  const [logoUrl, setLogoUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
   const showTopCut = format === "round_robin" || format === "swiss";
@@ -61,6 +62,7 @@ export default function NewTournamentPage() {
           format,
           max_participants: maxParticipants,
           top_cut: showTopCut ? topCut : null,
+          logo_url: logoUrl.trim() || null,
         }),
       });
 
@@ -244,6 +246,38 @@ export default function NewTournamentPage() {
               </div>
             </div>
           )}
+
+          {/* Logo URL */}
+          <div className="space-y-2">
+            <label
+              htmlFor="logoUrl"
+              className="text-xs font-bold text-omega-muted uppercase tracking-wider"
+            >
+              URL del logo (imagen){" "}
+              <span className="text-omega-muted/50 normal-case font-normal">
+                (opcional)
+              </span>
+            </label>
+            <input
+              id="logoUrl"
+              type="url"
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+              placeholder="https://ejemplo.com/logo.png"
+              className="omega-input"
+            />
+            {logoUrl && (
+              <div className="flex items-center gap-2">
+                <img
+                  src={logoUrl}
+                  alt="Preview"
+                  className="size-10 rounded-lg object-cover border border-omega-border"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <span className="text-[10px] text-omega-muted">Vista previa</span>
+              </div>
+            )}
+          </div>
 
           {/* Preview */}
           <div className="rounded-2xl bg-gradient-to-br from-omega-card to-omega-surface border border-white/10 p-4 space-y-2 shadow-sm">

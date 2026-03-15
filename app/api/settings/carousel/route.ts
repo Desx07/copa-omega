@@ -1,0 +1,57 @@
+import { createClient } from "@/lib/supabase/server";
+
+// GET — check carousel status
+export async function GET() {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", "carousel_enabled")
+    .single();
+
+  const enabled = data?.value === "true";
+  return Response.json({ enabled });
+}
+
+// PATCH — toggle carousel (admin only)
+export async function PATCH(request: Request) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return Response.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  const { data: admin } = await supabase
+    .from("players")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+
+  if (!admin?.is_admin) {
+    return Response.json({ error: "Solo administradores" }, { status: 403 });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Body invalido" }, { status: 400 });
+  }
+
+  const enabled = body.enabled === true;
+
+  const { error } = await supabase
+    .from("app_settings")
+    .update({ value: enabled ? "true" : "false", updated_at: new Date().toISOString() })
+    .eq("key", "carousel_enabled");
+
+  if (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+
+  return Response.json({ enabled });
+}

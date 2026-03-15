@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 import { ImageCropper } from "@/app/_components/image-cropper";
 import BadgesDisplay from "@/app/_components/badges-display";
+import TournamentBadgesDisplay from "@/app/_components/tournament-badges-display";
 import PushToggle from "@/app/_components/push-toggle";
 
 interface Player {
@@ -79,6 +80,9 @@ export default function ProfilePage() {
 
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [earnedBadgeIds, setEarnedBadgeIds] = useState<string[]>([]);
+  const [tournamentBadges, setTournamentBadges] = useState<
+    { tournament_name: string; logo_url: string | null; position: number }[]
+  >([]);
   const [rank, setRank] = useState(0);
   const [totalPlayers, setTotalPlayers] = useState(0);
 
@@ -96,7 +100,7 @@ export default function ProfilePage() {
       return;
     }
 
-    const [playerResult, beysResult, badgesResult, allPlayersResult] = await Promise.all([
+    const [playerResult, beysResult, badgesResult, allPlayersResult, tournamentBadgesResult] = await Promise.all([
       supabase
         .from("players")
         .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at")
@@ -118,6 +122,11 @@ export default function ProfilePage() {
         .order("stars", { ascending: false })
         .order("wins", { ascending: false })
         .order("created_at", { ascending: true }),
+      supabase
+        .from("tournament_badges")
+        .select("position, tournament:tournaments!tournament_id(name, logo_url)")
+        .eq("player_id", user.id)
+        .order("created_at", { ascending: false }),
     ]);
 
     if (playerResult.data) {
@@ -126,6 +135,18 @@ export default function ProfilePage() {
     }
     if (beysResult.data) setBeys(beysResult.data);
     if (badgesResult.data) setEarnedBadgeIds(badgesResult.data.map((b) => b.badge_id));
+    if (tournamentBadgesResult.data) {
+      setTournamentBadges(
+        tournamentBadgesResult.data.map((tb) => {
+          const tournament = tb.tournament as unknown as { name: string; logo_url: string | null };
+          return {
+            tournament_name: tournament?.name ?? "Torneo",
+            logo_url: tournament?.logo_url ?? null,
+            position: tb.position,
+          };
+        })
+      );
+    }
     if (allPlayersResult.data) {
       setTotalPlayers(allPlayersResult.data.length);
       const r = allPlayersResult.data.findIndex((p) => p.id === user.id) + 1;
@@ -417,6 +438,13 @@ export default function ProfilePage() {
             <PushToggle />
           </div>
         </div>
+
+        {/* ═══ TOURNAMENT BADGES ═══ */}
+        {tournamentBadges.length > 0 && (
+          <div className="mx-4">
+            <TournamentBadgesDisplay badges={tournamentBadges} />
+          </div>
+        )}
 
         {/* ═══ BADGES ═══ */}
         <div className="mx-4">

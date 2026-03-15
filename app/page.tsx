@@ -16,6 +16,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { LandingCarousel } from "@/app/_components/landing-carousel";
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -166,6 +167,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* ═══ CAROUSEL ═══ */}
+        <LandingCarousel />
 
         {/* ═══ COMO FUNCIONA ═══ */}
         <section className="relative py-12 md:py-16 px-4 md:px-8 section-bg-steps">
