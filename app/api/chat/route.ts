@@ -1,8 +1,14 @@
 import Groq from "groq-sdk";
 import { createClient } from "@/lib/supabase/server";
 
+let _groq: Groq | null = null;
 function getGroq() {
-  return new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
+  if (!_groq) {
+    const key = process.env.GROQ_API_KEY;
+    if (!key) throw new Error("GROQ_API_KEY not set");
+    _groq = new Groq({ apiKey: key });
+  }
+  return _groq;
 }
 
 const SYSTEM_PROMPT = `Sos el asistente blader de Copa Omega Star, el torneo de Beyblade X de Bladers Santa Fe. Estás acá para ayudar en lo que necesiten.
@@ -329,8 +335,8 @@ export async function POST(request: Request) {
       + (statsContext ? "\n\n[DATOS DEL TORNEO]:" + statsContext : "")
       + (searchContext ? "\n\n" + searchContext + "\n\nUsá esta info actualizada para complementar tu respuesta, pero verificá que tenga sentido con lo que ya sabés. Si contradice tu base de conocimiento, mencionalo." : "");
 
-    // Keep last 10 messages to avoid context overflow (system prompt is ~2300 tokens)
-    const contextMessages = trimmedMessages.slice(-10);
+    // Full conversation — llama-3.3-70b has 131K context window
+    const contextMessages = trimmedMessages;
 
     let reply = "";
     try {
@@ -349,24 +355,22 @@ export async function POST(request: Request) {
       reply = completion.choices[0]?.message?.content ?? "No pude generar una respuesta. Intentá de nuevo.";
     } catch (groqErr) {
       console.error("Groq API error:", groqErr);
-      // Retry with shorter context
+      // Retry with just the last message
       try {
-        const shortMessages = contextMessages.slice(-5);
+        const lastMsg = contextMessages[contextMessages.length - 1];
         const completion = await getGroq().chat.completions.create({
           model: "llama-3.3-70b-versatile",
           messages: [
-            { role: "system", content: systemMessage.slice(0, 4000) },
-            ...shortMessages.map((m) => ({
-              role: m.role as "user" | "assistant",
-              content: m.content,
-            })),
+            { role: "system", content: "Sos un asistente blader de Beyblade X. Respondé en español argentino, breve y directo." },
+            { role: lastMsg.role as "user" | "assistant", content: lastMsg.content },
           ],
           temperature: 0.7,
-          max_tokens: 512,
+          max_tokens: 1024,
         });
         reply = completion.choices[0]?.message?.content ?? "Tuve un problema pero acá estoy. ¿Qué necesitás?";
-      } catch {
-        reply = "Estoy teniendo problemas técnicos. Intentá de nuevo en unos segundos.";
+      } catch (retryErr) {
+        console.error("Groq retry also failed:", retryErr);
+        reply = "Estoy teniendo problemas para conectarme. Intentá de nuevo en unos segundos.";
       }
     }
 
