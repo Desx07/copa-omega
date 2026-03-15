@@ -207,7 +207,10 @@ function EliminationMatchCard({
   isAdmin?: boolean;
   tournamentId?: string;
 }) {
-  const [submitting, setSubmitting] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [showScoreForm, setShowScoreForm] = useState(false);
+  const [p1Score, setP1Score] = useState(0);
+  const [p2Score, setP2Score] = useState(0);
   const router = useRouter();
 
   const p1Alias = match.player1?.alias ?? (match.player1_id ? "???" : "TBD");
@@ -227,16 +230,25 @@ function EliminationMatchCard({
     match.player1_id &&
     match.player2_id;
 
-  async function handleSelectWinner(winnerId: string) {
-    if (!tournamentId) return;
-    setSubmitting(winnerId);
+  async function handleSubmitScore() {
+    if (!tournamentId || !match.player1_id || !match.player2_id) return;
+    if (p1Score === p2Score) {
+      toast.error("No puede haber empate");
+      return;
+    }
+    const winnerId = p1Score > p2Score ? match.player1_id : match.player2_id;
+    setSubmitting(true);
     try {
       const res = await fetch(
         `/api/tournaments/${tournamentId}/matches/${match.id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ winner_id: winnerId }),
+          body: JSON.stringify({
+            winner_id: winnerId,
+            player1_score: p1Score,
+            player2_score: p2Score,
+          }),
         }
       );
       if (!res.ok) {
@@ -245,11 +257,12 @@ function EliminationMatchCard({
         return;
       }
       toast.success("Resultado guardado");
+      setShowScoreForm(false);
       router.refresh();
     } catch {
       toast.error("Error de conexion");
     } finally {
-      setSubmitting(null);
+      setSubmitting(false);
     }
   }
 
@@ -308,7 +321,7 @@ function EliminationMatchCard({
           {isBye && match.player1_id ? `${p1Alias} (BYE)` : p1Alias}
         </span>
         {match.status === "completed" && (
-          <span className={`text-[10px] font-bold ${p1Won ? "text-omega-green" : "text-omega-muted"}`}>
+          <span className={`text-xs font-black tabular-nums ${p1Won ? "text-omega-green" : "text-omega-muted"}`}>
             {match.player1_score}
           </span>
         )}
@@ -345,44 +358,69 @@ function EliminationMatchCard({
           {p2Alias}
         </span>
         {match.status === "completed" && (
-          <span className={`text-[10px] font-bold ${p2Won ? "text-omega-green" : "text-omega-muted"}`}>
+          <span className={`text-xs font-black tabular-nums ${p2Won ? "text-omega-green" : "text-omega-muted"}`}>
             {match.player2_score}
           </span>
         )}
       </div>
 
-      {/* Admin: inline winner selection */}
-      {canResolve && (
-        <div className="px-3 py-2 bg-omega-purple/5 border-t border-omega-purple/20">
-          <p className="text-[9px] font-bold text-omega-muted uppercase tracking-wider mb-1.5 text-center">
-            Seleccionar ganador
-          </p>
-          <div className="flex gap-2">
+      {/* Admin: score form */}
+      {canResolve && !showScoreForm && (
+        <div className="px-3 py-2 bg-omega-purple/5 border-t border-omega-purple/20 text-center">
+          <button
+            onClick={() => setShowScoreForm(true)}
+            className="omega-btn omega-btn-primary px-3 py-1.5 text-xs !rounded-md w-full"
+          >
+            <Swords className="size-3" />
+            Cargar resultado
+          </button>
+        </div>
+      )}
+
+      {canResolve && showScoreForm && (
+        <div className="px-3 py-2.5 bg-omega-purple/5 border-t border-omega-purple/20 space-y-2">
+          <div className="flex items-center gap-1.5 justify-center">
+            <span className="text-[10px] font-bold text-omega-text truncate max-w-[60px]">
+              {match.player1?.alias ?? "J1"}
+            </span>
+            <input
+              type="number"
+              min={0}
+              value={p1Score}
+              onChange={(e) => setP1Score(Number(e.target.value))}
+              className="w-12 rounded-md border border-omega-border bg-omega-dark px-2 py-1 text-center text-xs font-bold text-omega-text focus:border-omega-purple focus:outline-none"
+            />
+            <span className="text-omega-muted/60 text-xs font-bold">-</span>
+            <input
+              type="number"
+              min={0}
+              value={p2Score}
+              onChange={(e) => setP2Score(Number(e.target.value))}
+              className="w-12 rounded-md border border-omega-border bg-omega-dark px-2 py-1 text-center text-xs font-bold text-omega-text focus:border-omega-purple focus:outline-none"
+            />
+            <span className="text-[10px] font-bold text-omega-text truncate max-w-[60px]">
+              {match.player2?.alias ?? "J2"}
+            </span>
+          </div>
+          <div className="flex gap-1.5">
             <button
-              onClick={() => handleSelectWinner(match.player1_id!)}
-              disabled={submitting !== null}
-              className="flex-1 omega-btn omega-btn-primary px-2 py-1.5 text-xs !rounded-md"
+              onClick={() => setShowScoreForm(false)}
+              disabled={submitting}
+              className="flex-1 omega-btn px-2 py-1 text-[11px] !rounded-md border border-omega-border text-omega-muted hover:text-omega-text"
             >
-              {submitting === match.player1_id ? (
-                <Loader2 className="size-3 animate-spin mx-auto" />
-              ) : (
-                <>
-                  <Crown className="size-3" />
-                  {match.player1?.alias ?? "J1"}
-                </>
-              )}
+              Cancelar
             </button>
             <button
-              onClick={() => handleSelectWinner(match.player2_id!)}
-              disabled={submitting !== null}
-              className="flex-1 omega-btn omega-btn-blue px-2 py-1.5 text-xs !rounded-md"
+              onClick={handleSubmitScore}
+              disabled={submitting || p1Score === p2Score}
+              className="flex-1 omega-btn omega-btn-primary px-2 py-1 text-[11px] !rounded-md disabled:opacity-50"
             >
-              {submitting === match.player2_id ? (
+              {submitting ? (
                 <Loader2 className="size-3 animate-spin mx-auto" />
               ) : (
                 <>
                   <Crown className="size-3" />
-                  {match.player2?.alias ?? "J2"}
+                  Guardar
                 </>
               )}
             </button>
@@ -557,7 +595,10 @@ function RoundMatchRow({
   isAdmin?: boolean;
   tournamentId?: string;
 }) {
-  const [submitting, setSubmitting] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [showScoreForm, setShowScoreForm] = useState(false);
+  const [p1Score, setP1Score] = useState(0);
+  const [p2Score, setP2Score] = useState(0);
   const router = useRouter();
 
   const p1Alias = match.player1?.alias ?? "TBD";
@@ -576,16 +617,25 @@ function RoundMatchRow({
     match.player1_id &&
     match.player2_id;
 
-  async function handleSelectWinner(winnerId: string) {
-    if (!tournamentId) return;
-    setSubmitting(winnerId);
+  async function handleSubmitScore() {
+    if (!tournamentId || !match.player1_id || !match.player2_id) return;
+    if (p1Score === p2Score) {
+      toast.error("No puede haber empate");
+      return;
+    }
+    const winnerId = p1Score > p2Score ? match.player1_id : match.player2_id;
+    setSubmitting(true);
     try {
       const res = await fetch(
         `/api/tournaments/${tournamentId}/matches/${match.id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ winner_id: winnerId }),
+          body: JSON.stringify({
+            winner_id: winnerId,
+            player1_score: p1Score,
+            player2_score: p2Score,
+          }),
         }
       );
       if (!res.ok) {
@@ -594,11 +644,12 @@ function RoundMatchRow({
         return;
       }
       toast.success("Resultado guardado");
+      setShowScoreForm(false);
       router.refresh();
     } catch {
       toast.error("Error de conexion");
     } finally {
-      setSubmitting(null);
+      setSubmitting(false);
     }
   }
 
@@ -639,7 +690,7 @@ function RoundMatchRow({
           {match.status === "completed" ? (
             <div className="flex items-center gap-1 rounded-full bg-omega-card border border-omega-border/50 px-2.5 py-0.5">
               <span
-                className={`text-xs font-black ${
+                className={`text-xs font-black tabular-nums ${
                   p1Won ? "text-omega-green" : "text-omega-muted"
                 }`}
               >
@@ -647,7 +698,7 @@ function RoundMatchRow({
               </span>
               <span className="text-omega-muted/40 text-[10px]">-</span>
               <span
-                className={`text-xs font-black ${
+                className={`text-xs font-black tabular-nums ${
                   p2Won ? "text-omega-green" : "text-omega-muted"
                 }`}
               >
@@ -689,37 +740,67 @@ function RoundMatchRow({
         )}
       </div>
 
-      {/* Admin: inline winner selection buttons */}
-      {canResolve && (
-        <div className="flex gap-1.5 w-full pt-1.5 border-t border-omega-border/20 mt-1">
+      {/* Admin: score form toggle */}
+      {canResolve && !showScoreForm && (
+        <div className="w-full pt-1.5 border-t border-omega-border/20 mt-1">
           <button
-            onClick={() => handleSelectWinner(match.player1_id!)}
-            disabled={submitting !== null}
-            className="flex-1 omega-btn omega-btn-primary px-2 py-1 text-[11px] !rounded-md"
+            onClick={() => setShowScoreForm(true)}
+            className="omega-btn omega-btn-primary px-3 py-1 text-[11px] !rounded-md w-full"
           >
-            {submitting === match.player1_id ? (
-              <Loader2 className="size-3 animate-spin mx-auto" />
-            ) : (
-              <>
-                <Crown className="size-3" />
-                {match.player1?.alias ?? "J1"}
-              </>
-            )}
+            <Swords className="size-3" />
+            Cargar resultado
           </button>
-          <button
-            onClick={() => handleSelectWinner(match.player2_id!)}
-            disabled={submitting !== null}
-            className="flex-1 omega-btn omega-btn-blue px-2 py-1 text-[11px] !rounded-md"
-          >
-            {submitting === match.player2_id ? (
-              <Loader2 className="size-3 animate-spin mx-auto" />
-            ) : (
-              <>
-                <Crown className="size-3" />
-                {match.player2?.alias ?? "J2"}
-              </>
-            )}
-          </button>
+        </div>
+      )}
+
+      {canResolve && showScoreForm && (
+        <div className="w-full pt-2 border-t border-omega-border/20 mt-1 space-y-2">
+          <div className="flex items-center gap-2 justify-center">
+            <span className="text-xs font-bold text-omega-text truncate max-w-[80px]">
+              {match.player1?.alias ?? "J1"}
+            </span>
+            <input
+              type="number"
+              min={0}
+              value={p1Score}
+              onChange={(e) => setP1Score(Number(e.target.value))}
+              className="w-12 rounded-md border border-omega-border bg-omega-dark px-2 py-1 text-center text-xs font-bold text-omega-text focus:border-omega-purple focus:outline-none"
+            />
+            <span className="text-omega-muted/60 text-xs font-bold">-</span>
+            <input
+              type="number"
+              min={0}
+              value={p2Score}
+              onChange={(e) => setP2Score(Number(e.target.value))}
+              className="w-12 rounded-md border border-omega-border bg-omega-dark px-2 py-1 text-center text-xs font-bold text-omega-text focus:border-omega-purple focus:outline-none"
+            />
+            <span className="text-xs font-bold text-omega-text truncate max-w-[80px]">
+              {match.player2?.alias ?? "J2"}
+            </span>
+          </div>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => setShowScoreForm(false)}
+              disabled={submitting}
+              className="flex-1 omega-btn px-2 py-1 text-[11px] !rounded-md border border-omega-border text-omega-muted hover:text-omega-text"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSubmitScore}
+              disabled={submitting || p1Score === p2Score}
+              className="flex-1 omega-btn omega-btn-primary px-2 py-1 text-[11px] !rounded-md disabled:opacity-50"
+            >
+              {submitting ? (
+                <Loader2 className="size-3 animate-spin mx-auto" />
+              ) : (
+                <>
+                  <Crown className="size-3" />
+                  Guardar
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -29,16 +29,38 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { winner_id } = body;
+    const { winner_id, player1_score, player2_score } = body;
 
     if (!winner_id) {
       return Response.json({ error: "Falta campo: winner_id" }, { status: 400 });
+    }
+
+    // Validate scores if provided
+    if (player1_score != null && (typeof player1_score !== "number" || player1_score < 0)) {
+      return Response.json(
+        { error: "player1_score debe ser un numero >= 0" },
+        { status: 400 }
+      );
+    }
+    if (player2_score != null && (typeof player2_score !== "number" || player2_score < 0)) {
+      return Response.json(
+        { error: "player2_score debe ser un numero >= 0" },
+        { status: 400 }
+      );
     }
 
     const { data, error } = await supabase.rpc("resolve_match", {
       p_match_id: id,
       p_winner_id: winner_id,
     });
+
+    // Save scores if provided
+    if (!error && player1_score != null && player2_score != null) {
+      await supabase
+        .from("matches")
+        .update({ player1_score, player2_score })
+        .eq("id", id);
+    }
 
     if (error) {
       return Response.json({ error: error.message }, { status: 400 });

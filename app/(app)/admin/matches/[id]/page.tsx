@@ -19,6 +19,8 @@ interface Match {
   player2_id: string;
   stars_bet: number;
   winner_id: string | null;
+  player1_score: number;
+  player2_score: number;
   status: string;
   notes: string | null;
   created_at: string;
@@ -38,6 +40,9 @@ export default function MatchDetailPage() {
   const [player2, setPlayer2] = useState<MatchPlayer | null>(null);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState(false);
+  const [showScoreForm, setShowScoreForm] = useState(false);
+  const [p1Score, setP1Score] = useState(0);
+  const [p2Score, setP2Score] = useState(0);
 
   const fetchMatch = useCallback(async () => {
     const supabase = createClient();
@@ -104,28 +109,36 @@ export default function MatchDetailPage() {
     fetchMatch();
   }, [fetchMatch]);
 
-  async function handleResolve(winnerId: string) {
+  async function handleSubmitScore() {
     if (!match) return;
+    if (p1Score === p2Score) {
+      toast.error("No puede haber empate");
+      return;
+    }
+    const winnerId = p1Score > p2Score ? match.player1_id : match.player2_id;
 
     setResolving(true);
 
     try {
-      const supabase = createClient();
-
-      // Llamar a la funcion resolve_match de la DB
-      const { error } = await supabase.rpc("resolve_match", {
-        p_match_id: match.id,
-        p_winner_id: winnerId,
+      const res = await fetch(`/api/matches/${match.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          winner_id: winnerId,
+          player1_score: p1Score,
+          player2_score: p2Score,
+        }),
       });
 
-      if (error) {
-        toast.error(error.message);
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Error al resolver la partida");
         setResolving(false);
         return;
       }
 
       toast.success("Partida resuelta!");
-      // Recargar datos
+      setShowScoreForm(false);
       await fetchMatch();
     } catch {
       toast.error("Error al resolver la partida");
@@ -284,6 +297,17 @@ export default function MatchDetailPage() {
                   {match.winner.alias} gano!
                 </p>
               </div>
+              {(match.player1_score > 0 || match.player2_score > 0) && (
+                <div className="flex items-center justify-center gap-2">
+                  <span className={`text-lg font-black tabular-nums ${match.winner_id === player1.id ? "text-omega-green" : "text-omega-muted"}`}>
+                    {match.player1_score}
+                  </span>
+                  <span className="text-omega-muted/40 text-sm">-</span>
+                  <span className={`text-lg font-black tabular-nums ${match.winner_id === player2.id ? "text-omega-green" : "text-omega-muted"}`}>
+                    {match.player2_score}
+                  </span>
+                </div>
+              )}
               <p className="text-xs text-omega-muted">
                 Se transfirieron{" "}
                 <span className="text-omega-gold font-bold">
@@ -306,38 +330,78 @@ export default function MatchDetailPage() {
             </div>
           )}
 
-          {/* Resolve buttons for pending matches */}
-          {isPending && (
-            <div className="space-y-3">
-              <p className="text-xs text-omega-muted text-center">
-                Seleccioná al ganador de esta batalla
+          {/* Resolve section for pending matches */}
+          {isPending && !showScoreForm && (
+            <div className="space-y-3 text-center">
+              <p className="text-xs text-omega-muted">
+                Cargá el resultado de esta batalla
               </p>
+              <button
+                onClick={() => setShowScoreForm(true)}
+                className="omega-btn omega-btn-primary px-6 py-3 text-sm w-full"
+              >
+                <Swords className="size-5" />
+                Cargar resultado
+              </button>
+            </div>
+          )}
+
+          {isPending && showScoreForm && (
+            <div className="space-y-4">
+              <p className="text-xs text-omega-muted text-center">
+                Ingresá el puntaje de cada jugador
+              </p>
+              <div className="flex items-center gap-3 justify-center">
+                <div className="text-center space-y-1 flex-1">
+                  <p className="text-xs font-bold text-omega-text truncate">
+                    {player1.alias}
+                  </p>
+                  <input
+                    type="number"
+                    min={0}
+                    value={p1Score}
+                    onChange={(e) => setP1Score(Number(e.target.value))}
+                    className="w-full max-w-[80px] mx-auto block rounded-lg border border-omega-border bg-omega-dark px-3 py-2 text-center text-lg font-black text-omega-text focus:border-omega-purple focus:outline-none"
+                  />
+                </div>
+                <span className="text-omega-muted/60 text-lg font-bold pt-5">-</span>
+                <div className="text-center space-y-1 flex-1">
+                  <p className="text-xs font-bold text-omega-text truncate">
+                    {player2.alias}
+                  </p>
+                  <input
+                    type="number"
+                    min={0}
+                    value={p2Score}
+                    onChange={(e) => setP2Score(Number(e.target.value))}
+                    className="w-full max-w-[80px] mx-auto block rounded-lg border border-omega-border bg-omega-dark px-3 py-2 text-center text-lg font-black text-omega-text focus:border-omega-purple focus:outline-none"
+                  />
+                </div>
+              </div>
+              {p1Score === p2Score && p1Score > 0 && (
+                <p className="text-[11px] text-omega-red text-center">
+                  No puede haber empate
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => handleResolve(player1.id)}
+                  onClick={() => setShowScoreForm(false)}
                   disabled={resolving}
-                  className="omega-btn omega-btn-blue flex-col gap-2 p-4 text-sm"
+                  className="omega-btn px-4 py-3 text-sm border border-omega-border text-omega-muted hover:text-omega-text"
                 >
-                  {resolving ? (
-                    <Loader2 className="size-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Trophy className="size-5" />
-                      <span>Gano {player1.alias}</span>
-                    </>
-                  )}
+                  Cancelar
                 </button>
                 <button
-                  onClick={() => handleResolve(player2.id)}
-                  disabled={resolving}
-                  className="omega-btn omega-btn-purple flex-col gap-2 p-4 text-sm"
+                  onClick={handleSubmitScore}
+                  disabled={resolving || p1Score === p2Score}
+                  className="omega-btn omega-btn-primary px-4 py-3 text-sm disabled:opacity-50"
                 >
                   {resolving ? (
-                    <Loader2 className="size-5 animate-spin" />
+                    <Loader2 className="size-5 animate-spin mx-auto" />
                   ) : (
                     <>
-                      <Trophy className="size-5" />
-                      <span>Gano {player2.alias}</span>
+                      <Crown className="size-5" />
+                      Guardar
                     </>
                   )}
                 </button>
