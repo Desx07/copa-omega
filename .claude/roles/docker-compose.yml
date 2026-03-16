@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Argentina/Buenos_Aires
+      - N8N_RUNNERS_ENABLED=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./videos:/home/node/videos        # donde se guardan los videos
+      - ./scripts:/home/node/scripts      # scripts Python
+
+  python-worker:
+    image: python:3.11-slim
+    container_name: python-worker
+    restart: unless-stopped
+    volumes:
+      - ./videos:/app/videos
+      - ./scripts:/app/scripts
+    working_dir: /app
+    command: >
+      bash -c "
+        apt-get update -qq &&
+        apt-get install -y -qq ffmpeg curl &&
+        pip install -q gtts pillow requests &&
+        echo 'Python worker listo' &&
+        tail -f /dev/null
+      "
+    environment:
+      - PYTHONUNBUFFERED=1
+
+volumes:
+  n8n_data:

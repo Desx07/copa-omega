@@ -1,0 +1,322 @@
+{
+  "name": "Content Automation Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-trigger",
+      "name": "⏰ Trigger Diario 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "notes": "Cambiá el cron o usá el botón 'Test' para correr manualmente"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "topic",
+              "name": "topic",
+              "value": "inteligencia artificial",
+              "type": "string"
+            },
+            {
+              "id": "style",
+              "name": "style",
+              "value": "tecnologia",
+              "type": "string"
+            },
+            {
+              "id": "lang",
+              "name": "lang",
+              "value": "es",
+              "type": "string"
+            },
+            {
+              "id": "filename",
+              "name": "filename",
+              "value": "={{ 'video_' + new Date().toISOString().slice(0,10) }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "node-config",
+      "name": "⚙️ Configuración del Video",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [460, 300],
+      "notes": "EDITÁ AQUÍ: cambiá 'topic' y 'style' (opciones: motivacional, tecnologia, gaming)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-4o-mini"
+            },
+            {
+              "name": "messages",
+              "value": "=[\n  {\n    \"role\": \"system\",\n    \"content\": \"Eres un experto en crear scripts virales para YouTube Shorts en español. Creás contenido conciso, directo y atractivo de exactamente 60 segundos al leerlo en voz alta a ritmo normal. Sin emojis, sin asteriscos, sin markdown. Solo texto puro para narración.\"\n  },\n  {\n    \"role\": \"user\",\n    \"content\": \"Crea un script de 60 segundos sobre el tema: {{ $json.topic }}\\n\\nEstilo: {{ $json.style }}\\n\\nEstructura obligatoria:\\n- HOOK (primeros 5 segundos): pregunta o dato sorprendente\\n- DESARROLLO (45 segundos): 3 puntos clave, directo al grano\\n- CIERRE (10 segundos): conclusión + invitar a seguir\\n\\nIMPORTANTE: Solo el texto del guión, sin titulos de sección, sin emojis, sin formato especial. Solo las palabras que se van a narrar.\"\n  }\n]"
+            },
+            {
+              "name": "max_tokens",
+              "value": "500"
+            },
+            {
+              "name": "temperature",
+              "value": "0.8"
+            }
+          ]
+        }
+      },
+      "id": "node-script",
+      "name": "📝 Generar Script (OpenAI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-api-key",
+          "name": "OpenAI API Key"
+        }
+      },
+      "notes": "Necesitás crear credencial 'httpHeaderAuth' con: Name=Authorization, Value=Bearer TU_API_KEY"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "script_text",
+              "name": "script_text",
+              "value": "={{ $json.choices[0].message.content }}",
+              "type": "string"
+            },
+            {
+              "id": "topic",
+              "name": "topic",
+              "value": "={{ $('⚙️ Configuración del Video').item.json.topic }}",
+              "type": "string"
+            },
+            {
+              "id": "style",
+              "name": "style",
+              "value": "={{ $('⚙️ Configuración del Video').item.json.style }}",
+              "type": "string"
+            },
+            {
+              "id": "filename",
+              "name": "filename",
+              "value": "={{ $('⚙️ Configuración del Video').item.json.filename }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "node-extract-script",
+      "name": "🔧 Extraer Script",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-4o-mini"
+            },
+            {
+              "name": "messages",
+              "value": "=[\n  {\n    \"role\": \"user\",\n    \"content\": \"Para este script de YouTube Shorts, generá metadata SEO optimizada.\\n\\nSCRIPT:\\n{{ $json.script_text }}\\n\\nTEMA: {{ $json.topic }}\\n\\nRespondé SOLO con este JSON exacto (sin markdown, sin explicaciones):\\n{\\n  \\\"title\\\": \\\"título atractivo máximo 60 caracteres con keyword al inicio\\\",\\n  \\\"description\\\": \\\"descripción de 100 chars con keyword y llamado a la acción\\\",\\n  \\\"tags\\\": [\\\"tag1\\\", \\\"tag2\\\", \\\"tag3\\\", \\\"tag4\\\", \\\"tag5\\\"],\\n  \\\"hashtags\\\": \\\"#tag1 #tag2 #tag3\\\"\\n}\"\n  }\n]"
+            },
+            {
+              "name": "max_tokens",
+              "value": "300"
+            }
+          ]
+        }
+      },
+      "id": "node-metadata",
+      "name": "🏷️ Generar Metadata SEO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 480],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-api-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combinar script + metadata para el próximo paso\nconst scriptData = $('🔧 Extraer Script').item.json;\nconst metaRaw = $input.item.json.choices[0].message.content;\n\nlet metadata;\ntry {\n  // Limpiar posibles backticks de markdown\n  const clean = metaRaw.replace(/```json/g, '').replace(/```/g, '').trim();\n  metadata = JSON.parse(clean);\n} catch(e) {\n  // Fallback si el JSON falla\n  metadata = {\n    title: `${scriptData.topic} - Tips y curiosidades`,\n    description: `Descubrí todo sobre ${scriptData.topic}. Seguinos para más contenido.`,\n    tags: [scriptData.topic, 'tips', 'español', 'shorts', 'viral'],\n    hashtags: `#${scriptData.topic.replace(/ /g,'')} #shorts #viral`\n  };\n}\n\nreturn {\n  script_text: scriptData.script_text,\n  topic: scriptData.topic,\n  style: scriptData.style,\n  filename: scriptData.filename,\n  title: metadata.title,\n  description: metadata.description + '\\n\\n' + metadata.hashtags,\n  tags: metadata.tags\n};"
+      },
+      "id": "node-combine",
+      "name": "🔀 Combinar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 390]
+    },
+    {
+      "parameters": {
+        "command": "=docker exec python-worker python /app/scripts/generate_video.py \\\n  --script \"{{ $json.script_text.replace(/\"/g, '\\\\\"') }}\" \\\n  --topic \"{{ $json.topic }}\" \\\n  --style \"{{ $json.style }}\" \\\n  --output-dir \"/app/videos\" \\\n  --filename \"{{ $json.filename }}\""
+      },
+      "id": "node-generate-video",
+      "name": "🎬 Generar Video (Python+FFmpeg)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1340, 390],
+      "notes": "Este nodo ejecuta el script Python que: 1) crea audio con gTTS 2) genera imágenes 3) ensambla con FFmpeg"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parsear el resultado del script Python\nconst output = $input.item.json.stdout || '';\nconst prev = $('🔀 Combinar Datos').item.json;\n\n// Buscar el JSON resultado al final del output\nconst jsonMatch = output.match(/\\{[\\s\\S]*\\}\\s*$/);\nlet videoResult = {};\n\ntry {\n  if (jsonMatch) {\n    videoResult = JSON.parse(jsonMatch[0]);\n  }\n} catch(e) {\n  videoResult = { success: false, error: 'No se pudo parsear resultado' };\n}\n\nif (!videoResult.success) {\n  throw new Error('Falló la generación de video: ' + (videoResult.error || output));\n}\n\nreturn {\n  ...prev,\n  video_path: videoResult.video_path,\n  video_filename: videoResult.filename,\n  ready_to_upload: true\n};"
+      },
+      "id": "node-parse-result",
+      "name": "📋 Verificar Video Generado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 390]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true
+          },
+          "conditions": [
+            {
+              "id": "check-ready",
+              "leftValue": "={{ $json.ready_to_upload }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        }
+      },
+      "id": "node-check",
+      "name": "✅ ¿Video listo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1780, 390]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Guardar log del video generado en archivo JSON\nconst data = $input.item.json;\nconst fs = require('fs');\n\nconst logEntry = {\n  date: new Date().toISOString(),\n  topic: data.topic,\n  title: data.title,\n  filename: data.video_filename,\n  path: data.video_path,\n  status: 'generated_pending_upload'\n};\n\nconst logPath = '/app/videos/generated_videos.json';\nlet logs = [];\n\ntry {\n  if (fs.existsSync(logPath)) {\n    logs = JSON.parse(fs.readFileSync(logPath, 'utf8'));\n  }\n} catch(e) { logs = []; }\n\nlogs.push(logEntry);\nfs.writeFileSync(logPath, JSON.stringify(logs, null, 2));\n\nconsole.log('Video registrado en log:', data.video_filename);\nreturn data;"
+      },
+      "id": "node-log",
+      "name": "💾 Guardar en Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 300],
+      "notes": "Guarda registro en /videos/generated_videos.json para tracking"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.item.json;\n\n// Mostrar resumen\nconsole.log('═══════════════════════════════════');\nconsole.log('✅ VIDEO GENERADO EXITOSAMENTE');\nconsole.log('Tema:', data.topic);\nconsole.log('Título:', data.title);\nconsole.log('Archivo:', data.video_filename);\nconsole.log('Ruta:', data.video_path);\nconsole.log('═══════════════════════════════════');\nconsole.log('');\nconsole.log('PRÓXIMO PASO:');\nconsole.log('1. Abrí YouTube Studio: studio.youtube.com');\nconsole.log('2. Subí el archivo:', data.video_path);\nconsole.log('3. Usá este título:', data.title);\nconsole.log('4. Usá esta descripción:');\nconsole.log(data.description);\n\nreturn data;"
+      },
+      "id": "node-summary",
+      "name": "📊 Resumen Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2220, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $('🔀 Combinar Datos').item.json;\nconst error = $input.item.json;\n\nconsole.error('❌ ERROR EN EL PIPELINE');\nconsole.error('Detalle:', JSON.stringify(error));\n\nreturn { error: true, topic: data.topic, details: error };"
+      },
+      "id": "node-error",
+      "name": "❌ Manejo de Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 500]
+    }
+  ],
+  "connections": {
+    "⏰ Trigger Diario 9am": {
+      "main": [[{ "node": "⚙️ Configuración del Video", "type": "main", "index": 0 }]]
+    },
+    "⚙️ Configuración del Video": {
+      "main": [[{ "node": "📝 Generar Script (OpenAI)", "type": "main", "index": 0 }]]
+    },
+    "📝 Generar Script (OpenAI)": {
+      "main": [
+        [{ "node": "🔧 Extraer Script", "type": "main", "index": 0 }]
+      ]
+    },
+    "🔧 Extraer Script": {
+      "main": [
+        [{ "node": "🏷️ Generar Metadata SEO", "type": "main", "index": 0 }]
+      ]
+    },
+    "🏷️ Generar Metadata SEO": {
+      "main": [
+        [{ "node": "🔀 Combinar Datos", "type": "main", "index": 0 }]
+      ]
+    },
+    "🔀 Combinar Datos": {
+      "main": [[{ "node": "🎬 Generar Video (Python+FFmpeg)", "type": "main", "index": 0 }]]
+    },
+    "🎬 Generar Video (Python+FFmpeg)": {
+      "main": [[{ "node": "📋 Verificar Video Generado", "type": "main", "index": 0 }]]
+    },
+    "📋 Verificar Video Generado": {
+      "main": [[{ "node": "✅ ¿Video listo?", "type": "main", "index": 0 }]]
+    },
+    "✅ ¿Video listo?": {
+      "main": [
+        [{ "node": "💾 Guardar en Log", "type": "main", "index": 0 }],
+        [{ "node": "❌ Manejo de Error", "type": "main", "index": 0 }]
+      ]
+    },
+    "💾 Guardar en Log": {
+      "main": [[{ "node": "📊 Resumen Final", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
