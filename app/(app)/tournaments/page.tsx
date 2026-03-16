@@ -124,12 +124,13 @@ export default async function TournamentsPage() {
               {past.map((tournament) => {
                 const champion = championsMap.get(tournament.id);
                 return (
-                  <div key={tournament.id} className="relative">
+                  <div key={tournament.id} className="space-y-0">
                     <TournamentCard tournament={tournament} />
                     {champion && (
-                      <div className="absolute top-3.5 right-20 z-10 pointer-events-none flex items-center gap-1 text-[10px] text-omega-gold font-bold">
-                        <Crown className="size-3 text-omega-gold" />
-                        {champion}
+                      <div className="omega-card !rounded-t-none !border-t-0 -mt-1 px-5 py-2 flex items-center gap-1.5 text-xs border-l-4 border-l-omega-green">
+                        <Crown className="size-3.5 text-omega-gold" />
+                        <span className="text-omega-gold font-bold">{champion}</span>
+                        <span className="text-omega-muted text-[10px]">Campeón</span>
                       </div>
                     )}
                   </div>

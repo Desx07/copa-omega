@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Crown, Swords, User, Clock, Scale, Loader2, Trophy, ChevronRight, UserPlus, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 
 const MAX_SCORE = 7; // Beyblade X maximum score per game
 
@@ -54,6 +55,51 @@ export default function BracketView({
   stage,
   participantCount,
 }: BracketViewProps) {
+  const router = useRouter();
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
+  const supabaseRef = useRef(createClient());
+
+  // Realtime subscription for live bracket updates
+  useEffect(() => {
+    if (!tournamentId) return;
+
+    const supabase = supabaseRef.current;
+    const channel = supabase
+      .channel(`bracket-${tournamentId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "tournament_matches",
+          filter: `tournament_id=eq.${tournamentId}`,
+        },
+        () => {
+          // Refresh server data to get updated matches with joined player info
+          router.refresh();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "tournament_matches",
+          filter: `tournament_id=eq.${tournamentId}`,
+        },
+        () => {
+          router.refresh();
+        }
+      )
+      .subscribe((status) => {
+        setRealtimeConnected(status === "SUBSCRIBED");
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tournamentId, router]);
+
   if (matches.length === 0) {
     return (
       <div className="omega-card shadow-sm p-10 text-center">
@@ -77,13 +123,16 @@ export default function BracketView({
 
   if (format === "single_elimination" && !hasGroupAndFinals) {
     return (
-      <EliminationBracket
-        matches={matches}
-        isAdmin={isAdmin}
-        isJudge={isJudge}
-        currentUserId={currentUserId}
-        tournamentId={tournamentId}
-      />
+      <div className="space-y-2">
+        {realtimeConnected && <RealtimeBadge />}
+        <EliminationBracket
+          matches={matches}
+          isAdmin={isAdmin}
+          isJudge={isJudge}
+          currentUserId={currentUserId}
+          tournamentId={tournamentId}
+        />
+      </div>
     );
   }
 
@@ -95,6 +144,7 @@ export default function BracketView({
 
   return (
     <div className="space-y-6">
+      {realtimeConnected && <RealtimeBadge />}
       {/* Group stage rounds */}
       {groupMatches.length > 0 && (
         <div className="space-y-2">
@@ -137,6 +187,22 @@ export default function BracketView({
           />
         </div>
       )}
+    </div>
+  );
+}
+
+/* --- Realtime "En vivo" indicator --- */
+
+function RealtimeBadge() {
+  return (
+    <div className="flex items-center gap-1.5 px-1">
+      <span className="relative flex size-2">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-omega-green opacity-75" />
+        <span className="relative inline-flex rounded-full size-2 bg-omega-green" />
+      </span>
+      <span className="text-[10px] font-bold text-omega-green/80 uppercase tracking-wider">
+        En vivo
+      </span>
     </div>
   );
 }

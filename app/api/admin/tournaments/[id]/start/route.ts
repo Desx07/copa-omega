@@ -48,7 +48,7 @@ export async function POST(_request: Request, context: RouteContext) {
   // Fetch participants
   const { data: participants } = await supabase
     .from("tournament_participants")
-    .select("id, player_id, seed")
+    .select("id, player_id, seed, checked_in")
     .eq("tournament_id", tournamentId)
     .order("seed", { ascending: true });
 
@@ -59,14 +59,34 @@ export async function POST(_request: Request, context: RouteContext) {
     );
   }
 
+  // If check-in was enabled, only include checked-in players
+  let filteredParticipants = participants;
+  if (tournament.checkin_open) {
+    filteredParticipants = participants.filter((p) => p.checked_in);
+    if (filteredParticipants.length < 2) {
+      return NextResponse.json(
+        { error: "Menos de 2 jugadores hicieron check-in" },
+        { status: 400 }
+      );
+    }
+    // Remove non-checked-in participants
+    const nonCheckedIn = participants.filter((p) => !p.checked_in);
+    for (const p of nonCheckedIn) {
+      await supabase
+        .from("tournament_participants")
+        .delete()
+        .eq("id", p.id);
+    }
+  }
+
   // Generate matches based on format
   try {
     if (tournament.format === "single_elimination") {
-      await generateSingleElimination(supabase, tournamentId, participants);
+      await generateSingleElimination(supabase, tournamentId, filteredParticipants);
     } else if (tournament.format === "round_robin") {
-      await generateRoundRobin(supabase, tournamentId, participants);
+      await generateRoundRobin(supabase, tournamentId, filteredParticipants);
     } else if (tournament.format === "swiss") {
-      await generateSwissRound1(supabase, tournamentId, participants);
+      await generateSwissRound1(supabase, tournamentId, filteredParticipants);
     }
 
     // Update tournament status
