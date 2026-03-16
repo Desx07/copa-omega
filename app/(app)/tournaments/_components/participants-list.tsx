@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, XCircle, Trophy } from "lucide-react";
+import { Users, XCircle, Trophy } from "lucide-react";
 
 export interface Participant {
   id: string;
@@ -30,7 +30,7 @@ export default function ParticipantsList({
   if (participants.length === 0) {
     return (
       <div className="omega-card shadow-sm p-8 text-center">
-        <Star className="size-8 text-omega-muted/20 mx-auto mb-3" />
+        <Users className="size-8 text-omega-muted/20 mx-auto mb-3" />
         <p className="text-sm text-omega-muted/70">
           No hay participantes inscriptos todavía
         </p>
@@ -119,20 +119,13 @@ export default function ParticipantsList({
                 </span>
               </div>
 
-              {/* Points or stars */}
-              {showPoints ? (
+              {/* Points (tournament context — never show general stars here) */}
+              {showPoints && (
                 <div className="flex items-center gap-1 shrink-0">
                   <span className="text-sm font-black text-omega-gold">
                     {p.points}
                   </span>
                   <span className="text-[10px] text-omega-muted">pts</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1 shrink-0">
-                  <Star className="size-3.5 text-omega-gold fill-omega-gold" />
-                  <span className="text-sm font-black text-omega-gold">
-                    {p.player.stars}
-                  </span>
                 </div>
               )}
             </Link>
