@@ -136,6 +136,23 @@ export async function PATCH(
       }
     }
 
+    // Mark any linked challenges as "completed"
+    if (matchData) {
+      try {
+        const adminSupabase = createAdminClient();
+        // Find accepted challenges between these two players and mark completed
+        await adminSupabase
+          .from("challenges")
+          .update({ status: "completed", match_id: id })
+          .eq("status", "accepted")
+          .or(
+            `and(challenger_id.eq.${matchData.player1_id},challenged_id.eq.${matchData.player2_id}),and(challenger_id.eq.${matchData.player2_id},challenged_id.eq.${matchData.player1_id})`
+          );
+      } catch (challengeErr) {
+        console.error("Error completing linked challenges:", challengeErr);
+      }
+    }
+
     // Trigger badge checks for both players (fire-and-forget)
     if (matchData) {
       const baseUrl = new URL(request.url).origin;

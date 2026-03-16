@@ -127,7 +127,7 @@ export default async function TournamentsPage() {
                   <div key={tournament.id} className="relative">
                     <TournamentCard tournament={tournament} />
                     {champion && (
-                      <div className="absolute top-3.5 right-20 flex items-center gap-1 text-[10px] text-omega-gold font-bold">
+                      <div className="absolute top-3.5 right-20 z-10 pointer-events-none flex items-center gap-1 text-[10px] text-omega-gold font-bold">
                         <Crown className="size-3 text-omega-gold" />
                         {champion}
                       </div>
