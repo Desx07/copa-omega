@@ -32,7 +32,7 @@ export default function EditTournament({
   const [maxParticipants, setMaxParticipants] = useState(currentMaxParticipants);
   const [logoUrl, setLogoUrl] = useState(currentLogoUrl ?? "");
 
-  if (status !== "registration") return null;
+  // Admins can always edit (this component only renders in admin pages)
 
   async function handleSave() {
     setLoading(true);

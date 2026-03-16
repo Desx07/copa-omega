@@ -118,7 +118,15 @@ export async function PATCH(
       );
     }
 
-    if (tournament.status !== "registration") {
+    // Admins can edit any tournament (including completed ones to fix data)
+    // Non-admins can only edit during registration
+    const { data: adminCheck } = await supabase
+      .from("players")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+
+    if (tournament.status !== "registration" && !adminCheck?.is_admin) {
       return Response.json(
         { error: "Solo se puede editar un torneo en fase de inscripción" },
         { status: 400 }
