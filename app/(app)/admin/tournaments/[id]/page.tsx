@@ -220,6 +220,8 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
             <ManualRegister
               tournamentId={tournament.id}
               existingPlayerIds={participants.map((p: { player: { id: string } }) => p.player.id)}
+              participants={participants.map((p: { player: { id: string; alias: string } }) => ({ player_id: p.player.id, alias: p.player.alias }))}
+              status={tournament.status}
             />
           </>
         )}
