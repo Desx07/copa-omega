@@ -1,21 +1,24 @@
 import webpush from "web-push";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY!;
-const VAPID_EMAIL = process.env.VAPID_EMAIL || "arieltsume@gmail.com";
+let vapidConfigured = false;
 
-if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
-  console.warn(
-    "[push] Missing VAPID keys. Set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY in .env.local"
-  );
+function ensureVapidConfigured() {
+  if (vapidConfigured) return true;
+
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  const email = process.env.VAPID_EMAIL || "arieltsume@gmail.com";
+
+  if (!publicKey || !privateKey) {
+    console.warn("[push] Missing VAPID keys — push notifications disabled");
+    return false;
+  }
+
+  webpush.setVapidDetails(`mailto:${email}`, publicKey, privateKey);
+  vapidConfigured = true;
+  return true;
 }
-
-webpush.setVapidDetails(
-  `mailto:${VAPID_EMAIL}`,
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
 
 interface PushPayload {
   title: string;
@@ -34,6 +37,10 @@ export async function sendPushToPlayer(
   body: string,
   url?: string
 ): Promise<{ sent: number; failed: number }> {
+  if (!ensureVapidConfigured()) {
+    return { sent: 0, failed: 0 };
+  }
+
   const supabase = createAdminClient();
 
   const { data: subscriptions, error } = await supabase
