@@ -205,6 +205,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
           currentDescription={tournament.description}
           currentMaxParticipants={tournament.max_participants}
           currentLogoUrl={tournament.logo_url}
+          currentEventDate={tournament.event_date}
           participantCount={participants.length}
           status={tournament.status}
         />

@@ -187,6 +187,10 @@ export async function PATCH(
       allowedFields.max_participants = max;
     }
 
+    if (body.event_date !== undefined) {
+      allowedFields.event_date = body.event_date; // date string "YYYY-MM-DD" or null
+    }
+
     if (Object.keys(allowedFields).length === 0) {
       return Response.json(
         { error: "No se enviaron campos para actualizar" },

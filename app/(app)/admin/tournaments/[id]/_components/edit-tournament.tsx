@@ -11,6 +11,7 @@ interface EditTournamentProps {
   currentDescription: string | null;
   currentMaxParticipants: number;
   currentLogoUrl: string | null;
+  currentEventDate: string | null;
   participantCount: number;
   status: string;
 }
@@ -21,6 +22,7 @@ export default function EditTournament({
   currentDescription,
   currentMaxParticipants,
   currentLogoUrl,
+  currentEventDate,
   participantCount,
   status,
 }: EditTournamentProps) {
@@ -31,6 +33,7 @@ export default function EditTournament({
   const [description, setDescription] = useState(currentDescription ?? "");
   const [maxParticipants, setMaxParticipants] = useState(currentMaxParticipants);
   const [logoUrl, setLogoUrl] = useState(currentLogoUrl ?? "");
+  const [eventDate, setEventDate] = useState(currentEventDate ?? "");
 
   // Admins can always edit (this component only renders in admin pages)
 
@@ -46,6 +49,8 @@ export default function EditTournament({
         body.max_participants = maxParticipants;
       if (logoUrl !== (currentLogoUrl ?? ""))
         body.logo_url = logoUrl.trim() || null;
+      if (eventDate !== (currentEventDate ?? ""))
+        body.event_date = eventDate || null;
 
       if (Object.keys(body).length === 0) {
         setEditing(false);
@@ -183,6 +188,21 @@ export default function EditTournament({
             </div>
           </div>
         </div>
+
+        <div>
+          <label className="text-[10px] font-bold text-omega-muted uppercase tracking-wider block mb-1">
+            Fecha del evento
+          </label>
+          <input
+            type="date"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+            className="omega-input w-full"
+          />
+          <p className="text-[10px] text-omega-muted mt-0.5">
+            Ordena los torneos en la lista
+          </p>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
@@ -205,6 +225,7 @@ export default function EditTournament({
             setDescription(currentDescription ?? "");
             setMaxParticipants(currentMaxParticipants);
             setLogoUrl(currentLogoUrl ?? "");
+            setEventDate(currentEventDate ?? "");
           }}
           disabled={loading}
           className="omega-btn omega-btn-secondary px-4 py-2.5 text-sm shadow-sm"
