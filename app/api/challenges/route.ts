@@ -195,7 +195,7 @@ export async function POST(request: Request) {
       "Te están buscando",
       `${challenger?.alias} te retó por ${stars_bet} estrellas`,
       "/challenges"
-    ).catch(() => {});
+    ).catch((e) => console.error("[push] error:", e));
 
     return Response.json(challenge, { status: 201 });
   } catch (err) {

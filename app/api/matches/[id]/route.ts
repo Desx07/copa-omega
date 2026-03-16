@@ -69,11 +69,15 @@ export async function PATCH(
     }
 
     // Fetch match to find both players for badge checking and feed
-    const { data: matchData } = await supabase
+    const { data: matchData, error: matchFetchError } = await supabase
       .from("matches")
       .select("player1_id, player2_id, stars_bet")
       .eq("id", id)
       .single();
+
+    if (matchFetchError) {
+      console.error("[matches] Error fetching match data:", matchFetchError);
+    }
 
     // Insert match_result event into activity_feed
     if (matchData) {
@@ -115,7 +119,7 @@ export async function PATCH(
               "Victoria",
               `Le ganaste a ${loserPlayer?.alias}. +${starsBet} estrellas`,
               "/dashboard"
-            ).catch(() => {});
+            ).catch((e) => console.error("[push] error:", e));
           }
 
           if (loserPlayer) {
@@ -124,7 +128,7 @@ export async function PATCH(
               "Derrota",
               `${winnerPlayer?.alias} se llevó ${starsBet} estrellas. Revancha?`,
               "/dashboard"
-            ).catch(() => {});
+            ).catch((e) => console.error("[push] error:", e));
           }
         }
       } catch (pushErr) {
@@ -144,7 +148,7 @@ export async function PATCH(
             cookie: request.headers.get("cookie") ?? "",
           },
           body: JSON.stringify({ player_id: playerId }),
-        }).catch(() => {});
+        }).catch((e) => console.error("[push] error:", e));
       }
     }
 

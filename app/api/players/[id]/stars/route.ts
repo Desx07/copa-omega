@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 
+// Public by design: any authenticated player can view any other player's star history.
+// This supports transparency in the star economy (players can verify match outcomes,
+// see bet history, etc.). Auth is required to prevent anonymous scraping.
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

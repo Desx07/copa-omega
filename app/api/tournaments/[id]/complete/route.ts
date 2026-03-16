@@ -83,10 +83,15 @@ export async function POST(
     }
 
     // Get all participants with their stats
-    const { data: participants } = await supabase
+    const { data: participants, error: participantsError } = await supabase
       .from("tournament_participants")
       .select("player_id, points, tournament_wins, tournament_losses, is_eliminated")
       .eq("tournament_id", tournamentId);
+
+    if (participantsError) {
+      console.error("[complete] Error fetching participants:", participantsError);
+      return Response.json({ error: "Error obteniendo participantes" }, { status: 500 });
+    }
 
     if (!participants || participants.length === 0) {
       return Response.json(
@@ -96,18 +101,28 @@ export async function POST(
     }
 
     // Get ALL completed matches for this tournament (for counting wins across all phases)
-    const { data: allMatches } = await supabase
+    const { data: allMatches, error: allMatchesError } = await supabase
       .from("tournament_matches")
       .select("winner_id, player1_id, player2_id, status, bracket_position, stage")
       .eq("tournament_id", tournamentId)
       .eq("status", "completed");
 
+    if (allMatchesError) {
+      console.error("[complete] Error fetching allMatches:", allMatchesError);
+      return Response.json({ error: "Error obteniendo partidas del torneo" }, { status: 500 });
+    }
+
     // Also count byes as wins
-    const { data: byeMatches } = await supabase
+    const { data: byeMatches, error: byeMatchesError } = await supabase
       .from("tournament_matches")
       .select("winner_id, player1_id, player2_id, status, bracket_position, stage")
       .eq("tournament_id", tournamentId)
       .eq("status", "bye");
+
+    if (byeMatchesError) {
+      console.error("[complete] Error fetching byeMatches:", byeMatchesError);
+      return Response.json({ error: "Error obteniendo byes del torneo" }, { status: 500 });
+    }
 
     const matches = [...(allMatches ?? []), ...(byeMatches ?? [])];
 
@@ -307,21 +322,21 @@ export async function POST(
           "CAMPEÓN",
           `Ganaste ${tournamentName}. Tu nombre queda en la historia.`,
           tournamentUrl
-        ).catch(() => {});
+        ).catch((e) => console.error("[push] error:", e));
       } else if (badge.position === 2) {
         sendPushToPlayer(
           badge.player_id,
           "Subcampeón",
           `2do puesto en ${tournamentName}. Tan cerca...`,
           tournamentUrl
-        ).catch(() => {});
+        ).catch((e) => console.error("[push] error:", e));
       } else if (badge.position === 3) {
         sendPushToPlayer(
           badge.player_id,
           "Podio",
           `3er puesto en ${tournamentName}. En el podio.`,
           tournamentUrl
-        ).catch(() => {});
+        ).catch((e) => console.error("[push] error:", e));
       }
     }
 

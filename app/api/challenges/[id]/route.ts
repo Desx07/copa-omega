@@ -113,14 +113,14 @@ export async function PATCH(
         "Reto aceptado",
         `${challengedData.alias} aceptó tu reto por ${challenge.stars_bet} estrellas`,
         "/challenges"
-      ).catch(() => {});
+      ).catch((e) => console.error("[push] error:", e));
     } else {
       sendPushToPlayer(
         challenge.challenger_id,
         "Reto rechazado",
         `${challengedData.alias} rechazó tu reto`,
         "/challenges"
-      ).catch(() => {});
+      ).catch((e) => console.error("[push] error:", e));
     }
 
     return Response.json({ success: true, status: newStatus });

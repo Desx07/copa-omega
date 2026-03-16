@@ -28,11 +28,15 @@ export async function GET(request: Request) {
     }
 
     // Also get tournament matches
-    const { data: tournamentMatches } = await supabase
+    const { data: tournamentMatches, error: tournamentMatchesError } = await supabase
       .from("tournament_matches")
       .select("player1_id, player2_id, winner_id, completed_at")
       .eq("status", "completed")
       .or(`player1_id.eq.${playerId},player2_id.eq.${playerId}`);
+
+    if (tournamentMatchesError) {
+      console.error("[rivalries] Error fetching tournament_matches:", tournamentMatchesError);
+    }
 
     // Combine and count opponents
     const opponentStats = new Map<
@@ -87,10 +91,15 @@ export async function GET(request: Request) {
     }
 
     // Fetch player info for rivals
-    const { data: rivalPlayers } = await supabase
+    const { data: rivalPlayers, error: rivalPlayersError } = await supabase
       .from("players")
       .select("id, alias, avatar_url, stars, current_title")
       .in("id", rivalryIds);
+
+    if (rivalPlayersError) {
+      console.error("[rivalries] Error fetching rival players:", rivalPlayersError);
+      return Response.json({ error: rivalPlayersError.message }, { status: 500 });
+    }
 
     const rivalries = rivalryIds.map((rivalId) => {
       const stats = opponentStats.get(rivalId)!;
