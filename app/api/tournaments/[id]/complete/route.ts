@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendPushToPlayer } from "@/lib/push";
 
 /**
  * POST /api/tournaments/[id]/complete
@@ -50,7 +51,7 @@ export async function POST(
     // Get tournament
     const { data: tournament, error: tournamentError } = await supabase
       .from("tournaments")
-      .select("id, format, status, top_cut, stage")
+      .select("id, name, format, status, top_cut, stage")
       .eq("id", tournamentId)
       .single();
 
@@ -292,6 +293,35 @@ export async function POST(
       if (badgeError) {
         // Non-critical: log and continue
         console.error("Error inserting tournament badges:", badgeError);
+      }
+    }
+
+    // Push notifications to top 3 (fire-and-forget)
+    const tournamentName = tournament.name ?? "el torneo";
+    const tournamentUrl = `/tournaments/${tournamentId}`;
+
+    for (const badge of badgesToInsert) {
+      if (badge.position === 1) {
+        sendPushToPlayer(
+          badge.player_id,
+          "CAMPEÓN",
+          `Ganaste ${tournamentName}. Tu nombre queda en la historia.`,
+          tournamentUrl
+        ).catch(() => {});
+      } else if (badge.position === 2) {
+        sendPushToPlayer(
+          badge.player_id,
+          "Subcampeón",
+          `2do puesto en ${tournamentName}. Tan cerca...`,
+          tournamentUrl
+        ).catch(() => {});
+      } else if (badge.position === 3) {
+        sendPushToPlayer(
+          badge.player_id,
+          "Podio",
+          `3er puesto en ${tournamentName}. En el podio.`,
+          tournamentUrl
+        ).catch(() => {});
       }
     }
 

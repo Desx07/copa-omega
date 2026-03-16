@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { sendPushToPlayer } from "@/lib/push";
 
 export async function GET(request: Request) {
   try {
@@ -187,6 +188,14 @@ export async function POST(request: Request) {
         challenged_alias: challenged?.alias,
       },
     });
+
+    // Push notification to challenged player (fire-and-forget)
+    sendPushToPlayer(
+      challenged_id,
+      "Te están buscando",
+      `${challenger?.alias} te retó por ${stars_bet} estrellas`,
+      "/challenges"
+    ).catch(() => {});
 
     return Response.json(challenge, { status: 201 });
   } catch (err) {

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendPushToPlayer } from "@/lib/push";
 
 export async function PATCH(
   request: Request,
@@ -76,11 +77,12 @@ export async function PATCH(
 
     // Insert match_result event into activity_feed
     if (matchData) {
+      const loserId = matchData.player1_id === winner_id
+        ? matchData.player2_id
+        : matchData.player1_id;
+
       try {
         const adminSupabase = createAdminClient();
-        const loserId = matchData.player1_id === winner_id
-          ? matchData.player2_id
-          : matchData.player1_id;
 
         await adminSupabase.from("activity_feed").insert({
           type: "match_result",
@@ -93,6 +95,40 @@ export async function PATCH(
         });
       } catch (feedErr) {
         console.error("Error inserting match_result feed event:", feedErr);
+      }
+
+      // Push notifications to both players (fire-and-forget)
+      try {
+        const { data: matchPlayers } = await supabase
+          .from("players")
+          .select("id, alias")
+          .in("id", [matchData.player1_id, matchData.player2_id]);
+
+        if (matchPlayers) {
+          const winnerPlayer = matchPlayers.find((p) => p.id === winner_id);
+          const loserPlayer = matchPlayers.find((p) => p.id === loserId);
+          const starsBet = matchData.stars_bet ?? 0;
+
+          if (winnerPlayer) {
+            sendPushToPlayer(
+              winnerPlayer.id,
+              "Victoria",
+              `Le ganaste a ${loserPlayer?.alias}. +${starsBet} estrellas`,
+              "/dashboard"
+            ).catch(() => {});
+          }
+
+          if (loserPlayer) {
+            sendPushToPlayer(
+              loserPlayer.id,
+              "Derrota",
+              `${winnerPlayer?.alias} se llevó ${starsBet} estrellas. Revancha?`,
+              "/dashboard"
+            ).catch(() => {});
+          }
+        }
+      } catch (pushErr) {
+        console.error("Error sending match push notifications:", pushErr);
       }
     }
 

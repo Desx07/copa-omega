@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { sendPushToPlayer } from "@/lib/push";
 
 export async function PATCH(
   request: Request,
@@ -104,6 +105,23 @@ export async function PATCH(
         challenged_alias: challengedData.alias,
       },
     });
+
+    // Push notification to challenger (fire-and-forget)
+    if (action === "accept") {
+      sendPushToPlayer(
+        challenge.challenger_id,
+        "Reto aceptado",
+        `${challengedData.alias} aceptó tu reto por ${challenge.stars_bet} estrellas`,
+        "/challenges"
+      ).catch(() => {});
+    } else {
+      sendPushToPlayer(
+        challenge.challenger_id,
+        "Reto rechazado",
+        `${challengedData.alias} rechazó tu reto`,
+        "/challenges"
+      ).catch(() => {});
+    }
 
     return Response.json({ success: true, status: newStatus });
   } catch (err) {
