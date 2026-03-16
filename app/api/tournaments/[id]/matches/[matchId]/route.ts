@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const MAX_SCORE = 10; // Safety cap — Beyblade X max per game is 7, allow some margin
+
 // PATCH /api/tournaments/[id]/matches/[matchId] — Update match result (admin or assigned judge)
 export async function PATCH(
   request: Request,
@@ -96,7 +98,7 @@ export async function PATCH(
       );
     }
 
-    // Validate scores if provided
+    // Validate scores if provided — BUG 4 FIX: enforce max score
     if (player1_score != null && (typeof player1_score !== "number" || player1_score < 0)) {
       return Response.json(
         { error: "player1_score debe ser un número >= 0" },
@@ -106,6 +108,18 @@ export async function PATCH(
     if (player2_score != null && (typeof player2_score !== "number" || player2_score < 0)) {
       return Response.json(
         { error: "player2_score debe ser un número >= 0" },
+        { status: 400 }
+      );
+    }
+    if (player1_score != null && player1_score > MAX_SCORE) {
+      return Response.json(
+        { error: `player1_score no puede ser mayor a ${MAX_SCORE}` },
+        { status: 400 }
+      );
+    }
+    if (player2_score != null && player2_score > MAX_SCORE) {
+      return Response.json(
+        { error: `player2_score no puede ser mayor a ${MAX_SCORE}` },
         { status: 400 }
       );
     }
@@ -233,10 +247,11 @@ export async function PATCH(
       }
     }
 
-    // Check if current round is complete (for Swiss group stage: generate next round)
+    // ─── SWISS GROUP STAGE: check round completion and generate next / advance to finals ───
     if (tournament?.format === "swiss" && tournament.stage !== "finals") {
       const currentRound = tournament.current_round;
 
+      // Count non-bye pending matches in current round
       const { count: pendingCount } = await supabase
         .from("tournament_matches")
         .select("id", { count: "exact", head: true })
@@ -245,20 +260,54 @@ export async function PATCH(
         .eq("stage", "group")
         .in("status", ["pending", "in_progress"]);
 
+      console.log(`[Swiss] Round ${currentRound} pending count: ${pendingCount}`);
+
       if (pendingCount === 0) {
-        // All matches in current round are done — generate next round
-        await generateNextSwissRound(supabase, tournamentId, currentRound, tournament.swiss_rounds ?? null);
+        // All matches in current round are done
+        const configuredSwissRounds = tournament.swiss_rounds ?? null;
+
+        // Check if we've reached the configured swiss rounds limit
+        const { count: participantCount } = await supabase
+          .from("tournament_participants")
+          .select("id", { count: "exact", head: true })
+          .eq("tournament_id", tournamentId);
+
+        const expectedRounds = configuredSwissRounds ?? Math.ceil(Math.log2(participantCount ?? 2));
+        const nextRound = currentRound + 1;
+
+        console.log(`[Swiss] currentRound=${currentRound}, expectedRounds=${expectedRounds}, nextRound=${nextRound}, configuredSwissRounds=${configuredSwissRounds}`);
+
+        if (nextRound <= expectedRounds) {
+          // Generate next swiss round
+          await generateNextSwissRound(supabase, tournamentId, currentRound, configuredSwissRounds);
+          console.log(`[Swiss] Generated round ${nextRound}`);
+        } else {
+          // All swiss rounds done — check for top cut
+          console.log(`[Swiss] All ${expectedRounds} rounds complete. Checking top cut...`);
+          const hasTopCut = tournament.top_cut != null && tournament.top_cut > 0;
+
+          if (hasTopCut) {
+            console.log(`[Swiss] Generating finals bracket with top_cut=${tournament.top_cut}`);
+            try {
+              await generateFinalsBracket(supabase, tournamentId, tournament.top_cut!);
+              console.log(`[Swiss] Finals bracket generated successfully`);
+            } catch (err) {
+              console.error(`[Swiss] CRITICAL: generateFinalsBracket threw error:`, err);
+            }
+          } else {
+            console.log(`[Swiss] No top cut — completing tournament`);
+            await completeTournament(supabase, request, tournamentId);
+          }
+        }
       }
     }
 
-    // --- GROUP STAGE COMPLETION CHECK (round_robin / swiss with top_cut) ---
-    const hasTopCut = tournament?.top_cut != null && tournament.top_cut > 0;
-
+    // ─── GROUP STAGE COMPLETION CHECK (round_robin with top_cut) ───
+    // For round_robin only — Swiss is now handled above
     if (
-      (tournament?.format === "round_robin" || tournament?.format === "swiss") &&
+      tournament?.format === "round_robin" &&
       tournament.stage === "group_stage"
     ) {
-      // Count pending group stage matches only
       const { count: groupPending } = await supabase
         .from("tournament_matches")
         .select("id", { count: "exact", head: true })
@@ -266,35 +315,22 @@ export async function PATCH(
         .eq("stage", "group")
         .in("status", ["pending", "in_progress"]);
 
-      let groupDone = groupPending === 0;
-
-      // For Swiss, also check if all expected rounds are generated
-      if (groupDone && tournament.format === "swiss") {
-        let expectedRounds: number;
-        if (tournament.swiss_rounds) {
-          expectedRounds = tournament.swiss_rounds;
-        } else {
-          const { count: participantCount } = await supabase
-            .from("tournament_participants")
-            .select("id", { count: "exact", head: true })
-            .eq("tournament_id", tournamentId);
-          expectedRounds = Math.ceil(Math.log2(participantCount ?? 2));
-        }
-        if ((tournament.current_round ?? 0) < expectedRounds) {
-          groupDone = false;
-        }
-      }
+      const groupDone = groupPending === 0;
+      const hasTopCut = tournament.top_cut != null && tournament.top_cut > 0;
 
       if (groupDone && hasTopCut) {
-        // Group stage is done and we have a top cut — generate finals bracket
-        await generateFinalsBracket(supabase, tournamentId, tournament.top_cut!);
+        console.log(`[RoundRobin] Group stage done, generating finals bracket (top_cut=${tournament.top_cut})`);
+        try {
+          await generateFinalsBracket(supabase, tournamentId, tournament.top_cut!);
+        } catch (err) {
+          console.error(`[RoundRobin] CRITICAL: generateFinalsBracket threw error:`, err);
+        }
       } else if (groupDone && !hasTopCut) {
-        // No top cut — just complete the tournament
         await completeTournament(supabase, request, tournamentId);
       }
     }
 
-    // --- NO TOP CUT: round_robin/swiss without stage (legacy behavior) ---
+    // ─── NO TOP CUT: round_robin/swiss without stage (legacy behavior) ───
     if (
       (tournament?.format === "round_robin" || tournament?.format === "swiss") &&
       tournament.stage == null
@@ -448,13 +484,19 @@ async function completeTournament(
   request: Request,
   tournamentId: string
 ) {
-  await supabase
+  console.log(`[Tournament] Completing tournament ${tournamentId}`);
+  const { error } = await supabase
     .from("tournaments")
     .update({
       status: "completed",
       completed_at: new Date().toISOString(),
     })
     .eq("id", tournamentId);
+
+  if (error) {
+    console.error(`[Tournament] Error completing tournament:`, error);
+    return;
+  }
 
   // Auto-award tournament points (fire-and-forget)
   fetch(
@@ -466,7 +508,9 @@ async function completeTournament(
         cookie: request.headers.get("cookie") ?? "",
       },
     }
-  ).catch(() => {});
+  ).catch((err) => {
+    console.error(`[Tournament] Error calling complete endpoint:`, err);
+  });
 }
 
 // ─── Generate Finals Bracket from top-cut players ──────────────────────
@@ -476,6 +520,11 @@ async function generateFinalsBracket(
   tournamentId: string,
   topCut: number
 ) {
+  console.log(`[Finals] Starting generateFinalsBracket for tournament=${tournamentId}, topCut=${topCut}`);
+
+  // Use admin client to bypass RLS for inserts
+  const adminSupabase = createAdminClient();
+
   // Get participants sorted by group stage points (desc), then wins (desc) as tiebreak
   const { data: participants, error } = await supabase
     .from("tournament_participants")
@@ -485,21 +534,30 @@ async function generateFinalsBracket(
     .order("tournament_wins", { ascending: false });
 
   if (error || !participants) {
-    console.error("generateFinalsBracket: Failed to fetch participants", error);
+    console.error("[Finals] CRITICAL: Failed to fetch participants", error);
     return;
   }
+
+  console.log(`[Finals] Found ${participants.length} participants. Top ${topCut} advance.`);
 
   // Take the top N players
   const topPlayers = participants.slice(0, topCut);
 
   if (topPlayers.length < 2) {
-    console.error("generateFinalsBracket: Not enough players for top cut");
+    console.error("[Finals] CRITICAL: Not enough players for top cut, only", topPlayers.length);
     return;
+  }
+
+  // Log seedings
+  for (let i = 0; i < topPlayers.length; i++) {
+    console.log(`[Finals] Seed #${i + 1}: player_id=${topPlayers[i].player_id} points=${topPlayers[i].points} wins=${topPlayers[i].tournament_wins}`);
   }
 
   // Generate elimination bracket for top players
   const bracketSize = nextPowerOf2(topPlayers.length);
   const totalRounds = Math.log2(bracketSize);
+
+  console.log(`[Finals] bracketSize=${bracketSize}, totalRounds=${totalRounds}`);
 
   // Seeded by group stage performance (index 0 = #1 seed)
   const slots: (typeof topPlayers[0] | null)[] = new Array(bracketSize).fill(null);
@@ -526,6 +584,8 @@ async function generateFinalsBracket(
     .limit(1);
 
   const roundOffset = existingRounds?.[0]?.round ?? 0;
+
+  console.log(`[Finals] orderStart=${orderStart}, roundOffset=${roundOffset}`);
 
   function bracketLabel(round: number, pos: number): string {
     if (round === totalRounds) return "F";
@@ -585,16 +645,20 @@ async function generateFinalsBracket(
     prevRoundCount = matchCount;
   }
 
-  // Insert all finals matches
-  const { data: createdMatches, error: insertError } = await supabase
+  console.log(`[Finals] Inserting ${matches.length} finals matches`);
+
+  // Insert all finals matches — use admin client to bypass RLS
+  const { data: createdMatches, error: insertError } = await adminSupabase
     .from("tournament_matches")
     .insert(matches)
     .select();
 
   if (insertError || !createdMatches) {
-    console.error("generateFinalsBracket: Failed to insert matches", insertError);
+    console.error("[Finals] CRITICAL: Failed to insert matches", insertError);
     return;
   }
+
+  console.log(`[Finals] Inserted ${createdMatches.length} matches successfully`);
 
   // Link next_match_id for bracket progression
   const sorted = [...createdMatches].sort((a, b) => a.match_order - b.match_order);
@@ -614,13 +678,18 @@ async function generateFinalsBracket(
     for (let i = 0; i < currentRound.length; i++) {
       const nextMatchIndex = Math.floor(i / 2);
       if (nextMatchIndex < nextRound.length) {
-        await supabase
+        const { error: linkErr } = await adminSupabase
           .from("tournament_matches")
           .update({ next_match_id: nextRound[nextMatchIndex].id })
           .eq("id", currentRound[i].id);
+        if (linkErr) {
+          console.error(`[Finals] Error linking match ${currentRound[i].id} -> ${nextRound[nextMatchIndex].id}:`, linkErr);
+        }
       }
     }
   }
+
+  console.log(`[Finals] Linked next_match_id for all matches`);
 
   // Auto-advance bye matches in the first round
   const firstRoundKey = roundKeys[0];
@@ -629,11 +698,15 @@ async function generateFinalsBracket(
     (m) => m.status === "bye" && (m.player1_id || m.player2_id)
   );
 
+  console.log(`[Finals] Found ${byeMatches.length} bye matches to auto-advance`);
+
   for (const byeMatch of byeMatches) {
     const winnerId = byeMatch.player1_id ?? byeMatch.player2_id;
     if (!winnerId) continue;
 
-    await supabase
+    console.log(`[Finals] Auto-advancing bye match ${byeMatch.id}, winner=${winnerId}`);
+
+    const { error: byeUpdateErr } = await adminSupabase
       .from("tournament_matches")
       .update({
         winner_id: winnerId,
@@ -641,15 +714,22 @@ async function generateFinalsBracket(
       })
       .eq("id", byeMatch.id);
 
+    if (byeUpdateErr) {
+      console.error(`[Finals] Error updating bye match ${byeMatch.id}:`, byeUpdateErr);
+      continue;
+    }
+
     // Refetch to get linked next_match_id
-    const { data: linkedBye } = await supabase
+    const { data: linkedBye } = await adminSupabase
       .from("tournament_matches")
       .select("id, next_match_id")
       .eq("id", byeMatch.id)
       .single();
 
+    console.log(`[Finals] Bye match ${byeMatch.id} next_match_id=${linkedBye?.next_match_id}`);
+
     if (linkedBye?.next_match_id) {
-      const { data: feeders } = await supabase
+      const { data: feeders } = await adminSupabase
         .from("tournament_matches")
         .select("id, match_order")
         .eq("next_match_id", linkedBye.next_match_id)
@@ -657,29 +737,35 @@ async function generateFinalsBracket(
 
       if (feeders) {
         const feederIndex = feeders.findIndex((f) => f.id === byeMatch.id);
-        if (feederIndex === 0) {
-          await supabase
-            .from("tournament_matches")
-            .update({ player1_id: winnerId })
-            .eq("id", linkedBye.next_match_id);
-        } else {
-          await supabase
-            .from("tournament_matches")
-            .update({ player2_id: winnerId })
-            .eq("id", linkedBye.next_match_id);
+        const slot = feederIndex === 0 ? "player1_id" : "player2_id";
+        console.log(`[Finals] Advancing winner to ${slot} of match ${linkedBye.next_match_id}`);
+
+        const { error: advanceErr } = await adminSupabase
+          .from("tournament_matches")
+          .update({ [slot]: winnerId })
+          .eq("id", linkedBye.next_match_id);
+
+        if (advanceErr) {
+          console.error(`[Finals] Error advancing winner to next match:`, advanceErr);
         }
       }
     }
   }
 
   // Update tournament: switch to finals stage
-  await supabase
+  const { error: stageErr } = await adminSupabase
     .from("tournaments")
     .update({
       stage: "finals",
       current_round: roundOffset + 1,
     })
     .eq("id", tournamentId);
+
+  if (stageErr) {
+    console.error(`[Finals] CRITICAL: Error updating tournament stage to finals:`, stageErr);
+  } else {
+    console.log(`[Finals] Tournament stage updated to 'finals' successfully`);
+  }
 }
 
 // ─── Swiss: Generate next round by pairing players with similar points ───
@@ -700,15 +786,23 @@ async function generateNextSwissRound(
     .eq("tournament_id", tournamentId)
     .order("points", { ascending: false });
 
-  if (error || !participants) return;
+  if (error || !participants) {
+    console.error(`[Swiss] Error fetching participants for round ${nextRound}:`, error);
+    return;
+  }
 
   // Determine expected rounds for Swiss
   const expectedRounds = configuredSwissRounds ?? Math.ceil(Math.log2(participants.length));
   if (nextRound > expectedRounds) {
-    // Swiss group rounds are done — check if we need top cut or complete
-    // The completion logic is handled in the PATCH handler after this returns
+    console.log(`[Swiss] nextRound ${nextRound} > expectedRounds ${expectedRounds}, skipping generation`);
+    // Swiss group rounds are done — completion logic handled by caller
     return;
   }
+
+  console.log(`[Swiss] Generating round ${nextRound} for ${participants.length} participants`);
+
+  // Use admin client to bypass RLS for inserts
+  const adminSupabase = createAdminClient();
 
   // Get previous matchups to avoid rematches (only group stage)
   const { data: previousMatches } = await supabase
@@ -783,16 +877,23 @@ async function generateNextSwissRound(
   }
 
   if (matches.length > 0) {
-    const { data: createdMatches } = await supabase
+    const { data: createdMatches, error: insertErr } = await adminSupabase
       .from("tournament_matches")
       .insert(matches)
       .select();
+
+    if (insertErr) {
+      console.error(`[Swiss] CRITICAL: Error inserting round ${nextRound} matches:`, insertErr);
+      return;
+    }
+
+    console.log(`[Swiss] Inserted ${createdMatches?.length ?? 0} matches for round ${nextRound}`);
 
     // Auto-resolve bye matches
     if (createdMatches) {
       for (const m of createdMatches) {
         if (m.status === "bye" && m.player1_id) {
-          await supabase
+          const { error: byeErr } = await adminSupabase
             .from("tournament_matches")
             .update({
               winner_id: m.player1_id,
@@ -800,6 +901,11 @@ async function generateNextSwissRound(
               completed_at: new Date().toISOString(),
             })
             .eq("id", m.id);
+
+          if (byeErr) {
+            console.error(`[Swiss] Error auto-resolving bye match ${m.id}:`, byeErr);
+            continue;
+          }
 
           // Award point
           const { data: participant } = await supabase
@@ -810,7 +916,7 @@ async function generateNextSwissRound(
             .single();
 
           if (participant) {
-            await supabase
+            await adminSupabase
               .from("tournament_participants")
               .update({
                 points: participant.points + 3,
@@ -824,10 +930,16 @@ async function generateNextSwissRound(
     }
 
     // Update tournament current round
-    await supabase
+    const { error: roundErr } = await adminSupabase
       .from("tournaments")
       .update({ current_round: nextRound })
       .eq("id", tournamentId);
+
+    if (roundErr) {
+      console.error(`[Swiss] Error updating current_round to ${nextRound}:`, roundErr);
+    } else {
+      console.log(`[Swiss] Updated current_round to ${nextRound}`);
+    }
   }
 }
 

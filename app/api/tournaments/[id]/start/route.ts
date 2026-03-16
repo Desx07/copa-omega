@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // ─── Match Generation Helpers ────────────────────────────────────
 
@@ -286,6 +287,8 @@ export async function POST(
       );
     }
 
+    console.log(`[Start] Starting tournament ${tournamentId} with ${participants.length} players, format=${tournament.format}`);
+
     // Generate matches based on format
     let matchInserts: MatchInsert[];
 
@@ -306,15 +309,21 @@ export async function POST(
         );
     }
 
+    // Use admin client for all inserts to bypass RLS
+    const adminSupabase = createAdminClient();
+
     // Insert all matches
-    const { data: createdMatches, error: matchError } = await supabase
+    const { data: createdMatches, error: matchError } = await adminSupabase
       .from("tournament_matches")
       .insert(matchInserts)
       .select();
 
     if (matchError) {
+      console.error("[Start] Error inserting matches:", matchError);
       return Response.json({ error: matchError.message }, { status: 500 });
     }
+
+    console.log(`[Start] Created ${createdMatches?.length ?? 0} matches`);
 
     // For single elimination, link next_match_id for bracket progression
     if (tournament.format === "single_elimination" && createdMatches) {
@@ -330,6 +339,7 @@ export async function POST(
 
       const totalRounds = Math.max(...Array.from(byRound.keys()));
 
+      // Link next_match_id
       for (let round = 1; round < totalRounds; round++) {
         const currentRound = byRound.get(round) ?? [];
         const nextRound = byRound.get(round + 1) ?? [];
@@ -337,24 +347,37 @@ export async function POST(
         for (let i = 0; i < currentRound.length; i++) {
           const nextMatchIndex = Math.floor(i / 2);
           if (nextMatchIndex < nextRound.length) {
-            await supabase
+            const { error: linkErr } = await adminSupabase
               .from("tournament_matches")
               .update({ next_match_id: nextRound[nextMatchIndex].id })
               .eq("id", currentRound[i].id);
+            if (linkErr) {
+              console.error(`[Start] Error linking match ${currentRound[i].id}:`, linkErr);
+            }
           }
         }
       }
+
+      console.log(`[Start] Linked next_match_id for bracket progression`);
 
       // Auto-advance bye matches: winners move to next round
       const byeMatches = sorted.filter(
         (m) => m.status === "bye" && m.round === 1
       );
+
+      console.log(`[Start] Found ${byeMatches.length} bye matches to auto-advance`);
+
       for (const byeMatch of byeMatches) {
         const winnerId = byeMatch.player1_id ?? byeMatch.player2_id;
-        if (!winnerId) continue;
+        if (!winnerId) {
+          console.error(`[Start] Bye match ${byeMatch.id} has no player, skipping`);
+          continue;
+        }
+
+        console.log(`[Start] Auto-advancing bye match ${byeMatch.id}, winner=${winnerId}`);
 
         // Mark bye match as completed with the present player as winner
-        await supabase
+        const { error: byeUpdateErr } = await adminSupabase
           .from("tournament_matches")
           .update({
             winner_id: winnerId,
@@ -362,49 +385,50 @@ export async function POST(
           })
           .eq("id", byeMatch.id);
 
-        // Find next match and fill the winner into it
-        if (byeMatch.next_match_id) {
-          // Refetch the next match to get current state
-          const { data: nextMatch } = await supabase
+        if (byeUpdateErr) {
+          console.error(`[Start] Error updating bye match ${byeMatch.id}:`, byeUpdateErr);
+          continue;
+        }
+
+        // Refetch to get the linked next_match_id (was linked above)
+        const { data: linkedBye } = await adminSupabase
+          .from("tournament_matches")
+          .select("id, match_order, next_match_id")
+          .eq("id", byeMatch.id)
+          .single();
+
+        if (!linkedBye?.next_match_id) {
+          console.error(`[Start] Bye match ${byeMatch.id} has no next_match_id after linking`);
+          continue;
+        }
+
+        console.log(`[Start] Bye match ${byeMatch.id} next_match_id=${linkedBye.next_match_id}`);
+
+        // Find all matches that feed into the same next match to determine slot
+        const { data: feeders } = await adminSupabase
+          .from("tournament_matches")
+          .select("id, match_order")
+          .eq("next_match_id", linkedBye.next_match_id)
+          .order("match_order", { ascending: true });
+
+        if (feeders) {
+          const feederIndex = feeders.findIndex(
+            (f) => f.id === byeMatch.id
+          );
+          const slot = feederIndex === 0 ? "player1_id" : "player2_id";
+
+          console.log(`[Start] Advancing winner to ${slot} of match ${linkedBye.next_match_id}`);
+
+          const { error: advanceErr } = await adminSupabase
             .from("tournament_matches")
-            .select("*")
-            .eq("id", byeMatch.next_match_id)
-            .single();
+            .update({ [slot]: winnerId })
+            .eq("id", linkedBye.next_match_id);
 
-          // We need to know which slot: the bye match's index determines it
-          // Refetch to get the linked next_match_id
-          const { data: linkedBye } = await supabase
-            .from("tournament_matches")
-            .select("id, match_order, next_match_id")
-            .eq("id", byeMatch.id)
-            .single();
-
-          if (nextMatch && linkedBye) {
-            // Even match_order within its round feeds player1, odd feeds player2
-            // Find all matches in this round that feed into the same next match
-            const { data: feeders } = await supabase
-              .from("tournament_matches")
-              .select("id, match_order")
-              .eq("next_match_id", byeMatch.next_match_id)
-              .order("match_order", { ascending: true });
-
-            if (feeders) {
-              const feederIndex = feeders.findIndex(
-                (f) => f.id === byeMatch.id
-              );
-              if (feederIndex === 0) {
-                await supabase
-                  .from("tournament_matches")
-                  .update({ player1_id: winnerId })
-                  .eq("id", byeMatch.next_match_id);
-              } else {
-                await supabase
-                  .from("tournament_matches")
-                  .update({ player2_id: winnerId })
-                  .eq("id", byeMatch.next_match_id);
-              }
-            }
+          if (advanceErr) {
+            console.error(`[Start] Error advancing bye winner to next match:`, advanceErr);
           }
+        } else {
+          console.error(`[Start] No feeders found for next_match_id=${linkedBye.next_match_id}`);
         }
       }
     }
@@ -416,7 +440,9 @@ export async function POST(
         const winnerId = byeMatch.player1_id;
         if (!winnerId) continue;
 
-        await supabase
+        console.log(`[Start] Swiss bye: auto-resolving match ${byeMatch.id} for player ${winnerId}`);
+
+        const { error: byeErr } = await adminSupabase
           .from("tournament_matches")
           .update({
             winner_id: winnerId,
@@ -425,12 +451,21 @@ export async function POST(
           })
           .eq("id", byeMatch.id);
 
+        if (byeErr) {
+          console.error(`[Start] Error auto-resolving swiss bye ${byeMatch.id}:`, byeErr);
+          continue;
+        }
+
         // Award point to the participant
-        await supabase
+        const { error: pointErr } = await adminSupabase
           .from("tournament_participants")
           .update({ points: 1, tournament_wins: 1 })
           .eq("tournament_id", tournamentId)
           .eq("player_id", winnerId);
+
+        if (pointErr) {
+          console.error(`[Start] Error awarding swiss bye points for ${winnerId}:`, pointErr);
+        }
       }
     }
 
@@ -455,6 +490,8 @@ export async function POST(
     if (updateError) {
       return Response.json({ error: updateError.message }, { status: 500 });
     }
+
+    console.log(`[Start] Tournament started: status=in_progress, stage=${initialStage}`);
 
     return Response.json(
       {
