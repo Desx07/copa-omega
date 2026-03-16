@@ -141,26 +141,47 @@ export default function EditTournament({
 
         <div>
           <label className="text-[10px] font-bold text-omega-muted uppercase tracking-wider block mb-1">
-            URL del logo (imagen)
+            Logo del torneo
           </label>
-          <input
-            type="url"
-            value={logoUrl}
-            onChange={(e) => setLogoUrl(e.target.value)}
-            className="omega-input w-full"
-            placeholder="https://ejemplo.com/logo.png"
-          />
-          {logoUrl && (
-            <div className="mt-2 flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {logoUrl && (
               <img
                 src={logoUrl}
-                alt="Preview"
-                className="size-10 rounded-lg object-cover border border-omega-border"
+                alt="Logo"
+                className="size-12 rounded-lg object-cover border border-omega-border"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
-              <span className="text-[10px] text-omega-muted">Vista previa</span>
+            )}
+            <div className="flex-1 space-y-2">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const { uploadImage } = await import("@/lib/upload-image");
+                    const url = await uploadImage("media", `tournaments/${tournamentId}/logo`, file, 400);
+                    if (url) {
+                      setLogoUrl(url);
+                      toast.success("Logo subido");
+                    }
+                  } catch {
+                    toast.error("Error subiendo logo");
+                  }
+                  e.target.value = "";
+                }}
+                className="text-xs text-omega-muted file:omega-btn file:omega-btn-secondary file:text-xs file:mr-2 file:px-3 file:py-1"
+              />
+              <input
+                type="url"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                className="omega-input w-full text-xs"
+                placeholder="O pegá una URL directa"
+              />
             </div>
-          )}
+          </div>
         </div>
       </div>
 
