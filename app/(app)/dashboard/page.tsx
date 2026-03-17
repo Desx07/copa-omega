@@ -29,6 +29,7 @@ import { LogoutButtonFull } from "@/app/_components/logout-button-full";
 import NotificationBell from "@/app/_components/notification-bell";
 import ChatUnread from "@/app/_components/chat-unread";
 import OnboardingChecklist from "@/app/_components/onboarding-checklist";
+import RematchButton from "@/app/_components/rematch-button";
 import SeasonBanner from "@/app/_components/season-banner";
 import TournamentCountdown from "@/app/_components/tournament-countdown";
 import DashboardCarousel from "@/app/_components/dashboard-carousel";
@@ -463,6 +464,7 @@ export default async function DashboardPage() {
               const isPlayer1 = match.player1_id === user.id;
               const opponent = isPlayer1 ? match.player2 : match.player1;
               const opponentAlias = (opponent as unknown as { alias: string })?.alias ?? "???";
+              const opponentId = isPlayer1 ? match.player2_id : match.player1_id;
               return (
                 <div
                   key={match.id}
@@ -477,9 +479,14 @@ export default async function DashboardPage() {
                       {match.completed_at ? new Date(match.completed_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" }) : ""}
                     </p>
                   </div>
-                  <div className={`flex items-center gap-1 shrink-0 ${won ? "text-omega-green" : "text-omega-red"}`}>
-                    <span className="text-sm font-black">{won ? "+" : "-"}{match.stars_bet}</span>
-                    <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                  <div className="flex items-center gap-2 shrink-0">
+                    {!won && match.stars_bet > 0 && (
+                      <RematchButton opponentId={opponentId} starsBet={match.stars_bet} />
+                    )}
+                    <div className={`flex items-center gap-1 ${won ? "text-omega-green" : "text-omega-red"}`}>
+                      <span className="text-sm font-black">{won ? "+" : "-"}{match.stars_bet}</span>
+                      <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                    </div>
                   </div>
                 </div>
               );

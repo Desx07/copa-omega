@@ -386,6 +386,25 @@ export async function POST(
       }
     }
 
+    // Push summary to ALL participants (fire-and-forget)
+    for (const p of pointsToInsert) {
+      const position = p.position;
+      const pts = p.points;
+      let message = "";
+      if (position === 1) message = `Campeon! +${pts} puntos de torneo`;
+      else if (position === 2) message = `Subcampeon! +${pts} puntos de torneo`;
+      else if (position === 3) message = `3er puesto! +${pts} puntos de torneo`;
+      else if (position) message = `Puesto #${position}. +${pts} puntos de torneo`;
+      else message = `+${pts} puntos de torneo. Gracias por participar!`;
+
+      sendPushToPlayer(
+        p.player_id,
+        "Torneo finalizado",
+        message,
+        `/tournaments/${tournamentId}`
+      ).catch((e) => console.error("[push] error:", e));
+    }
+
     // Trigger badge checks for all participants
     const baseUrl = new URL(_request.url).origin;
     for (const p of participants) {
