@@ -52,15 +52,15 @@ export default function DashboardCarousel({ items }: DashboardCarouselProps) {
       onTouchStart={() => setPaused(true)}
       onTouchEnd={() => setTimeout(() => setPaused(false), 3000)}
     >
-      {/* Image container — fixed aspect ratio, compact */}
-      <div className="relative w-full" style={{ aspectRatio: "16/9", maxHeight: "180px" }}>
+      {/* Image container — full width, natural height */}
+      <div className="relative w-full">
         {isVideo ? (
-          <a href={item.url} target="_blank" rel="noopener noreferrer" className="block size-full">
+          <a href={item.url} target="_blank" rel="noopener noreferrer" className="block w-full">
             {imgSrc ? (
               <img
                 src={imgSrc}
                 alt={item.title || ""}
-                className="size-full object-cover"
+                className="w-full object-contain"
               />
             ) : (
               <div className="size-full bg-omega-surface flex items-center justify-center">
@@ -78,7 +78,7 @@ export default function DashboardCarousel({ items }: DashboardCarouselProps) {
           <img
             src={item.url}
             alt={item.title || ""}
-            className="size-full object-cover"
+            className="w-full rounded-t-2xl"
           />
         )}
 
