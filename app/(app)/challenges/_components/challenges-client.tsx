@@ -15,6 +15,7 @@ import {
   Search,
 } from "lucide-react";
 import ChallengeButton from "@/app/_components/challenge-button";
+import ChallengeComments from "./challenge-comments";
 import Link from "next/link";
 
 type PlayerInfo = {
@@ -322,6 +323,9 @@ export default function ChallengesClient({ userId }: { userId: string }) {
                     </span>
                   )}
                 </div>
+
+                {/* Comments */}
+                <ChallengeComments challengeId={challenge.id} userId={userId} />
               </div>
             );
           })
