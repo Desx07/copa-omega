@@ -47,8 +47,9 @@ export function PresenceProvider({
   alias,
   avatarUrl,
 }: PresenceProviderProps) {
+  // Always include self in initial state
   const [onlineUsers, setOnlineUsers] = useState<Map<string, PresenceUser>>(
-    new Map()
+    () => new Map([[userId, { user_id: userId, alias, avatar_url: avatarUrl }]])
   );
   const channelRef = useRef<RealtimeChannel | null>(null);
 
@@ -58,6 +59,7 @@ export function PresenceProvider({
   );
 
   useEffect(() => {
+    const self: PresenceUser = { user_id: userId, alias, avatar_url: avatarUrl };
     const supabase = createClient();
 
     const channel = supabase.channel("online-presence", {
@@ -75,6 +77,9 @@ export function PresenceProvider({
         const state = channel.presenceState<PresenceUser>();
         const users = new Map<string, PresenceUser>();
 
+        // Always include self
+        users.set(userId, self);
+
         for (const [, presences] of Object.entries(state)) {
           for (const presence of presences) {
             users.set(presence.user_id, {
@@ -87,38 +92,12 @@ export function PresenceProvider({
 
         setOnlineUsers(users);
       })
-      .on("presence", { event: "join" }, ({ newPresences }) => {
-        setOnlineUsers((prev) => {
-          const next = new Map(prev);
-          for (const p of newPresences as unknown as PresenceUser[]) {
-            next.set(p.user_id, { user_id: p.user_id, alias: p.alias, avatar_url: p.avatar_url });
-          }
-          return next;
-        });
-      })
-      .on("presence", { event: "leave" }, ({ leftPresences }) => {
-        setOnlineUsers((prev) => {
-          const next = new Map(prev);
-          for (const p of leftPresences as unknown as PresenceUser[]) {
-            next.delete(p.user_id);
-          }
-          return next;
-        });
-      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
-          // Track self
           await channel.track({
             user_id: userId,
             alias,
             avatar_url: avatarUrl,
-          });
-          // Ensure self is in the map immediately after tracking
-          setOnlineUsers((prev) => {
-            if (prev.has(userId)) return prev;
-            const next = new Map(prev);
-            next.set(userId, { user_id: userId, alias, avatar_url: avatarUrl });
-            return next;
           });
         }
       });
