@@ -149,6 +149,9 @@ export async function POST(request: Request) {
       if (tmatch.player1_id === user.id || tmatch.player2_id === user.id) {
         return Response.json({ error: "No podes predecir tus propias partidas" }, { status: 400 });
       }
+      if (predicted_winner_id !== tmatch.player1_id && predicted_winner_id !== tmatch.player2_id) {
+        return Response.json({ error: "El ganador predicho debe ser uno de los jugadores" }, { status: 400 });
+      }
     }
 
     if (challenge_id) {
@@ -166,6 +169,9 @@ export async function POST(request: Request) {
       }
       if (challenge.challenger_id === user.id || challenge.challenged_id === user.id) {
         return Response.json({ error: "No podes predecir tus propios retos" }, { status: 400 });
+      }
+      if (predicted_winner_id !== challenge.challenger_id && predicted_winner_id !== challenge.challenged_id) {
+        return Response.json({ error: "El ganador predicho debe ser uno de los jugadores" }, { status: 400 });
       }
     }
 

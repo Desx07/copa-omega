@@ -179,19 +179,40 @@ export async function PATCH(
       }
     }
 
-    // Resolve predictions for this match
+    // Resolve predictions for this match (and linked challenge if any)
     try {
       const adminSupabase = createAdminClient();
-      const { data: predictions } = await adminSupabase
+
+      // Find predictions by match_id
+      const { data: matchPredictions } = await adminSupabase
         .from("predictions")
         .select("id, predictor_id, predicted_winner_id")
         .eq("match_id", id)
         .is("is_correct", null);
 
-      if (predictions && predictions.length > 0) {
-        const predictorIds = [...new Set(predictions.map((p) => p.predictor_id))];
+      // Also find predictions by challenge_id if this match was created from a challenge
+      let challengePredictions: typeof matchPredictions = [];
+      const { data: linkedChallenge } = await adminSupabase
+        .from("challenges")
+        .select("id")
+        .eq("match_id", id)
+        .maybeSingle();
 
-        for (const pred of predictions) {
+      if (linkedChallenge) {
+        const { data: chPreds } = await adminSupabase
+          .from("predictions")
+          .select("id, predictor_id, predicted_winner_id")
+          .eq("challenge_id", linkedChallenge.id)
+          .is("is_correct", null);
+        challengePredictions = chPreds ?? [];
+      }
+
+      const allPredictions = [...(matchPredictions ?? []), ...challengePredictions];
+
+      if (allPredictions.length > 0) {
+        const predictorIds = [...new Set(allPredictions.map((p) => p.predictor_id))];
+
+        for (const pred of allPredictions) {
           const isCorrect = pred.predicted_winner_id === winner_id;
           await adminSupabase
             .from("predictions")

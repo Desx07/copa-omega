@@ -114,7 +114,7 @@ export default function PredictionsPage() {
     refId: string,
     winnerId: string
   ) {
-    setSubmitting(`${refId}-${winnerId}`);
+    setSubmitting(refId);
     setError(null);
     try {
       const res = await fetch("/api/predictions", {
@@ -155,7 +155,7 @@ export default function PredictionsPage() {
     existingPrediction: Prediction | undefined
   ) {
     const isPredicted = existingPrediction?.predicted_winner_id === playerId;
-    const isSubmitting = submitting === `${refId}-${playerId}`;
+    const isSubmitting = submitting === refId;
     const hasAnyPrediction = !!existingPrediction;
 
     return (
