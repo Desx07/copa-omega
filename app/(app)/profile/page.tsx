@@ -31,6 +31,7 @@ import { uploadImage } from "@/lib/upload-image";
 import BadgesDisplay from "@/app/_components/badges-display";
 import TournamentBadgesDisplay from "@/app/_components/tournament-badges-display";
 import PushToggle from "@/app/_components/push-toggle";
+import ReferralCard from "@/app/_components/referral-card";
 
 interface Player {
   id: string;
@@ -47,6 +48,7 @@ interface Player {
   accent_color: string;
   created_at: string;
   profile_card_url: string | null;
+  referral_code: string | null;
 }
 
 interface Bey {
@@ -107,7 +109,7 @@ export default function ProfilePage() {
     const [playerResult, beysResult, badgesResult, allPlayersResult, tournamentBadgesResult] = await Promise.all([
       supabase
         .from("players")
-        .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at, profile_card_url")
+        .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at, profile_card_url, referral_code")
         .eq("id", user.id)
         .single(),
       supabase
@@ -643,6 +645,13 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* ═══ REFERRAL ═══ */}
+        {player.referral_code && (
+          <div className="px-4">
+            <ReferralCard referralCode={player.referral_code} />
+          </div>
+        )}
 
         {/* ═══ LOGOUT ═══ */}
         <div className="px-4">

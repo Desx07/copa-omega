@@ -26,16 +26,18 @@ import { QrScannerButton } from "@/app/_components/qr-scanner";
 import { LogoutButtonFull } from "@/app/_components/logout-button-full";
 import NotificationBell from "@/app/_components/notification-bell";
 import ChatUnread from "@/app/_components/chat-unread";
+import OnboardingChecklist from "@/app/_components/onboarding-checklist";
+import SeasonBanner from "@/app/_components/season-banner";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [playerResult, matchesResult, allPlayersResult, last10Result] = await Promise.all([
+  const [playerResult, matchesResult, allPlayersResult, last10Result, beysResult, predictionsResult, challengesResult, activeSeasonResult] = await Promise.all([
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at, current_login_streak, max_login_streak")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at, current_login_streak, max_login_streak, onboarding_completed")
       .eq("id", user.id)
       .single(),
     supabase
@@ -60,6 +62,27 @@ export default async function DashboardPage() {
       .eq("status", "completed")
       .order("completed_at", { ascending: false })
       .limit(10),
+    // Onboarding: beys count
+    supabase
+      .from("beys")
+      .select("id", { count: "exact", head: true })
+      .eq("player_id", user.id),
+    // Onboarding: predictions count
+    supabase
+      .from("predictions")
+      .select("id", { count: "exact", head: true })
+      .eq("predictor_id", user.id),
+    // Onboarding: challenges sent count
+    supabase
+      .from("challenges")
+      .select("id", { count: "exact", head: true })
+      .eq("challenger_id", user.id),
+    // Active season
+    supabase
+      .from("seasons")
+      .select("*")
+      .eq("status", "active")
+      .maybeSingle(),
   ]);
 
   const player = playerResult.data;
@@ -87,6 +110,9 @@ export default async function DashboardPage() {
 
   // Login streak
   const loginStreak = (player as unknown as { current_login_streak: number }).current_login_streak ?? 0;
+
+  // Active season
+  const activeSeason = activeSeasonResult.data;
 
   return (
     <div className="max-w-lg mx-auto pb-10 space-y-5">
@@ -204,6 +230,17 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
+      {/* ═══ SEASON BANNER ═══ */}
+      {activeSeason && (
+        <div className="px-4">
+          <SeasonBanner
+            name={activeSeason.name}
+            number={activeSeason.number}
+            endsAt={activeSeason.ends_at}
+          />
+        </div>
+      )}
+
       {/* ═══ ENGAGEMENT QUICK LINKS — compact row ═══ */}
       <div className="grid grid-cols-3 gap-2 px-4">
         <Link href="/predictions" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
@@ -228,6 +265,19 @@ export default async function DashboardPage() {
           <p className="text-[10px] text-omega-muted leading-tight">Votá y opiná</p>
         </Link>
       </div>
+
+      {/* ═══ ONBOARDING CHECKLIST ═══ */}
+      {!player.onboarding_completed && (
+        <div className="px-4">
+          <OnboardingChecklist
+            playerId={player.id}
+            hasAvatar={!!player.avatar_url}
+            hasBeys={(beysResult.count ?? 0) > 0}
+            hasPredictions={(predictionsResult.count ?? 0) > 0}
+            hasChallenges={(challengesResult.count ?? 0) > 0}
+          />
+        </div>
+      )}
 
       {/* ═══ QUICK ACTIONS — grid ═══ */}
       <div className="grid grid-cols-2 gap-3 px-4">
