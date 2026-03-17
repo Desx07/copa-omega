@@ -22,6 +22,7 @@ import {
   Calendar,
   Trophy,
   ImageIcon,
+  Pencil,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -585,29 +586,16 @@ export default function ProfilePage() {
                 const config = beyTypeConfig[bey.type];
                 const Icon = config.icon;
                 return (
-                  <div
+                  <BeyCard
                     key={bey.id}
-                    className={`rounded-xl border-l-4 ${
-                      bey.type === "attack" ? "border-l-omega-red" :
-                      bey.type === "defense" ? "border-l-omega-blue" :
-                      bey.type === "stamina" ? "border-l-omega-green" :
-                      "border-l-omega-purple"
-                    } bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3 group`}
-                  >
-                    <div className={`size-8 rounded-lg border flex items-center justify-center ${config.bg}`}>
-                      <Icon className={`size-4 ${config.color}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-omega-text truncate leading-tight">{bey.name}</p>
-                      <p className={`text-[10px] font-medium ${config.color} leading-tight`}>{config.label}</p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteBey(bey.id)}
-                      className="size-7 rounded-md flex items-center justify-center text-omega-muted hover:text-omega-red hover:bg-omega-red/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </div>
+                    bey={bey}
+                    config={config}
+                    icon={<Icon className={`size-4 ${config.color}`} />}
+                    onDelete={() => handleDeleteBey(bey.id)}
+                    onUpdate={(updated) => {
+                      setBeys(beys.map(b => b.id === updated.id ? updated : b));
+                    }}
+                  />
                 );
               })}
             </div>
@@ -669,5 +657,118 @@ export default function ProfilePage() {
         />
       )}
     </>
+  );
+}
+
+/* ─── Bey Card with inline edit + delete ─── */
+
+function BeyCard({
+  bey,
+  config,
+  icon,
+  onDelete,
+  onUpdate,
+}: {
+  bey: Bey;
+  config: { label: string; color: string; bg: string };
+  icon: React.ReactNode;
+  onDelete: () => void;
+  onUpdate: (updated: Bey) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(bey.name);
+  const [type, setType] = useState(bey.type);
+  const [saving, setSaving] = useState(false);
+  const supabase = createClient();
+
+  async function handleSave() {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("beys")
+        .update({ name: name.trim(), type })
+        .eq("id", bey.id);
+      if (error) { toast.error("Error guardando"); return; }
+      onUpdate({ ...bey, name: name.trim(), type });
+      setEditing(false);
+      toast.success("Bey actualizado");
+    } catch { toast.error("Error"); }
+    finally { setSaving(false); }
+  }
+
+  if (editing) {
+    return (
+      <div className={`rounded-xl border-l-4 ${
+        type === "attack" ? "border-l-omega-red" :
+        type === "defense" ? "border-l-omega-blue" :
+        type === "stamina" ? "border-l-omega-green" :
+        "border-l-omega-purple"
+      } bg-omega-card px-4 py-3 shadow-sm space-y-2`}>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="omega-input w-full text-sm"
+          placeholder="Nombre del bey"
+        />
+        <select
+          value={type}
+          onChange={(e) => setType(e.target.value as Bey["type"])}
+          className="omega-input w-full text-xs"
+        >
+          <option value="attack">Ataque</option>
+          <option value="defense">Defensa</option>
+          <option value="stamina">Stamina</option>
+          <option value="balance">Balance</option>
+        </select>
+        <div className="flex gap-2">
+          <button
+            onClick={handleSave}
+            disabled={saving || !name.trim()}
+            className="omega-btn omega-btn-green flex-1 py-1.5 text-xs"
+          >
+            {saving ? <Loader2 className="size-3 animate-spin" /> : "Guardar"}
+          </button>
+          <button
+            onClick={() => { setEditing(false); setName(bey.name); setType(bey.type); }}
+            className="omega-btn omega-btn-secondary flex-1 py-1.5 text-xs"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`rounded-xl border-l-4 ${
+      bey.type === "attack" ? "border-l-omega-red" :
+      bey.type === "defense" ? "border-l-omega-blue" :
+      bey.type === "stamina" ? "border-l-omega-green" :
+      "border-l-omega-purple"
+    } bg-omega-card px-4 py-3 shadow-sm flex items-center gap-3`}>
+      <div className={`size-8 rounded-lg border flex items-center justify-center ${config.bg}`}>
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-omega-text truncate leading-tight">{bey.name}</p>
+        <p className={`text-[10px] font-medium ${config.color} leading-tight`}>{config.label}</p>
+      </div>
+      <button
+        onClick={() => setEditing(true)}
+        className="size-7 rounded-md flex items-center justify-center text-omega-muted hover:text-omega-purple hover:bg-omega-purple/10 transition-all shrink-0"
+        title="Editar"
+      >
+        <Pencil className="size-3.5" />
+      </button>
+      <button
+        onClick={onDelete}
+        className="size-7 rounded-md flex items-center justify-center text-omega-muted hover:text-omega-red hover:bg-omega-red/10 transition-all shrink-0"
+        title="Eliminar"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
+    </div>
   );
 }
