@@ -330,6 +330,9 @@ function EliminationMatchCard({
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [newPlayerAlias, setNewPlayerAlias] = useState("");
   const [addingPlayer, setAddingPlayer] = useState(false);
+  // Admin: assign player to any slot
+  const [assigningSlot, setAssigningSlot] = useState<"player1" | "player2" | null>(null);
+  const [assignAlias, setAssignAlias] = useState("");
   const router = useRouter();
 
   const p1Alias = match.player1?.alias ?? (match.player1_id ? "???" : "TBD");
@@ -470,6 +473,36 @@ function EliminationMatchCard({
     }
   }
 
+  // Admin: assign a player to a slot by alias search
+  async function handleAssignPlayer(slot: "player1" | "player2") {
+    if (!tournamentId || !assignAlias.trim()) return;
+    setAddingPlayer(true);
+    try {
+      // First find the player by alias
+      const searchRes = await fetch(`/api/players?search=${encodeURIComponent(assignAlias.trim())}`);
+      if (!searchRes.ok) { toast.error("Error buscando jugador"); return; }
+      const players = await searchRes.json();
+      const found = Array.isArray(players) ? players[0] : players?.players?.[0];
+      if (!found) { toast.error(`"${assignAlias}" no encontrado`); return; }
+
+      const res = await fetch(`/api/admin/matches/${match.id}/set-player`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tournament_id: tournamentId, slot, player_id: found.id }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Error asignando");
+        return;
+      }
+      toast.success(`${found.alias} asignado`);
+      setAssigningSlot(null);
+      setAssignAlias("");
+      router.refresh();
+    } catch { toast.error("Error de conexión"); }
+    finally { setAddingPlayer(false); }
+  }
+
   const borderColor = isActive
     ? "border-l-omega-blue"
     : p1Won || p2Won
@@ -536,7 +569,36 @@ function EliminationMatchCard({
             {match.player1_score}
           </span>
         )}
+        {isAdmin && !match.player1_id && (
+          <button
+            onClick={() => setAssigningSlot(assigningSlot === "player1" ? null : "player1")}
+            className="text-[9px] text-omega-purple hover:text-omega-gold font-bold shrink-0"
+          >
+            +
+          </button>
+        )}
       </div>
+
+      {/* Admin: assign player form for slot 1 */}
+      {isAdmin && assigningSlot === "player1" && (
+        <div className="px-3 py-1.5 bg-omega-purple/10 flex items-center gap-1.5">
+          <input
+            type="text"
+            value={assignAlias}
+            onChange={(e) => setAssignAlias(e.target.value)}
+            placeholder="Alias..."
+            className="omega-input !py-1 !text-xs flex-1 !rounded"
+            onKeyDown={(e) => e.key === "Enter" && handleAssignPlayer("player1")}
+          />
+          <button
+            onClick={() => handleAssignPlayer("player1")}
+            disabled={addingPlayer || !assignAlias.trim()}
+            className="omega-btn omega-btn-purple !px-2 !py-1 text-[10px] !rounded"
+          >
+            {addingPlayer ? <Loader2 className="size-3 animate-spin" /> : "OK"}
+          </button>
+        </div>
+      )}
 
       {/* Divider */}
       <div className="h-px bg-omega-border/30" />
@@ -577,7 +639,36 @@ function EliminationMatchCard({
             {match.player2_score}
           </span>
         )}
+        {isAdmin && !match.player2_id && (
+          <button
+            onClick={() => setAssigningSlot(assigningSlot === "player2" ? null : "player2")}
+            className="text-[9px] text-omega-purple hover:text-omega-gold font-bold shrink-0"
+          >
+            +
+          </button>
+        )}
       </div>
+
+      {/* Admin: assign player form for slot 2 */}
+      {isAdmin && assigningSlot === "player2" && (
+        <div className="px-3 py-1.5 bg-omega-purple/10 flex items-center gap-1.5">
+          <input
+            type="text"
+            value={assignAlias}
+            onChange={(e) => setAssignAlias(e.target.value)}
+            placeholder="Alias..."
+            className="omega-input !py-1 !text-xs flex-1 !rounded"
+            onKeyDown={(e) => e.key === "Enter" && handleAssignPlayer("player2")}
+          />
+          <button
+            onClick={() => handleAssignPlayer("player2")}
+            disabled={addingPlayer || !assignAlias.trim()}
+            className="omega-btn omega-btn-purple !px-2 !py-1 text-[10px] !rounded"
+          >
+            {addingPlayer ? <Loader2 className="size-3 animate-spin" /> : "OK"}
+          </button>
+        </div>
+      )}
 
       {/* BUG 2 FIX: Show resolved bye status */}
       {isByeResolved && (
