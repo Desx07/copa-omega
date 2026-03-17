@@ -580,6 +580,24 @@ function EliminationMatchCard({
             +
           </button>
         )}
+        {isAdmin && match.player1_id && (
+          <button
+            onClick={async () => {
+              if (!tournamentId) return;
+              const res = await fetch(`/api/admin/matches/${match.id}/set-player`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tournament_id: tournamentId, slot: "player1", player_id: null }),
+              });
+              if (res.ok) { toast.success("Jugador removido"); router.refresh(); }
+              else toast.error("Error");
+            }}
+            className="text-[9px] text-omega-red/60 hover:text-omega-red font-bold shrink-0"
+            title="Quitar jugador"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {/* Admin: assign player form for slot 1 */}
@@ -648,6 +666,24 @@ function EliminationMatchCard({
             className="text-[9px] text-omega-purple hover:text-omega-gold font-bold shrink-0"
           >
             +
+          </button>
+        )}
+        {isAdmin && match.player2_id && (
+          <button
+            onClick={async () => {
+              if (!tournamentId) return;
+              const res = await fetch(`/api/admin/matches/${match.id}/set-player`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tournament_id: tournamentId, slot: "player2", player_id: null }),
+              });
+              if (res.ok) { toast.success("Jugador removido"); router.refresh(); }
+              else toast.error("Error");
+            }}
+            className="text-[9px] text-omega-red/60 hover:text-omega-red font-bold shrink-0"
+            title="Quitar jugador"
+          >
+            ✕
           </button>
         )}
       </div>
