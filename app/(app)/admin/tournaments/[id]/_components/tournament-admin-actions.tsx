@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Play, Loader2, XCircle, CheckCircle, AlertTriangle, Trash2, RefreshCw } from "lucide-react";
+import { Play, Loader2, XCircle, CheckCircle, AlertTriangle, Trash2, RefreshCw, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -214,6 +214,40 @@ export default function TournamentAdminActions({
         >
           <XCircle className="size-4" />
           Cancelar torneo
+        </button>
+      )}
+
+      {/* Add 3rd place match if missing */}
+      {(status === "completed" || status === "in_progress") && format === "single_elimination" && (
+        <button
+          onClick={async () => {
+            setLoading(true);
+            try {
+              const res = await fetch(`/api/admin/tournaments/${tournamentId}/add-3p`, {
+                method: "POST",
+              });
+              const data = await res.json();
+              if (!res.ok) {
+                toast.error(data.error || "Error");
+                return;
+              }
+              if (data.already_exists) {
+                toast.info("La llave de 3er puesto ya existe");
+              } else {
+                toast.success("Llave de 3er puesto creada");
+              }
+              router.refresh();
+            } catch {
+              toast.error("Error de conexion");
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={loading}
+          className="omega-btn omega-btn-secondary w-full px-4 py-2 text-xs shadow-sm hover:shadow-md !text-omega-gold !border-omega-gold/30 hover:!bg-omega-gold/10"
+        >
+          {loading ? <Loader2 className="size-3.5 animate-spin" /> : <Trophy className="size-3.5" />}
+          Agregar llave 3er puesto
         </button>
       )}
 
