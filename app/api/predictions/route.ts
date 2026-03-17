@@ -31,19 +31,32 @@ export async function GET() {
       .order("created_at", { ascending: false })
       .limit(20);
 
-    // Get pending tournament matches (exclude own matches)
-    const { data: tournamentMatches } = await supabase
-      .from("tournament_matches")
-      .select(
-        "id, tournament_id, player1_id, player2_id, round, bracket_position, status, player1:players!player1_id(alias, avatar_url), player2:players!player2_id(alias, avatar_url), tournament:tournaments!tournament_id(name)"
-      )
-      .eq("status", "pending")
-      .not("player1_id", "is", null)
-      .not("player2_id", "is", null)
-      .neq("player1_id", user.id)
-      .neq("player2_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(20);
+    // Get active tournament IDs (only in_progress tournaments)
+    const { data: activeTournaments } = await supabase
+      .from("tournaments")
+      .select("id")
+      .eq("status", "in_progress");
+
+    const activeTournamentIds = (activeTournaments ?? []).map((t) => t.id);
+
+    // Get pending tournament matches (only from active tournaments, exclude own)
+    let tournamentMatches: typeof matches = [];
+    if (activeTournamentIds.length > 0) {
+      const { data } = await supabase
+        .from("tournament_matches")
+        .select(
+          "id, tournament_id, player1_id, player2_id, round, bracket_position, status, player1:players!player1_id(alias, avatar_url), player2:players!player2_id(alias, avatar_url), tournament:tournaments!tournament_id(name)"
+        )
+        .eq("status", "pending")
+        .in("tournament_id", activeTournamentIds)
+        .not("player1_id", "is", null)
+        .not("player2_id", "is", null)
+        .neq("player1_id", user.id)
+        .neq("player2_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      tournamentMatches = data;
+    }
 
     // Get pending challenges (exclude own challenges)
     const { data: challenges } = await supabase
