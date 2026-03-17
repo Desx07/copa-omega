@@ -169,16 +169,12 @@ export default async function TournamentDetailPage({ params }: PageProps) {
           }
         }
 
-        const semiMatches = matches.filter((m) => m.bracket_position?.startsWith("SF"));
-        for (const sm of semiMatches) {
-          if (sm.winner_id && sm.status === "completed") {
-            const semiLoserId = sm.player1_id === sm.winner_id ? sm.player2_id : sm.player1_id;
-            if (semiLoserId && semiLoserId !== winnerId && semiLoserId !== loserId) {
-              const semiLoserP = participants.find((p) => p.player.id === semiLoserId);
-              if (semiLoserP) {
-                podium.push({ position: 3, alias: semiLoserP.player.alias, avatar_url: semiLoserP.player.avatar_url, playerId: semiLoserP.player.id });
-              }
-            }
+        // 3rd place: use 3P match winner if exists, otherwise skip (no shared 3rd)
+        const thirdPlaceMatch = matches.find((m) => m.bracket_position === "3P");
+        if (thirdPlaceMatch?.winner_id) {
+          const thirdP = participants.find((p) => p.player.id === thirdPlaceMatch.winner_id);
+          if (thirdP) {
+            podium.push({ position: 3, alias: thirdP.player.alias, avatar_url: thirdP.player.avatar_url, playerId: thirdP.player.id });
           }
         }
       }
