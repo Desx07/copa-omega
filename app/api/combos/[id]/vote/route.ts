@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * POST /api/combos/[id]/vote
@@ -100,8 +101,9 @@ export async function POST(
       else downDelta = 1;
     }
 
-    // Update combo counts
-    const { data: updated, error } = await supabase
+    // Update combo counts (use admin client to bypass RLS — no UPDATE policy on shared_combos)
+    const adminClient = createAdminClient();
+    const { data: updated, error } = await adminClient
       .from("shared_combos")
       .update({
         upvotes: combo.upvotes + upDelta,
