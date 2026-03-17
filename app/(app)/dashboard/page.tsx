@@ -29,13 +29,14 @@ import ChatUnread from "@/app/_components/chat-unread";
 import OnboardingChecklist from "@/app/_components/onboarding-checklist";
 import SeasonBanner from "@/app/_components/season-banner";
 import TournamentCountdown from "@/app/_components/tournament-countdown";
+import DashboardCarousel from "@/app/_components/dashboard-carousel";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [playerResult, matchesResult, allPlayersResult, last10Result, beysResult, predictionsResult, challengesResult, activeSeasonResult, nextTournamentResult, liveTournamentResult] = await Promise.all([
+  const [playerResult, matchesResult, allPlayersResult, last10Result, beysResult, predictionsResult, challengesResult, activeSeasonResult, nextTournamentResult, liveTournamentResult, carouselSettingResult, carouselItemsResult] = await Promise.all([
     supabase
       .from("players")
       .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at, current_login_streak, max_login_streak, onboarding_completed")
@@ -102,6 +103,18 @@ export default async function DashboardPage() {
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    // Carousel setting
+    supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "carousel_enabled")
+      .maybeSingle(),
+    // Carousel items
+    supabase
+      .from("carousel_items")
+      .select("id, type, url, thumbnail_url, title, sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true }),
   ]);
 
   const player = playerResult.data;
@@ -132,6 +145,10 @@ export default async function DashboardPage() {
 
   // Active season
   const activeSeason = activeSeasonResult.data;
+
+  // Carousel
+  const carouselEnabled = carouselSettingResult.data?.value === "true";
+  const carouselItems = carouselItemsResult.data ?? [];
 
   // Next tournament: in_progress takes priority over registration
   const rawLive = liveTournamentResult.data;
@@ -262,6 +279,13 @@ export default async function DashboardPage() {
           <span className="text-sm text-omega-muted">Buscar bladers...</span>
         </Link>
       </div>
+
+      {/* ═══ DASHBOARD CAROUSEL ═══ */}
+      {carouselEnabled && carouselItems.length > 0 && (
+        <div className="px-4">
+          <DashboardCarousel items={carouselItems} />
+        </div>
+      )}
 
       {/* ═══ SEASON BANNER ═══ */}
       {activeSeason && (
