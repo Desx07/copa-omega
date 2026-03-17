@@ -29,6 +29,7 @@ export async function LandingCarousel() {
     .from("carousel_items")
     .select("id, type, url, thumbnail_url, title, sort_order")
     .eq("is_active", true)
+    .eq("target", "landing")
     .order("sort_order", { ascending: true });
 
   if (!items || items.length === 0) {

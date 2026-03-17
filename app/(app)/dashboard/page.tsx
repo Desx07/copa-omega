@@ -103,17 +103,18 @@ export default async function DashboardPage() {
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    // Carousel setting
+    // Dashboard carousel setting (separate from landing)
     supabase
       .from("app_settings")
       .select("value")
-      .eq("key", "carousel_enabled")
+      .eq("key", "dashboard_carousel_enabled")
       .maybeSingle(),
-    // Carousel items
+    // Dashboard carousel items only
     supabase
       .from("carousel_items")
       .select("id, type, url, thumbnail_url, title, sort_order")
       .eq("is_active", true)
+      .eq("target", "dashboard")
       .order("sort_order", { ascending: true }),
   ]);
 

@@ -28,6 +28,7 @@ export default function AdminCarouselPage() {
   const [loading, setLoading] = useState(true);
   const [carouselEnabled, setCarouselEnabled] = useState(true);
   const [toggling, setToggling] = useState(false);
+  const [activeTab, setActiveTab] = useState<"landing" | "dashboard">("landing");
 
   // New item form
   const [newUrl, setNewUrl] = useState("");
@@ -38,11 +39,13 @@ export default function AdminCarouselPage() {
 
   useEffect(() => {
     loadItems();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   async function loadItems() {
+    setLoading(true);
     try {
-      const res = await fetch("/api/carousel");
+      const res = await fetch(`/api/carousel?target=${activeTab}`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setItems(data.items);
@@ -56,8 +59,9 @@ export default function AdminCarouselPage() {
 
   async function toggleCarousel() {
     setToggling(true);
+    const settingKey = activeTab === "dashboard" ? "dashboard_carousel" : "carousel";
     try {
-      const res = await fetch("/api/settings/carousel", {
+      const res = await fetch(`/api/settings/${settingKey}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: !carouselEnabled }),
@@ -85,6 +89,7 @@ export default function AdminCarouselPage() {
           url: newUrl.trim(),
           thumbnail_url: newThumbnail.trim() || null,
           title: newTitle.trim() || null,
+          target: activeTab,
         }),
       });
 
@@ -153,6 +158,32 @@ export default function AdminCarouselPage() {
           <p className="text-sm text-omega-muted">
             Administrar galeria del landing
           </p>
+        </div>
+      </div>
+
+      {/* Tab: Landing / Dashboard */}
+      <div className="px-4">
+        <div className="flex rounded-xl bg-omega-dark/60 border border-white/[0.06] p-1">
+          <button
+            onClick={() => setActiveTab("landing")}
+            className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition-all ${
+              activeTab === "landing"
+                ? "bg-omega-card text-omega-blue shadow-sm"
+                : "text-omega-muted hover:text-omega-text"
+            }`}
+          >
+            Landing
+          </button>
+          <button
+            onClick={() => setActiveTab("dashboard")}
+            className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition-all ${
+              activeTab === "dashboard"
+                ? "bg-omega-card text-omega-purple shadow-sm"
+                : "text-omega-muted hover:text-omega-text"
+            }`}
+          >
+            Dashboard
+          </button>
         </div>
       </div>
 

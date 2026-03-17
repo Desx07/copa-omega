@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Star, Trophy, Swords, ArrowLeft, Medal } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { RankingTabs } from "./_components/ranking-tabs";
+import TournamentCountdown from "@/app/_components/tournament-countdown";
 
 export default async function RankingPage() {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [playersResult, matchesResult, tournamentPointsResult] = await Promise.all([
+  const [playersResult, matchesResult, tournamentPointsResult, nextTournamentResult, liveTournamentResult] = await Promise.all([
     supabase
       .from("players")
       .select("id, alias, full_name, stars, wins, losses, is_eliminated, avatar_url")
@@ -25,6 +26,24 @@ export default async function RankingPage() {
     supabase
       .from("tournament_points")
       .select("player_id, points, player:players!player_id(alias, avatar_url)"),
+    // Next upcoming tournament (registration with future event_date)
+    supabase
+      .from("tournaments")
+      .select("id, name, event_date, status, format, max_participants, participant_count:tournament_participants(count)")
+      .eq("status", "registration")
+      .not("event_date", "is", null)
+      .gte("event_date", new Date().toISOString().split("T")[0])
+      .order("event_date", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    // Active in-progress tournament
+    supabase
+      .from("tournaments")
+      .select("id, name, event_date, status, format, max_participants, participant_count:tournament_participants(count)")
+      .eq("status", "in_progress")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const players = playersResult.data;
@@ -78,6 +97,20 @@ export default async function RankingPage() {
       }
     }
   }
+
+  // Next tournament: in_progress takes priority over registration
+  const rawLive = liveTournamentResult.data;
+  const rawNext = nextTournamentResult.data;
+  const rawTournament = rawLive ?? rawNext;
+  const nextTournament = rawTournament && rawTournament.event_date
+    ? {
+        ...rawTournament,
+        participant_count:
+          Array.isArray(rawTournament.participant_count) && rawTournament.participant_count.length > 0
+            ? (rawTournament.participant_count[0] as { count: number }).count
+            : 0,
+      }
+    : null;
 
   // Serialize matches for client component (strip Supabase relation wrappers)
   const serializedMatches = matches.map((m) => ({
@@ -146,6 +179,13 @@ export default async function RankingPage() {
           )}
         </div>
       </div>
+
+      {/* ═══ NEXT TOURNAMENT COUNTDOWN ═══ */}
+      {nextTournament && (
+        <div className="px-4">
+          <TournamentCountdown tournament={nextTournament} />
+        </div>
+      )}
 
       {/* ═══ TABS + CONTENT (client component) ═══ */}
       <RankingTabs

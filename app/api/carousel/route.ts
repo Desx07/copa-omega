@@ -1,25 +1,28 @@
 import { createClient } from "@/lib/supabase/server";
 
-// GET /api/carousel — public, returns active carousel items ordered by sort_order
-export async function GET() {
+// GET /api/carousel?target=landing|dashboard — returns active carousel items
+export async function GET(request: Request) {
   try {
     const supabase = await createClient();
+    const { searchParams } = new URL(request.url);
+    const target = searchParams.get("target") || "landing";
 
     const { data: items, error } = await supabase
       .from("carousel_items")
-      .select("id, type, url, thumbnail_url, title, sort_order")
-      .eq("is_active", true)
+      .select("id, type, url, thumbnail_url, title, sort_order, is_active")
+      .eq("target", target)
       .order("sort_order", { ascending: true });
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 });
     }
 
-    // Also check if carousel is enabled
+    // Check if this carousel is enabled
+    const settingKey = target === "dashboard" ? "dashboard_carousel_enabled" : "carousel_enabled";
     const { data: setting } = await supabase
       .from("app_settings")
       .select("value")
-      .eq("key", "carousel_enabled")
+      .eq("key", settingKey)
       .single();
 
     const enabled = setting?.value === "true";

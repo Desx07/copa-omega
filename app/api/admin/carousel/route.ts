@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { type, url, thumbnail_url, title } = body;
+    const { type, url, thumbnail_url, title, target } = body;
 
     if (!type || !url) {
       return Response.json(
@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
         title: title || null,
         sort_order: nextOrder,
         created_by: user.id,
+        target: target || "landing",
       })
       .select()
       .single();
