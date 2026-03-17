@@ -147,16 +147,6 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     }
   }
 
-  const participants = rawParticipants.map((p) => {
-    const stats = statsMap.get(p.player.id) ?? { wins: 0, losses: 0 };
-    return {
-      ...p,
-      tournament_wins: stats.wins,
-      tournament_losses: stats.losses,
-      points: stats.wins * 3,
-    };
-  });
-
   const tournamentPoints = (pointsResult.data ?? []).map((tp) => ({
     ...tp,
     player: tp.player as unknown as {
@@ -164,6 +154,24 @@ export default async function TournamentDetailPage({ params }: PageProps) {
       avatar_url: string | null;
     },
   }));
+
+  // Build a map of final tournament points (from tournament_points table)
+  const finalPointsMap = new Map<string, number>();
+  for (const tp of tournamentPoints) {
+    finalPointsMap.set(tp.player_id, tp.points);
+  }
+
+  const participants = rawParticipants.map((p) => {
+    const stats = statsMap.get(p.player.id) ?? { wins: 0, losses: 0 };
+    // For completed tournaments, use final awarded points; otherwise use group stage points
+    const finalPts = finalPointsMap.get(p.player.id);
+    return {
+      ...p,
+      tournament_wins: stats.wins,
+      tournament_losses: stats.losses,
+      points: finalPts ?? stats.wins * 3,
+    };
+  });
 
   const mediaCount = mediaCountResult.count ?? 0;
   const status = STATUS_CONFIG[tournament.status];
