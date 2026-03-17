@@ -217,60 +217,6 @@ export async function PATCH(
       // Non-blocking — match is still resolved
     }
 
-    // Check and complete referrals (award bonus stars for first match)
-    if (matchData) {
-      try {
-        const adminSupabase = createAdminClient();
-        for (const playerId of [matchData.player1_id, matchData.player2_id].filter(Boolean)) {
-          const { data: pendingReferral } = await adminSupabase
-            .from("referrals")
-            .select("id, referrer_id")
-            .eq("referred_id", playerId)
-            .eq("status", "pending")
-            .eq("stars_awarded", false)
-            .maybeSingle();
-
-          if (pendingReferral) {
-            // Award +2 stars to referred player
-            const { data: referredPlayer } = await adminSupabase
-              .from("players")
-              .select("stars")
-              .eq("id", playerId)
-              .single();
-            if (referredPlayer) {
-              await adminSupabase
-                .from("players")
-                .update({ stars: referredPlayer.stars + 2 })
-                .eq("id", playerId);
-            }
-
-            // Award +2 stars to referrer
-            const { data: referrerPlayer } = await adminSupabase
-              .from("players")
-              .select("stars")
-              .eq("id", pendingReferral.referrer_id)
-              .single();
-            if (referrerPlayer) {
-              await adminSupabase
-                .from("players")
-                .update({ stars: referrerPlayer.stars + 2 })
-                .eq("id", pendingReferral.referrer_id);
-            }
-
-            // Mark referral as completed
-            await adminSupabase
-              .from("referrals")
-              .update({ status: "completed", stars_awarded: true, completed_at: new Date().toISOString() })
-              .eq("id", pendingReferral.id);
-
-            console.log(`[Referral] Completed: ${pendingReferral.referrer_id} -> ${playerId}, +2 stars each`);
-          }
-        }
-      } catch (refErr) {
-        console.error("[Referral] Error processing referrals:", refErr);
-      }
-    }
-
     // Update dynamic title for both players
     if (matchData) {
       try {

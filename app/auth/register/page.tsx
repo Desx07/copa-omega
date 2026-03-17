@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, UserPlus, Swords } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -9,12 +9,10 @@ import { toast } from "sonner";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [alias, setAlias] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [referralCode, setReferralCode] = useState(searchParams.get("ref") ?? "");
   const [loading, setLoading] = useState(false);
 
   async function handleRegister(e: React.FormEvent) {
@@ -60,14 +58,6 @@ export default function RegisterPage() {
           metadata: { alias: alias.trim() },
         });
 
-        // Apply referral code if provided
-        if (referralCode.trim()) {
-          await fetch("/api/referrals", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ referral_code: referralCode.trim() }),
-          }).catch(() => {}); // Don't block registration
-        }
       }
 
       toast.success("Bienvenido a la arena, blader!");
@@ -154,21 +144,6 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Minimo 6 caracteres"
-            className="omega-input py-3"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="referralCode" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
-            Codigo de referido (opcional)
-          </label>
-          <input
-            id="referralCode"
-            type="text"
-            value={referralCode}
-            onChange={(e) => setReferralCode(e.target.value)}
-            placeholder="Ej: BLAD1234"
-            maxLength={20}
             className="omega-input py-3"
           />
         </div>
