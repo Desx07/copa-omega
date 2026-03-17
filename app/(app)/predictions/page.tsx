@@ -19,16 +19,6 @@ interface Player {
   avatar_url: string | null;
 }
 
-interface Match {
-  id: string;
-  player1_id: string;
-  player2_id: string;
-  stars_bet: number;
-  status: string;
-  player1: Player;
-  player2: Player;
-}
-
 interface TournamentMatch {
   id: string;
   tournament_id: string;
@@ -72,7 +62,6 @@ interface LeaderboardEntry {
 }
 
 export default function PredictionsPage() {
-  const [matches, setMatches] = useState<Match[]>([]);
   const [tournamentMatches, setTournamentMatches] = useState<TournamentMatch[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [myPredictions, setMyPredictions] = useState<Prediction[]>([]);
@@ -91,7 +80,6 @@ export default function PredictionsPage() {
 
       if (predRes.ok) {
         const data = await predRes.json();
-        setMatches(data.matches);
         setTournamentMatches(data.tournament_matches);
         setChallenges(data.challenges);
         setMyPredictions(data.my_predictions);
@@ -207,7 +195,7 @@ export default function PredictionsPage() {
     );
   }
 
-  const totalPredictable = matches.length + tournamentMatches.length + challenges.length;
+  const totalPredictable = tournamentMatches.length + challenges.length;
 
   return (
     <div className="max-w-lg mx-auto pb-10 space-y-5">
@@ -305,35 +293,6 @@ export default function PredictionsPage() {
                           {renderPlayerButton(tm.player1_id, tm.player1, "tournament_match_id", tm.id, pred)}
                           <div className="flex items-center text-omega-muted font-black text-xs">VS</div>
                           {renderPlayerButton(tm.player2_id, tm.player2, "tournament_match_id", tm.id, pred)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Regular matches */}
-              {matches.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-omega-blue uppercase tracking-wider flex items-center gap-2">
-                    <Swords className="size-3.5" />
-                    Partidas
-                  </h3>
-                  {matches.map((match) => {
-                    const pred = getPrediction("match_id", match.id);
-                    return (
-                      <div key={match.id} className="omega-card p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="omega-badge omega-badge-blue text-[10px]">Partida</span>
-                          <span className="text-xs text-omega-muted">{match.stars_bet} estrellas</span>
-                        </div>
-                        <p className="text-xs text-omega-muted text-center font-bold uppercase tracking-wider">
-                          Quien gana?
-                        </p>
-                        <div className="flex gap-3">
-                          {renderPlayerButton(match.player1_id, match.player1, "match_id", match.id, pred)}
-                          <div className="flex items-center text-omega-muted font-black text-xs">VS</div>
-                          {renderPlayerButton(match.player2_id, match.player2, "match_id", match.id, pred)}
                         </div>
                       </div>
                     );

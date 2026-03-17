@@ -19,17 +19,8 @@ export async function GET() {
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Get pending/in-progress matches available for prediction (exclude own matches)
-    const { data: matches } = await supabase
-      .from("matches")
-      .select(
-        "id, player1_id, player2_id, stars_bet, status, player1:players!player1_id(alias, avatar_url), player2:players!player2_id(alias, avatar_url)"
-      )
-      .eq("status", "pending")
-      .neq("player1_id", user.id)
-      .neq("player2_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(20);
+    // Regular matches removed from predictions — they duplicate challenges
+    // (when a challenge is accepted, it auto-creates a match)
 
     // Get active tournament IDs (only in_progress tournaments)
     const { data: activeTournaments } = await supabase
@@ -78,7 +69,7 @@ export async function GET() {
       .eq("predictor_id", user.id);
 
     return Response.json({
-      matches: matches ?? [],
+      matches: [],
       tournament_matches: tournamentMatches ?? [],
       challenges: challenges ?? [],
       my_predictions: myPredictions ?? [],
