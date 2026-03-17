@@ -13,7 +13,7 @@ export default async function TournamentsPage() {
   const { data: rawTournaments } = await supabase
     .from("tournaments")
     .select("*, participant_count:tournament_participants(count)")
-    .order("event_date", { ascending: false, nullsFirst: false });
+    .order("sort_order", { ascending: true });
 
   const tournaments = (rawTournaments ?? []).map((t) => ({
     ...t,

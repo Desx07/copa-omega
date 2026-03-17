@@ -10,7 +10,7 @@ export async function GET() {
       .select(
         "*, created_by_player:players!created_by(id, alias), participant_count:tournament_participants(count)"
       )
-      .order("created_at", { ascending: false });
+      .order("sort_order", { ascending: true });
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 });
@@ -130,6 +130,15 @@ export async function POST(request: Request) {
       }
     }
 
+    // New tournaments go to the top: find the current minimum sort_order
+    const { data: minRow } = await supabase
+      .from("tournaments")
+      .select("sort_order")
+      .order("sort_order", { ascending: true })
+      .limit(1)
+      .single();
+    const newSortOrder = minRow ? minRow.sort_order - 1 : 0;
+
     // Insert tournament (without qr_code first to get the id)
     const { data: tournament, error: insertError } = await supabase
       .from("tournaments")
@@ -142,6 +151,7 @@ export async function POST(request: Request) {
         swiss_rounds: format === "swiss" ? (swiss_rounds ?? null) : null,
         logo_url: logo_url || null,
         created_by: user.id,
+        sort_order: newSortOrder,
       })
       .select()
       .single();

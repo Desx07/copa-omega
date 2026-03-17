@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Trophy, Plus, ArrowLeft, Users, Clock, CheckCircle } from "lucide-react";
 import TournamentCard from "@/app/(app)/tournaments/_components/tournament-card";
+import ReorderButtons from "./_components/reorder-buttons";
 
 export default async function AdminTournamentsPage() {
   const supabase = await createClient();
@@ -20,7 +21,7 @@ export default async function AdminTournamentsPage() {
     supabase
       .from("tournaments")
       .select("*, participant_count:tournament_participants(count)")
-      .order("created_at", { ascending: false }),
+      .order("sort_order", { ascending: true }),
   ]);
 
   if (!profileResult.data?.is_admin) {
@@ -129,12 +130,20 @@ export default async function AdminTournamentsPage() {
               </Link>
             </div>
           ) : (
-            tournaments.map((tournament) => (
-              <TournamentCard
-                key={tournament.id}
-                tournament={tournament}
-                href={`/admin/tournaments/${tournament.id}`}
-              />
+            tournaments.map((tournament, index) => (
+              <div key={tournament.id} className="flex items-center gap-2">
+                <ReorderButtons
+                  tournamentId={tournament.id}
+                  isFirst={index === 0}
+                  isLast={index === tournaments.length - 1}
+                />
+                <div className="flex-1 min-w-0">
+                  <TournamentCard
+                    tournament={tournament}
+                    href={`/admin/tournaments/${tournament.id}`}
+                  />
+                </div>
+              </div>
             ))
           )}
         </div>
