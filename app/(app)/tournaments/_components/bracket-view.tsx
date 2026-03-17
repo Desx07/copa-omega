@@ -563,8 +563,8 @@ function EliminationMatchCard({
         </div>
       )}
 
-      {/* BUG 2 FIX: Admin button to manually advance an unresolved bye */}
-      {isAdmin && isByeUnresolved && (
+      {/* Admin button to advance/re-advance a bye (works even if already resolved) */}
+      {isAdmin && isBye && (match.player1_id || match.player2_id) && (
         <div className="px-3 py-2 bg-omega-gold/5 border-t border-omega-gold/20 text-center">
           <button
             onClick={handleAdvanceBye}

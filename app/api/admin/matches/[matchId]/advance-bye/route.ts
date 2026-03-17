@@ -62,13 +62,6 @@ export async function POST(
       );
     }
 
-    if (match.winner_id) {
-      return Response.json(
-        { error: "Este bye ya fue avanzado" },
-        { status: 400 }
-      );
-    }
-
     const winnerId = match.player1_id ?? match.player2_id;
     if (!winnerId) {
       return Response.json(
