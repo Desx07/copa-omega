@@ -40,7 +40,8 @@ export async function GET() {
     const activeTournamentIds = (activeTournaments ?? []).map((t) => t.id);
 
     // Get pending tournament matches (only from active tournaments, exclude own)
-    let tournamentMatches: typeof matches = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let tournamentMatches: any[] | null = [];
     if (activeTournamentIds.length > 0) {
       const { data } = await supabase
         .from("tournament_matches")
