@@ -87,12 +87,38 @@ export function PresenceProvider({
 
         setOnlineUsers(users);
       })
+      .on("presence", { event: "join" }, ({ newPresences }) => {
+        setOnlineUsers((prev) => {
+          const next = new Map(prev);
+          for (const p of newPresences as PresenceUser[]) {
+            next.set(p.user_id, { user_id: p.user_id, alias: p.alias, avatar_url: p.avatar_url });
+          }
+          return next;
+        });
+      })
+      .on("presence", { event: "leave" }, ({ leftPresences }) => {
+        setOnlineUsers((prev) => {
+          const next = new Map(prev);
+          for (const p of leftPresences as PresenceUser[]) {
+            next.delete(p.user_id);
+          }
+          return next;
+        });
+      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
+          // Track self
           await channel.track({
             user_id: userId,
             alias,
             avatar_url: avatarUrl,
+          });
+          // Ensure self is in the map immediately after tracking
+          setOnlineUsers((prev) => {
+            if (prev.has(userId)) return prev;
+            const next = new Map(prev);
+            next.set(userId, { user_id: userId, alias, avatar_url: avatarUrl });
+            return next;
           });
         }
       });
