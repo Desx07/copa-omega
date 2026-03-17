@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentWeekStart } from "@/lib/missions";
 
 export async function GET(
   _request: Request,
@@ -49,6 +50,15 @@ export async function POST(
       .single();
 
     if (error) return Response.json({ error: error.message }, { status: 500 });
+
+    // Auto-complete mission (fire-and-forget)
+    supabase.from("player_missions").upsert({
+      player_id: user.id,
+      week_start: getCurrentWeekStart(),
+      mission_id: "comment",
+      completed_at: new Date().toISOString(),
+    }, { onConflict: "player_id,week_start,mission_id" }).then(() => {});
+
     return Response.json(data, { status: 201 });
   } catch (err) {
     console.error("POST /api/challenges/[id]/comments error:", err);

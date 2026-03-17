@@ -602,33 +602,39 @@ export default function ProfilePage() {
           )}
 
           {/* Add bey form */}
-          <div className="omega-card p-4">
-            <div className="flex gap-2">
+          <div className="omega-card p-4 space-y-3">
+            <h3 className="text-xs font-bold text-omega-muted uppercase tracking-wider flex items-center gap-2">
+              <Plus className="size-3.5" />
+              Agregar Bey
+            </h3>
+            <div className="space-y-2">
               <input
                 type="text"
                 value={newBeyName}
                 onChange={(e) => setNewBeyName(e.target.value)}
-                placeholder="Nombre del bey"
+                placeholder="Ej: Dran Sword 3-60F"
                 maxLength={40}
-                className="omega-input flex-1 min-w-0"
+                className="omega-input w-full"
               />
-              <select
-                value={newBeyType}
-                onChange={(e) => setNewBeyType(e.target.value as Bey["type"])}
-                className="omega-input w-auto"
-              >
-                <option value="attack">Ataque</option>
-                <option value="defense">Defensa</option>
-                <option value="stamina">Stamina</option>
-                <option value="balance">Balance</option>
-              </select>
-              <button
-                onClick={handleAddBey}
-                disabled={addingBey || !newBeyName.trim()}
-                className="omega-btn omega-btn-purple size-10 shrink-0"
-              >
-                {addingBey ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-5" />}
-              </button>
+              <div className="flex gap-2">
+                <select
+                  value={newBeyType}
+                  onChange={(e) => setNewBeyType(e.target.value as Bey["type"])}
+                  className="omega-input flex-1"
+                >
+                  <option value="attack">Ataque</option>
+                  <option value="defense">Defensa</option>
+                  <option value="stamina">Stamina</option>
+                  <option value="balance">Balance</option>
+                </select>
+                <button
+                  onClick={handleAddBey}
+                  disabled={addingBey || !newBeyName.trim()}
+                  className="omega-btn omega-btn-purple flex-1"
+                >
+                  {addingBey ? <Loader2 className="size-4 animate-spin" /> : <><Plus className="size-4" /> Agregar</>}
+                </button>
+              </div>
             </div>
           </div>
         </div>
