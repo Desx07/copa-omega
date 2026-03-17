@@ -19,17 +19,19 @@ export async function GET() {
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Get pending/in-progress matches available for prediction
+    // Get pending/in-progress matches available for prediction (exclude own matches)
     const { data: matches } = await supabase
       .from("matches")
       .select(
         "id, player1_id, player2_id, stars_bet, status, player1:players!player1_id(alias, avatar_url), player2:players!player2_id(alias, avatar_url)"
       )
       .eq("status", "pending")
+      .neq("player1_id", user.id)
+      .neq("player2_id", user.id)
       .order("created_at", { ascending: false })
       .limit(20);
 
-    // Get pending tournament matches
+    // Get pending tournament matches (exclude own matches)
     const { data: tournamentMatches } = await supabase
       .from("tournament_matches")
       .select(
@@ -38,16 +40,20 @@ export async function GET() {
       .eq("status", "pending")
       .not("player1_id", "is", null)
       .not("player2_id", "is", null)
+      .neq("player1_id", user.id)
+      .neq("player2_id", user.id)
       .order("created_at", { ascending: false })
       .limit(20);
 
-    // Get pending challenges
+    // Get pending challenges (exclude own challenges)
     const { data: challenges } = await supabase
       .from("challenges")
       .select(
         "id, challenger_id, challenged_id, stars_bet, status, challenger:players!challenger_id(alias, avatar_url), challenged:players!challenged_id(alias, avatar_url)"
       )
       .in("status", ["pending", "accepted"])
+      .neq("challenger_id", user.id)
+      .neq("challenged_id", user.id)
       .order("created_at", { ascending: false })
       .limit(20);
 

@@ -79,6 +79,7 @@ export default function PredictionsPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<"predict" | "leaderboard">("predict");
 
   const fetchData = useCallback(async () => {
@@ -114,6 +115,7 @@ export default function PredictionsPage() {
     winnerId: string
   ) {
     setSubmitting(`${refId}-${winnerId}`);
+    setError(null);
     try {
       const res = await fetch("/api/predictions", {
         method: "POST",
@@ -127,7 +129,12 @@ export default function PredictionsPage() {
       if (res.ok) {
         const pred = await res.json();
         setMyPredictions((prev) => [...prev, pred]);
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Error al guardar predicción");
       }
+    } catch {
+      setError("Error de conexión");
     } finally {
       setSubmitting(null);
     }
@@ -251,7 +258,17 @@ export default function PredictionsPage() {
       </div>
 
       {tab === "predict" && (
-        <div className="px-4 space-y-3">
+        <div className="px-4 space-y-4">
+          {/* Error toast */}
+          {error && (
+            <div className="bg-omega-red/10 border border-omega-red/30 rounded-xl px-4 py-3 flex items-center justify-between">
+              <p className="text-sm text-omega-red">{error}</p>
+              <button onClick={() => setError(null)} className="text-omega-red/60 hover:text-omega-red text-xs font-bold ml-2">
+                OK
+              </button>
+            </div>
+          )}
+
           {totalPredictable === 0 ? (
             <div className="omega-card p-10 text-center space-y-3">
               <Target className="size-10 text-omega-muted/20 mx-auto" />
@@ -261,72 +278,97 @@ export default function PredictionsPage() {
             </div>
           ) : (
             <>
-              {/* Regular matches */}
-              {matches.map((match) => {
-                const pred = getPrediction("match_id", match.id);
-                return (
-                  <div key={match.id} className="omega-card p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="omega-badge omega-badge-blue text-[10px]">Partida</span>
-                      <span className="text-xs text-omega-muted">{match.stars_bet} estrellas</span>
-                    </div>
-                    <p className="text-xs text-omega-muted text-center font-bold uppercase tracking-wider">
-                      Quien gana?
-                    </p>
-                    <div className="flex gap-3">
-                      {renderPlayerButton(match.player1_id, match.player1, "match_id", match.id, pred)}
-                      <div className="flex items-center text-omega-muted font-black text-xs">VS</div>
-                      {renderPlayerButton(match.player2_id, match.player2, "match_id", match.id, pred)}
-                    </div>
-                  </div>
-                );
-              })}
-
               {/* Tournament matches */}
-              {tournamentMatches.map((tm) => {
-                const pred = getPrediction("tournament_match_id", tm.id);
-                return (
-                  <div key={tm.id} className="omega-card p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="omega-badge omega-badge-gold text-[10px]">
-                        {(tm.tournament as unknown as { name: string }).name}
-                      </span>
-                      <span className="text-xs text-omega-muted">
-                        Ronda {tm.round}
-                      </span>
-                    </div>
-                    <p className="text-xs text-omega-muted text-center font-bold uppercase tracking-wider">
-                      Quien gana?
-                    </p>
-                    <div className="flex gap-3">
-                      {renderPlayerButton(tm.player1_id, tm.player1, "tournament_match_id", tm.id, pred)}
-                      <div className="flex items-center text-omega-muted font-black text-xs">VS</div>
-                      {renderPlayerButton(tm.player2_id, tm.player2, "tournament_match_id", tm.id, pred)}
-                    </div>
-                  </div>
-                );
-              })}
+              {tournamentMatches.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-omega-gold uppercase tracking-wider flex items-center gap-2">
+                    <Trophy className="size-3.5" />
+                    Torneos
+                  </h3>
+                  {tournamentMatches.map((tm) => {
+                    const pred = getPrediction("tournament_match_id", tm.id);
+                    const tournamentName = (tm.tournament as unknown as { name: string })?.name ?? "Torneo";
+                    return (
+                      <div key={tm.id} className="omega-card p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="omega-badge omega-badge-gold text-[10px]">
+                            {tournamentName}
+                          </span>
+                          <span className="text-xs text-omega-muted">
+                            Ronda {tm.round}
+                          </span>
+                        </div>
+                        <p className="text-xs text-omega-muted text-center font-bold uppercase tracking-wider">
+                          Quien gana?
+                        </p>
+                        <div className="flex gap-3">
+                          {renderPlayerButton(tm.player1_id, tm.player1, "tournament_match_id", tm.id, pred)}
+                          <div className="flex items-center text-omega-muted font-black text-xs">VS</div>
+                          {renderPlayerButton(tm.player2_id, tm.player2, "tournament_match_id", tm.id, pred)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Regular matches */}
+              {matches.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-omega-blue uppercase tracking-wider flex items-center gap-2">
+                    <Swords className="size-3.5" />
+                    Partidas
+                  </h3>
+                  {matches.map((match) => {
+                    const pred = getPrediction("match_id", match.id);
+                    return (
+                      <div key={match.id} className="omega-card p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="omega-badge omega-badge-blue text-[10px]">Partida</span>
+                          <span className="text-xs text-omega-muted">{match.stars_bet} estrellas</span>
+                        </div>
+                        <p className="text-xs text-omega-muted text-center font-bold uppercase tracking-wider">
+                          Quien gana?
+                        </p>
+                        <div className="flex gap-3">
+                          {renderPlayerButton(match.player1_id, match.player1, "match_id", match.id, pred)}
+                          <div className="flex items-center text-omega-muted font-black text-xs">VS</div>
+                          {renderPlayerButton(match.player2_id, match.player2, "match_id", match.id, pred)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Challenges */}
-              {challenges.map((ch) => {
-                const pred = getPrediction("challenge_id", ch.id);
-                return (
-                  <div key={ch.id} className="omega-card p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="omega-badge omega-badge-red text-[10px]">Reto</span>
-                      <span className="text-xs text-omega-muted">{ch.stars_bet} estrellas</span>
-                    </div>
-                    <p className="text-xs text-omega-muted text-center font-bold uppercase tracking-wider">
-                      Quien gana?
-                    </p>
-                    <div className="flex gap-3">
-                      {renderPlayerButton(ch.challenger_id, ch.challenger, "challenge_id", ch.id, pred)}
-                      <div className="flex items-center text-omega-muted font-black text-xs">VS</div>
-                      {renderPlayerButton(ch.challenged_id, ch.challenged, "challenge_id", ch.id, pred)}
-                    </div>
-                  </div>
-                );
-              })}
+              {challenges.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-omega-red uppercase tracking-wider flex items-center gap-2">
+                    <Target className="size-3.5" />
+                    Retos
+                  </h3>
+                  {challenges.map((ch) => {
+                    const pred = getPrediction("challenge_id", ch.id);
+                    return (
+                      <div key={ch.id} className="omega-card p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="omega-badge omega-badge-red text-[10px]">Reto</span>
+                          <span className="text-xs text-omega-muted">{ch.stars_bet} estrellas</span>
+                        </div>
+                        <p className="text-xs text-omega-muted text-center font-bold uppercase tracking-wider">
+                          Quien gana?
+                        </p>
+                        <div className="flex gap-3">
+                          {renderPlayerButton(ch.challenger_id, ch.challenger, "challenge_id", ch.id, pred)}
+                          <div className="flex items-center text-omega-muted font-black text-xs">VS</div>
+                          {renderPlayerButton(ch.challenged_id, ch.challenged, "challenge_id", ch.id, pred)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </>
           )}
         </div>
