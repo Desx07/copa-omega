@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { awardXp } from "@/lib/award-xp";
 
 const MAX_SCORE = 10; // Safety cap — Beyblade X max per game is 7, allow some margin
 
@@ -207,6 +208,15 @@ export async function PATCH(
           .eq("tournament_id", tournamentId)
           .eq("player_id", loserId);
       }
+    }
+
+    // Award XP for tournament match (fire-and-forget)
+    try {
+      const adminXp = createAdminClient();
+      await awardXp(adminXp, winner_id, 20, "win_tournament_match", "Victoria en torneo");
+      if (loserId) await awardXp(adminXp, loserId, 5, "lose_tournament_match", "Derrota en torneo");
+    } catch (xpErr) {
+      console.error("Error awarding tournament match XP:", xpErr);
     }
 
     // Format-specific post-match logic: bracket advancement

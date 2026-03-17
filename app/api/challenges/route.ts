@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { sendPushToPlayer } from "@/lib/push";
+import { getCurrentWeekStart } from "@/lib/missions";
 
 export async function GET(request: Request) {
   try {
@@ -196,6 +197,14 @@ export async function POST(request: Request) {
       `${challenger?.alias} te retó por ${stars_bet} estrellas`,
       "/challenges"
     ).catch((e) => console.error("[push] error:", e));
+
+    // Auto-complete mission (fire-and-forget)
+    supabase.from("player_missions").upsert({
+      player_id: user.id,
+      week_start: getCurrentWeekStart(),
+      mission_id: "challenge",
+      completed_at: new Date().toISOString(),
+    }, { onConflict: "player_id,week_start,mission_id" }).then(() => {});
 
     return Response.json(challenge, { status: 201 });
   } catch (err) {

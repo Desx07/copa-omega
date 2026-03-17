@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPushToPlayer } from "@/lib/push";
+import { awardXp } from "@/lib/award-xp";
 
 /**
  * POST /api/tournaments/[id]/complete
@@ -340,6 +341,20 @@ export async function POST(
         // Non-critical: log and continue
         console.error("Error inserting tournament badges:", badgeError);
       }
+    }
+
+    // Award XP to all participants and podium (fire-and-forget)
+    try {
+      for (const p of participants) {
+        await awardXp(adminSupabase, p.player_id, 15, "tournament_participate", "Participacion en torneo");
+      }
+      for (const p of pointsToInsert) {
+        if (p.position === 1) await awardXp(adminSupabase, p.player_id, 50, "tournament_1st", "Campeon del torneo");
+        else if (p.position === 2) await awardXp(adminSupabase, p.player_id, 30, "tournament_2nd", "Subcampeon");
+        else if (p.position === 3) await awardXp(adminSupabase, p.player_id, 20, "tournament_3rd", "Tercer puesto");
+      }
+    } catch (xpErr) {
+      console.error("Error awarding tournament XP:", xpErr);
     }
 
     // Push notifications to top 3 (fire-and-forget)

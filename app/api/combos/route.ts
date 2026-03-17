@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { awardXp } from "@/lib/award-xp";
+import { getCurrentWeekStart } from "@/lib/missions";
 
 /**
  * GET /api/combos
@@ -120,6 +122,21 @@ export async function POST(request: Request) {
     if (error) {
       return Response.json({ error: error.message }, { status: 500 });
     }
+
+    // Award XP for sharing combo (fire-and-forget)
+    try {
+      await awardXp(supabase, user.id, 3, "share_combo", "Combo compartido");
+    } catch (xpErr) {
+      console.error("Error awarding combo XP:", xpErr);
+    }
+
+    // Auto-complete mission (fire-and-forget)
+    supabase.from("player_missions").upsert({
+      player_id: user.id,
+      week_start: getCurrentWeekStart(),
+      mission_id: "combo",
+      completed_at: new Date().toISOString(),
+    }, { onConflict: "player_id,week_start,mission_id" }).then(() => {});
 
     return Response.json(combo, { status: 201 });
   } catch (err) {

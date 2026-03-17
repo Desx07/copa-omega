@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPushToPlayer } from "@/lib/push";
+import { awardXp } from "@/lib/award-xp";
 
 export async function PATCH(
   request: Request,
@@ -99,6 +100,15 @@ export async function PATCH(
         });
       } catch (feedErr) {
         console.error("Error inserting match_result feed event:", feedErr);
+      }
+
+      // Award XP to both players (fire-and-forget)
+      try {
+        const adminXp = createAdminClient();
+        await awardXp(adminXp, winner_id, 20, "win_match", "Victoria en batalla de estrellas");
+        if (loserId) await awardXp(adminXp, loserId, 5, "lose_match", "Derrota en batalla de estrellas");
+      } catch (xpErr) {
+        console.error("Error awarding match XP:", xpErr);
       }
 
       // Push notifications to both players (fire-and-forget)

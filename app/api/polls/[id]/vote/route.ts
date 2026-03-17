@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { awardXp } from "@/lib/award-xp";
+import { getCurrentWeekStart } from "@/lib/missions";
 
 /**
  * POST /api/polls/[id]/vote
@@ -89,6 +91,21 @@ export async function POST(
       }
       return Response.json({ error: insertError.message }, { status: 500 });
     }
+
+    // Award XP for voting (fire-and-forget)
+    try {
+      await awardXp(supabase, user.id, 2, "vote_poll", "Voto en encuesta");
+    } catch (xpErr) {
+      console.error("Error awarding poll vote XP:", xpErr);
+    }
+
+    // Auto-complete mission (fire-and-forget)
+    supabase.from("player_missions").upsert({
+      player_id: user.id,
+      week_start: getCurrentWeekStart(),
+      mission_id: "poll",
+      completed_at: new Date().toISOString(),
+    }, { onConflict: "player_id,week_start,mission_id" }).then(() => {});
 
     return Response.json({ success: true });
   } catch (err) {

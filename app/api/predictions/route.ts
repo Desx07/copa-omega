@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { awardXp } from "@/lib/award-xp";
+import { getCurrentWeekStart } from "@/lib/missions";
 
 /**
  * GET /api/predictions
@@ -181,6 +183,21 @@ export async function POST(request: Request) {
       }
       return Response.json({ error: error.message }, { status: 500 });
     }
+
+    // Award XP for making prediction (fire-and-forget)
+    try {
+      await awardXp(supabase, user.id, 2, "make_prediction", "Prediccion realizada");
+    } catch (xpErr) {
+      console.error("Error awarding prediction XP:", xpErr);
+    }
+
+    // Auto-complete mission (fire-and-forget)
+    supabase.from("player_missions").upsert({
+      player_id: user.id,
+      week_start: getCurrentWeekStart(),
+      mission_id: "prediction",
+      completed_at: new Date().toISOString(),
+    }, { onConflict: "player_id,week_start,mission_id" }).then(() => {});
 
     return Response.json(prediction, { status: 201 });
   } catch (err) {

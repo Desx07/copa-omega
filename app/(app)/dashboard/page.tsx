@@ -16,10 +16,12 @@ import {
   BarChart3,
   Calendar,
   Search,
+  Monitor,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
 import { computeTitleFromMatches } from "@/lib/dynamic-titles";
+import { getLevel, getNextLevel, getLevelProgress } from "@/lib/xp";
 import { StoreToggle } from "@/app/_components/store-toggle";
 import { StoreButton } from "@/app/_components/store-button";
 import { QrScannerButton } from "@/app/_components/qr-scanner";
@@ -30,6 +32,7 @@ import OnboardingChecklist from "@/app/_components/onboarding-checklist";
 import SeasonBanner from "@/app/_components/season-banner";
 import TournamentCountdown from "@/app/_components/tournament-countdown";
 import DashboardCarousel from "@/app/_components/dashboard-carousel";
+import WeeklyMissions from "@/app/_components/weekly-missions";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -39,7 +42,7 @@ export default async function DashboardPage() {
   const [playerResult, matchesResult, allPlayersResult, last10Result, beysResult, predictionsResult, challengesResult, activeSeasonResult, nextTournamentResult, liveTournamentResult, carouselSettingResult, carouselItemsResult] = await Promise.all([
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at, current_login_streak, max_login_streak, onboarding_completed")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at, current_login_streak, max_login_streak, onboarding_completed, xp")
       .eq("id", user.id)
       .single(),
     supabase
@@ -144,6 +147,12 @@ export default async function DashboardPage() {
   // Login streak
   const loginStreak = (player as unknown as { current_login_streak: number }).current_login_streak ?? 0;
 
+  // XP & Level
+  const playerXp = (player as unknown as { xp: number }).xp ?? 0;
+  const level = getLevel(playerXp);
+  const nextLevel = getNextLevel(playerXp);
+  const xpProgress = getLevelProgress(playerXp);
+
   // Active season
   const activeSeason = activeSeasonResult.data;
 
@@ -167,6 +176,17 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-lg mx-auto pb-10 space-y-5">
+      {/* ═══ HYPE MODE — live tournament top bar ═══ */}
+      {nextTournament?.status === "in_progress" && (
+        <div className="bg-omega-red/20 border-b border-omega-red/40 px-4 py-2 -mx-4 flex items-center justify-center gap-2 animate-pulse">
+          <div className="size-2 rounded-full bg-omega-red animate-ping" />
+          <span className="text-xs font-black text-omega-red uppercase tracking-widest">
+            Torneo en vivo
+          </span>
+          <div className="size-2 rounded-full bg-omega-red animate-ping" />
+        </div>
+      )}
+
       {/* ═══ HERO BANNER ═══ */}
       <div className="-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-purple/30 via-omega-surface to-omega-blue/15 px-6 pt-8 pb-10 shadow-lg shadow-omega-purple/40">
         {/* Decorative orbs */}
@@ -204,11 +224,15 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Dynamic title + login streak badges */}
+        {/* Dynamic title + level + login streak badges */}
         <div className="relative flex items-center justify-center gap-2 mt-3 flex-wrap">
           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${dynamicTitle.bg} ${dynamicTitle.color}`}>
             <Flame className="size-3.5" />
             {dynamicTitle.label}
+          </span>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${level.bg} ${level.color} text-xs font-bold`}>
+            <Zap className="size-3.5" />
+            {level.name}
           </span>
           {loginStreak >= 1 && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border bg-orange-400/15 border-orange-400/40 text-xs font-bold text-orange-400">
@@ -253,6 +277,19 @@ export default async function DashboardPage() {
             </>
           )}
         </div>
+
+        {/* XP progress bar */}
+        {nextLevel && (
+          <div className="relative mt-2 px-1">
+            <div className="flex items-center justify-between text-[10px] text-omega-muted mb-1">
+              <span>{level.name}</span>
+              <span>{playerXp} / {nextLevel.minXp} XP</span>
+            </div>
+            <div className="h-1 bg-omega-dark rounded-full overflow-hidden">
+              <div className={`h-full ${level.bg} rounded-full`} style={{ width: `${xpProgress}%` }} />
+            </div>
+          </div>
+        )}
 
         {/* Progress bar inside hero */}
         <div className="relative mt-4 space-y-1.5">
@@ -306,6 +343,26 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* ═══ HYPE MODE — live bracket + spectator links ═══ */}
+      {nextTournament?.status === "in_progress" && (
+        <div className="px-4 space-y-2">
+          <Link
+            href={`/tournaments/${nextTournament.id}`}
+            className="omega-btn omega-btn-red w-full py-3 text-sm shadow-lg shadow-omega-red/20 hover:shadow-xl animate-pulse"
+          >
+            <Zap className="size-5" />
+            Ver bracket en vivo
+          </Link>
+          <Link
+            href="/espectador"
+            className="omega-btn omega-btn-secondary w-full py-2.5 text-xs"
+          >
+            <Monitor className="size-4" />
+            Modo espectador (para proyector)
+          </Link>
+        </div>
+      )}
+
       {/* ═══ ENGAGEMENT QUICK LINKS — compact row ═══ */}
       <div className="grid grid-cols-3 gap-2 px-4">
         <Link href="/predictions" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
@@ -343,6 +400,11 @@ export default async function DashboardPage() {
           />
         </div>
       )}
+
+      {/* ═══ WEEKLY MISSIONS ═══ */}
+      <div className="px-4">
+        <WeeklyMissions />
+      </div>
 
       {/* ═══ QUICK ACTIONS — grid ═══ */}
       <div className="grid grid-cols-2 gap-3 px-4">
