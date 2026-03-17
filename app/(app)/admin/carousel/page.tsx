@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -10,8 +10,11 @@ import {
   Loader2,
   Power,
   PowerOff,
+  Upload,
 } from "lucide-react";
 import Link from "next/link";
+import { uploadImage } from "@/lib/upload-image";
+import { toast } from "sonner";
 
 interface CarouselItem {
   id: string;
@@ -35,6 +38,8 @@ export default function AdminCarouselPage() {
   const [newType, setNewType] = useState<"photo" | "video">("photo");
   const [newTitle, setNewTitle] = useState("");
   const [newThumbnail, setNewThumbnail] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
@@ -59,7 +64,7 @@ export default function AdminCarouselPage() {
 
   async function toggleCarousel() {
     setToggling(true);
-    const settingKey = activeTab === "dashboard" ? "dashboard_carousel" : "carousel";
+    const settingKey = activeTab === "dashboard" ? "dashboard-carousel" : "carousel";
     try {
       const res = await fetch(`/api/settings/${settingKey}`, {
         method: "PATCH",
@@ -247,6 +252,69 @@ export default function AdminCarouselPage() {
               Video
             </button>
           </div>
+
+          {/* File upload for photos */}
+          {newType === "photo" && (
+            <>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  e.target.value = "";
+                  if (file.size > 10 * 1024 * 1024) {
+                    toast.error("Max 10MB");
+                    return;
+                  }
+                  setUploading(true);
+                  try {
+                    const path = `carousel/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+                    const publicUrl = await uploadImage("media", path, file, 1200);
+                    // Create carousel item with this URL
+                    const res = await fetch("/api/admin/carousel", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        type: "photo",
+                        url: publicUrl,
+                        title: newTitle.trim() || null,
+                        target: activeTab,
+                      }),
+                    });
+                    if (res.ok) {
+                      toast.success("Imagen subida!");
+                      setNewTitle("");
+                      loadItems();
+                    } else {
+                      toast.error("Error guardando");
+                    }
+                  } catch {
+                    toast.error("Error subiendo imagen");
+                  } finally {
+                    setUploading(false);
+                  }
+                }}
+              />
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="w-full omega-btn omega-btn-purple py-3 text-sm"
+              >
+                {uploading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <>
+                    <Upload className="size-4" />
+                    Subir imagen desde el celular/PC
+                  </>
+                )}
+              </button>
+              <div className="text-center text-[10px] text-omega-muted">o pegá una URL:</div>
+            </>
+          )}
 
           <input
             type="text"
