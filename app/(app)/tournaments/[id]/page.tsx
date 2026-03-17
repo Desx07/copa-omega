@@ -365,50 +365,6 @@ export default async function TournamentDetailPage({ params }: PageProps) {
           </section>
         )}
 
-        {/* Points awarded -- from tournament_points table */}
-        {tournament.status === "completed" && tournamentPoints.length > 0 && (
-          <section className="omega-card shadow-sm">
-            <div className="omega-section-header">
-              <Star className="size-4 text-omega-gold fill-omega-gold" />
-              Puntos Otorgados
-            </div>
-            <div>
-              {tournamentPoints.map((tp, index) => (
-                <div
-                  key={tp.player_id}
-                  className="omega-row border-l-4 border-l-transparent hover:border-l-omega-gold/50"
-                >
-                  <span className="text-sm font-black text-omega-muted/60 w-6 text-center shrink-0">
-                    {tp.position ? `#${tp.position}` : index + 1}
-                  </span>
-                  <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
-                    {tp.player.avatar_url ? (
-                      <img
-                        src={tp.player.avatar_url}
-                        alt=""
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
-                        {tp.player.alias.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-sm font-bold text-omega-text flex-1 truncate">
-                    {tp.player.alias}
-                  </span>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-sm font-black text-omega-gold">
-                      {tp.points}
-                    </span>
-                    <span className="text-[10px] text-omega-muted">pts</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* Register button -- only for registration phase */}
         {tournament.status === "registration" && (
           <div className="space-y-2">
@@ -478,8 +434,8 @@ export default async function TournamentDetailPage({ params }: PageProps) {
         {/* Participants */}
         <ParticipantsList
           participants={participants}
-          showSeeds={tournament.format === "single_elimination"}
-          showPoints={isRoundBased}
+          showSeeds={tournament.format === "single_elimination" && tournament.status !== "completed"}
+          showPoints={tournament.status === "completed" || isRoundBased}
         />
       </div>
     </div>
