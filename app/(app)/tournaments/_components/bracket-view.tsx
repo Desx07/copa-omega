@@ -324,10 +324,11 @@ function EliminationMatchCard({
   const isByeSlot = isBye && match.winner_id == null && (match.player1_id || match.player2_id) && !(match.player1_id && match.player2_id);
 
   const isAssignedJudge = isJudge && currentUserId && match.judge_id === currentUserId;
+  const isCompleted = match.status === "completed";
   const canResolve =
     (isAdmin || isAssignedJudge) &&
     tournamentId &&
-    (isPending || isActive) &&
+    (isPending || isActive || (isAdmin && isCompleted)) &&
     match.player1_id &&
     match.player2_id;
 
@@ -907,10 +908,11 @@ function RoundMatchRow({
   const isActive = match.status === "in_progress";
   const isBye = match.status === "bye";
   const isAssignedJudge = isJudge && currentUserId && match.judge_id === currentUserId;
+  const isCompleted = match.status === "completed";
   const canResolve =
     (isAdmin || isAssignedJudge) &&
     tournamentId &&
-    (isPending || isActive) &&
+    (isPending || isActive || (isAdmin && isCompleted)) &&
     match.player1_id &&
     match.player2_id;
 

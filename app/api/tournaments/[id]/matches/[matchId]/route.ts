@@ -64,19 +64,20 @@ export async function PATCH(
       );
     }
 
-    // Check match is not already completed
-    if (match.status === "completed") {
-      return Response.json(
-        { error: "Este partido ya fue completado" },
-        { status: 400 }
-      );
-    }
-
-    if (match.status === "bye") {
-      return Response.json(
-        { error: "No se puede modificar un partido bye" },
-        { status: 400 }
-      );
+    // Non-admins cannot edit completed or bye matches
+    if (!isAdmin) {
+      if (match.status === "completed") {
+        return Response.json(
+          { error: "Este partido ya fue completado" },
+          { status: 400 }
+        );
+      }
+      if (match.status === "bye") {
+        return Response.json(
+          { error: "No se puede modificar un partido bye" },
+          { status: 400 }
+        );
+      }
     }
 
     const body = await request.json();
