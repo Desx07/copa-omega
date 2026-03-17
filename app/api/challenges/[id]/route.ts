@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPushToPlayer } from "@/lib/push";
 
 export async function PATCH(
@@ -106,12 +107,43 @@ export async function PATCH(
       },
     });
 
+    // If accepted: auto-create a match and link it to the challenge
+    if (action === "accept") {
+      try {
+        const adminSupabase = createAdminClient();
+        const { data: match, error: matchError } = await adminSupabase
+          .from("matches")
+          .insert({
+            player1_id: challenge.challenger_id,
+            player2_id: challenge.challenged_id,
+            stars_bet: challenge.stars_bet,
+            status: "pending",
+            created_by: challenge.challenger_id,
+          })
+          .select("id")
+          .single();
+
+        if (matchError) {
+          console.error("[Challenge] Error auto-creating match:", matchError);
+        } else if (match) {
+          // Link the match to the challenge
+          await adminSupabase
+            .from("challenges")
+            .update({ match_id: match.id })
+            .eq("id", id);
+          console.log(`[Challenge] Auto-created match ${match.id} for challenge ${id}`);
+        }
+      } catch (matchErr) {
+        console.error("[Challenge] Error in auto-create match:", matchErr);
+      }
+    }
+
     // Push notification to challenger (fire-and-forget)
     if (action === "accept") {
       sendPushToPlayer(
         challenge.challenger_id,
         "Reto aceptado",
-        `${challengedData.alias} aceptó tu reto por ${challenge.stars_bet} estrellas`,
+        `${challengedData.alias} aceptó tu reto por ${challenge.stars_bet} estrellas. Partida creada!`,
         "/challenges"
       ).catch((e) => console.error("[push] error:", e));
     } else {
