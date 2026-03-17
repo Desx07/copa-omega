@@ -252,6 +252,30 @@ async function generateSingleElimination(
 
     prevRoundIds = roundIds;
   }
+
+  // Create 3rd place match (between semifinal losers)
+  // Only if bracket has at least 4 players (i.e. semifinals exist)
+  if (totalRounds >= 2) {
+    const { data: thirdPlaceMatch, error: tpErr } = await supabase
+      .from("tournament_matches")
+      .insert({
+        round: totalRounds, // same round as Final
+        match_order: 1, // after the Final (which is match_order 0)
+        player1_id: null,
+        player2_id: null,
+        bracket_position: "3P",
+        status: "pending",
+        tournament_id: tournamentId,
+      })
+      .select("id")
+      .single();
+
+    if (tpErr) {
+      console.error("[Bracket] Error creating 3rd place match:", tpErr);
+    } else {
+      console.log(`[Bracket] Created 3rd place match: ${thirdPlaceMatch.id}`);
+    }
+  }
 }
 
 /* ─── Round Robin Generator ─── */

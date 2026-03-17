@@ -224,8 +224,12 @@ function EliminationBracket({
   currentUserId?: string;
   tournamentId?: string;
 }) {
+  // Separate 3rd place match from bracket
+  const thirdPlaceMatch = matches.find((m) => m.bracket_position === "3P");
+  const bracketMatches = matches.filter((m) => m.bracket_position !== "3P");
+
   const rounds = new Map<number, BracketMatch[]>();
-  for (const m of matches) {
+  for (const m of bracketMatches) {
     const arr = rounds.get(m.round) || [];
     arr.push(m);
     rounds.set(m.round, arr);
@@ -247,37 +251,59 @@ function EliminationBracket({
   };
 
   return (
-    <div className="overflow-x-auto pb-4">
-      <div className="flex gap-6 min-w-max">
-        {sortedRoundKeys.map((roundNum, roundIndex) => {
-          const roundMatches = rounds.get(roundNum)!;
-          return (
-            <div key={roundNum} className="flex flex-col">
-              <div className="text-center mb-4">
-                <span className="text-[10px] font-bold text-omega-muted uppercase tracking-widest">
-                  {roundLabels(roundIndex, totalRounds)}
-                </span>
-              </div>
+    <div className="space-y-4">
+      <div className="overflow-x-auto pb-4">
+        <div className="flex gap-6 min-w-max">
+          {sortedRoundKeys.map((roundNum, roundIndex) => {
+            const roundMatches = rounds.get(roundNum)!;
+            return (
+              <div key={roundNum} className="flex flex-col">
+                <div className="text-center mb-4">
+                  <span className="text-[10px] font-bold text-omega-muted uppercase tracking-widest">
+                    {roundLabels(roundIndex, totalRounds)}
+                  </span>
+                </div>
 
-              <div
-                className="flex flex-col justify-around flex-1 gap-4"
-                style={{ minWidth: 200 }}
-              >
-                {roundMatches.map((match) => (
-                  <EliminationMatchCard
-                    key={match.id}
-                    match={match}
-                    isAdmin={isAdmin}
-                    isJudge={isJudge}
-                    currentUserId={currentUserId}
-                    tournamentId={tournamentId}
-                  />
-                ))}
+                <div
+                  className="flex flex-col justify-around flex-1 gap-4"
+                  style={{ minWidth: 200 }}
+                >
+                  {roundMatches.map((match) => (
+                    <EliminationMatchCard
+                      key={match.id}
+                      match={match}
+                      isAdmin={isAdmin}
+                      isJudge={isJudge}
+                      currentUserId={currentUserId}
+                      tournamentId={tournamentId}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
+
+      {/* 3rd place match */}
+      {thirdPlaceMatch && (
+        <div className="pt-2 border-t border-omega-border/30">
+          <div className="text-center mb-3">
+            <span className="text-[10px] font-bold text-omega-gold uppercase tracking-widest">
+              🥉 TERCER PUESTO
+            </span>
+          </div>
+          <div className="max-w-[220px] mx-auto">
+            <EliminationMatchCard
+              match={thirdPlaceMatch}
+              isAdmin={isAdmin}
+              isJudge={isJudge}
+              currentUserId={currentUserId}
+              tournamentId={tournamentId}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -244,6 +244,25 @@ export async function PATCH(
               .update({ player2_id: winner_id })
               .eq("id", updatedMatch.next_match_id);
           }
+
+          // If this is a semifinal (next match is Final), send loser to 3rd place match
+          if (nextMatch.bracket_position === "F" && loserId) {
+            const { data: thirdPlaceMatch } = await supabase
+              .from("tournament_matches")
+              .select("id, player1_id, player2_id")
+              .eq("tournament_id", tournamentId)
+              .eq("bracket_position", "3P")
+              .single();
+
+            if (thirdPlaceMatch) {
+              const slot = feederIndex === 0 ? "player1_id" : "player2_id";
+              await supabase
+                .from("tournament_matches")
+                .update({ [slot]: loserId })
+                .eq("id", thirdPlaceMatch.id);
+              console.log(`[Bracket] SF loser ${loserId} -> 3P match ${slot}`);
+            }
+          }
         }
       }
     }

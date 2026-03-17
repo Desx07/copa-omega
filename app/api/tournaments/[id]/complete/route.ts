@@ -172,17 +172,33 @@ export async function POST(
         }
       }
 
-      // 3rd: losers of semifinals
-      const semiFinals = bracketMatches.filter((m) =>
-        m.bracket_position?.startsWith("SF")
-      );
-      for (const sf of semiFinals) {
-        if (sf.winner_id) {
-          const loser =
-            sf.player1_id === sf.winner_id ? sf.player2_id : sf.player1_id;
-          if (loser && !positionMap.has(loser)) {
-            positionMap.set(loser, 3);
-            console.log(`[Complete] 3rd place: ${loser}`);
+      // 3rd: winner of 3rd place match, or if no 3P match, losers of semifinals
+      const thirdPlaceMatch = bracketMatches.find((m) => m.bracket_position === "3P");
+      if (thirdPlaceMatch?.winner_id) {
+        positionMap.set(thirdPlaceMatch.winner_id, 3);
+        console.log(`[Complete] 3rd place (from 3P match): ${thirdPlaceMatch.winner_id}`);
+        // 4th: loser of 3rd place match
+        const fourthId =
+          thirdPlaceMatch.player1_id === thirdPlaceMatch.winner_id
+            ? thirdPlaceMatch.player2_id
+            : thirdPlaceMatch.player1_id;
+        if (fourthId && !positionMap.has(fourthId)) {
+          positionMap.set(fourthId, 4);
+          console.log(`[Complete] 4th place: ${fourthId}`);
+        }
+      } else {
+        // Fallback: both SF losers get 3rd (no 3P match played)
+        const semiFinals = bracketMatches.filter((m) =>
+          m.bracket_position?.startsWith("SF")
+        );
+        for (const sf of semiFinals) {
+          if (sf.winner_id) {
+            const loser =
+              sf.player1_id === sf.winner_id ? sf.player2_id : sf.player1_id;
+            if (loser && !positionMap.has(loser)) {
+              positionMap.set(loser, 3);
+              console.log(`[Complete] 3rd place (SF loser): ${loser}`);
+            }
           }
         }
       }
