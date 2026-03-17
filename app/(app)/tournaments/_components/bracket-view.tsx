@@ -478,11 +478,14 @@ function EliminationMatchCard({
     if (!tournamentId || !assignAlias.trim()) return;
     setAddingPlayer(true);
     try {
-      // First find the player by alias
-      const searchRes = await fetch(`/api/players?search=${encodeURIComponent(assignAlias.trim())}`);
+      // Get all players and find by alias (case-insensitive exact match first, then partial)
+      const searchRes = await fetch("/api/players");
       if (!searchRes.ok) { toast.error("Error buscando jugador"); return; }
       const players = await searchRes.json();
-      const found = Array.isArray(players) ? players[0] : players?.players?.[0];
+      const allPlayers = Array.isArray(players) ? players : [];
+      const search = assignAlias.trim().toLowerCase();
+      const found = allPlayers.find((p: { alias: string }) => p.alias.toLowerCase() === search)
+        || allPlayers.find((p: { alias: string }) => p.alias.toLowerCase().includes(search));
       if (!found) { toast.error(`"${assignAlias}" no encontrado`); return; }
 
       const res = await fetch(`/api/admin/matches/${match.id}/set-player`, {

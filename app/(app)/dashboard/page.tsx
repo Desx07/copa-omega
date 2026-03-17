@@ -28,13 +28,14 @@ import NotificationBell from "@/app/_components/notification-bell";
 import ChatUnread from "@/app/_components/chat-unread";
 import OnboardingChecklist from "@/app/_components/onboarding-checklist";
 import SeasonBanner from "@/app/_components/season-banner";
+import TournamentCountdown from "@/app/_components/tournament-countdown";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [playerResult, matchesResult, allPlayersResult, last10Result, beysResult, predictionsResult, challengesResult, activeSeasonResult] = await Promise.all([
+  const [playerResult, matchesResult, allPlayersResult, last10Result, beysResult, predictionsResult, challengesResult, activeSeasonResult, nextTournamentResult, liveTournamentResult] = await Promise.all([
     supabase
       .from("players")
       .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at, current_login_streak, max_login_streak, onboarding_completed")
@@ -83,6 +84,24 @@ export default async function DashboardPage() {
       .select("*")
       .eq("status", "active")
       .maybeSingle(),
+    // Next upcoming tournament (registration with event_date in the future)
+    supabase
+      .from("tournaments")
+      .select("id, name, event_date, status, format, max_participants, participant_count:tournament_participants(count)")
+      .eq("status", "registration")
+      .not("event_date", "is", null)
+      .gte("event_date", new Date().toISOString().split("T")[0])
+      .order("event_date", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    // Active in-progress tournament
+    supabase
+      .from("tournaments")
+      .select("id, name, event_date, status, format, max_participants, participant_count:tournament_participants(count)")
+      .eq("status", "in_progress")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const player = playerResult.data;
@@ -113,6 +132,20 @@ export default async function DashboardPage() {
 
   // Active season
   const activeSeason = activeSeasonResult.data;
+
+  // Next tournament: in_progress takes priority over registration
+  const rawLive = liveTournamentResult.data;
+  const rawNext = nextTournamentResult.data;
+  const rawTournament = rawLive ?? rawNext;
+  const nextTournament = rawTournament && rawTournament.event_date
+    ? {
+        ...rawTournament,
+        participant_count:
+          Array.isArray(rawTournament.participant_count) && rawTournament.participant_count.length > 0
+            ? (rawTournament.participant_count[0] as { count: number }).count
+            : 0,
+      }
+    : null;
 
   return (
     <div className="max-w-lg mx-auto pb-10 space-y-5">
@@ -238,6 +271,13 @@ export default async function DashboardPage() {
             number={activeSeason.number}
             endsAt={activeSeason.ends_at}
           />
+        </div>
+      )}
+
+      {/* ═══ NEXT TOURNAMENT — compact card ═══ */}
+      {nextTournament && (
+        <div className="px-4">
+          <TournamentCountdown tournament={nextTournament} />
         </div>
       )}
 
