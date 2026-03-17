@@ -112,7 +112,7 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const participants = (participantsResult.data ?? []).map((p) => ({
+  const rawParticipants = (participantsResult.data ?? []).map((p) => ({
     ...p,
     player: p.player as unknown as {
       id: string;
@@ -129,6 +129,33 @@ export default async function TournamentDetailPage({ params }: PageProps) {
     winner: m.winner as unknown as { alias: string } | null,
     judge: m.judge as unknown as { alias: string } | null,
   }));
+
+  // Recalculate W/L/points from actual completed matches (source of truth)
+  const completedMatches = matches.filter((m) => m.status === "completed" && m.winner_id);
+  const statsMap = new Map<string, { wins: number; losses: number }>();
+  for (const m of completedMatches) {
+    if (m.winner_id) {
+      const prev = statsMap.get(m.winner_id) ?? { wins: 0, losses: 0 };
+      prev.wins++;
+      statsMap.set(m.winner_id, prev);
+    }
+    const loserId = m.player1_id === m.winner_id ? m.player2_id : m.player1_id;
+    if (loserId) {
+      const prev = statsMap.get(loserId) ?? { wins: 0, losses: 0 };
+      prev.losses++;
+      statsMap.set(loserId, prev);
+    }
+  }
+
+  const participants = rawParticipants.map((p) => {
+    const stats = statsMap.get(p.player.id) ?? { wins: 0, losses: 0 };
+    return {
+      ...p,
+      tournament_wins: stats.wins,
+      tournament_losses: stats.losses,
+      points: stats.wins * 3,
+    };
+  });
 
   const tournamentPoints = (pointsResult.data ?? []).map((tp) => ({
     ...tp,
