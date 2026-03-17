@@ -70,16 +70,31 @@ export async function POST(
     }
 
     // Check if points were already awarded
+    const { searchParams } = new URL(_request.url);
+    const forceRecalculate = searchParams.get("force") === "true";
+
     const { count: existingPointsCount } = await supabase
       .from("tournament_points")
       .select("id", { count: "exact", head: true })
       .eq("tournament_id", tournamentId);
 
     if ((existingPointsCount ?? 0) > 0) {
-      return Response.json(
-        { error: "Los puntos ya fueron otorgados para este torneo" },
-        { status: 400 }
-      );
+      if (!forceRecalculate) {
+        return Response.json(
+          { error: "Los puntos ya fueron otorgados. Usa ?force=true para recalcular." },
+          { status: 400 }
+        );
+      }
+      // Clear old points and badges for recalculation
+      const adminForCleanup = createAdminClient();
+      await adminForCleanup
+        .from("tournament_points")
+        .delete()
+        .eq("tournament_id", tournamentId);
+      await adminForCleanup
+        .from("tournament_badges")
+        .delete()
+        .eq("tournament_id", tournamentId);
     }
 
     // Get all participants with their stats

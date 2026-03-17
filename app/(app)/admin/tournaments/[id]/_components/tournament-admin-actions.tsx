@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Play, Loader2, XCircle, CheckCircle, AlertTriangle, Trash2 } from "lucide-react";
+import { Play, Loader2, XCircle, CheckCircle, AlertTriangle, Trash2, RefreshCw } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -214,6 +214,44 @@ export default function TournamentAdminActions({
         >
           <XCircle className="size-4" />
           Cancelar torneo
+        </button>
+      )}
+
+      {/* Recalculate points & badges (completed tournaments) */}
+      {status === "completed" && (
+        <button
+          onClick={async () => {
+            setLoading(true);
+            try {
+              const res = await fetch(
+                `/api/tournaments/${tournamentId}/complete?force=true`,
+                { method: "POST" }
+              );
+              if (!res.ok) {
+                const data = await res.json();
+                toast.error(data.error || "Error recalculando");
+                return;
+              }
+              const data = await res.json();
+              toast.success(`Puntos recalculados: ${data.points_awarded} jugadores`);
+              router.refresh();
+            } catch {
+              toast.error("Error de conexión");
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={loading}
+          className="omega-btn omega-btn-purple w-full px-4 py-2.5 text-sm shadow-sm hover:shadow-md"
+        >
+          {loading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <>
+              <RefreshCw className="size-4" />
+              Recalcular puntos y medallas
+            </>
+          )}
         </button>
       )}
 
