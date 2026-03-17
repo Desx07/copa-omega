@@ -90,7 +90,7 @@ export function PresenceProvider({
       .on("presence", { event: "join" }, ({ newPresences }) => {
         setOnlineUsers((prev) => {
           const next = new Map(prev);
-          for (const p of newPresences as PresenceUser[]) {
+          for (const p of newPresences as unknown as PresenceUser[]) {
             next.set(p.user_id, { user_id: p.user_id, alias: p.alias, avatar_url: p.avatar_url });
           }
           return next;
@@ -99,7 +99,7 @@ export function PresenceProvider({
       .on("presence", { event: "leave" }, ({ leftPresences }) => {
         setOnlineUsers((prev) => {
           const next = new Map(prev);
-          for (const p of leftPresences as PresenceUser[]) {
+          for (const p of leftPresences as unknown as PresenceUser[]) {
             next.delete(p.user_id);
           }
           return next;
