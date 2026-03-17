@@ -31,6 +31,7 @@ import ChatUnread from "@/app/_components/chat-unread";
 import OnboardingChecklist from "@/app/_components/onboarding-checklist";
 import RematchButton from "@/app/_components/rematch-button";
 import SeasonBanner from "@/app/_components/season-banner";
+import EventBanner from "@/app/_components/event-banner";
 import TournamentCountdown from "@/app/_components/tournament-countdown";
 import DashboardCarousel from "@/app/_components/dashboard-carousel";
 import WeeklyMissions from "@/app/_components/weekly-missions";
@@ -312,6 +313,11 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* ═══ EVENT BANNER ═══ */}
+      <div className="px-4">
+        <EventBanner />
+      </div>
+
       {/* ═══ NEXT TOURNAMENT — compact card ═══ */}
       {nextTournament && (
         <div className="px-4">
@@ -532,6 +538,12 @@ export default async function DashboardPage() {
                 <Image className="size-5 text-white" />
               </div>
               <p className="text-xs font-bold text-white">Carousel</p>
+            </Link>
+            <Link href="/admin/seasons" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Calendar className="size-5 text-white" />
+              </div>
+              <p className="text-xs font-bold text-white">Temporadas</p>
             </Link>
           </div>
           <StoreToggle />
