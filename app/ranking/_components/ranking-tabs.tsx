@@ -282,6 +282,15 @@ export function RankingTabs({
           </div>
         )}
 
+        {/* Top 3 podium for tournaments */}
+        {tournamentRanking.length >= 3 && (
+          <div className="grid grid-cols-3 gap-3 px-4">
+            <TournamentPodiumCard entry={tournamentRanking[1]} rank={2} />
+            <TournamentPodiumCard entry={tournamentRanking[0]} rank={1} />
+            <TournamentPodiumCard entry={tournamentRanking[2]} rank={3} />
+          </div>
+        )}
+
         {tournamentRanking.length > 0 && (
           <div className="px-4 space-y-3">
             {/* Section header */}
@@ -297,36 +306,19 @@ export function RankingTabs({
               </span>
             </div>
 
-            {/* List rows with border-l-4 */}
+            {/* List rows (skip top 3 if podium shown) */}
             <div className="space-y-2">
-              {tournamentRanking.map((entry, index) => {
-                const borderColor =
-                  index === 0
-                    ? "border-l-omega-gold"
-                    : index === 1
-                      ? "border-l-gray-400"
-                      : index === 2
-                        ? "border-l-orange-500"
-                        : "border-l-omega-border";
+              {tournamentRanking.slice(tournamentRanking.length >= 3 ? 3 : 0).map((entry, index) => {
+                const rank = (tournamentRanking.length >= 3 ? index + 3 : index) + 1;
                 return (
                   <Link
                     key={entry.id}
                     href={`/player/${entry.id}`}
-                    className={`rounded-xl border-l-4 ${borderColor} bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3`}
+                    className="rounded-xl border-l-4 border-l-omega-border bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3"
                   >
                     {/* Rank */}
-                    <span
-                      className={`text-sm font-black w-6 text-center shrink-0 ${
-                        index === 0
-                          ? "text-omega-gold"
-                          : index === 1
-                            ? "text-omega-muted"
-                            : index === 2
-                              ? "text-orange-500"
-                              : "text-omega-muted/70"
-                      }`}
-                    >
-                      {index + 1}
+                    <span className="text-sm font-black w-6 text-center shrink-0 text-omega-muted/70">
+                      {rank}
                     </span>
 
                     {/* Avatar */}
@@ -346,9 +338,6 @@ export function RankingTabs({
 
                     {/* Alias */}
                     <span className="text-sm font-bold text-omega-text flex-1 truncate">
-                      {index === 0 && (
-                        <Crown className="size-3 text-omega-gold inline mr-1" />
-                      )}
                       {entry.alias}
                     </span>
 
@@ -567,6 +556,59 @@ function PodiumCard({ player, rank, streak }: PodiumCardProps) {
               {streak} racha
             </p>
           )}
+        </div>
+      </Link>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Tournament Podium Card                                                     */
+/* -------------------------------------------------------------------------- */
+
+function TournamentPodiumCard({
+  entry,
+  rank,
+}: {
+  entry: TournamentEntry;
+  rank: 1 | 2 | 3;
+}) {
+  const config = podiumConfig[rank];
+
+  return (
+    <div
+      className={`${config.height} ${rank === 1 ? "order-2 -mt-2" : rank === 2 ? "order-1 mt-2" : "order-3 mt-2"}`}
+    >
+      <Link
+        href={`/player/${entry.id}`}
+        className={`group rounded-2xl bg-gradient-to-br ${config.gradient} ${config.aura} p-4 block text-center space-y-2 shadow-md transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]`}
+      >
+        <div className="flex justify-center">
+          <Crown className={config.crownClass} />
+        </div>
+
+        <div
+          className={`size-14 rounded-full border-2 ${config.avatarBorder} overflow-hidden bg-omega-dark mx-auto`}
+        >
+          {entry.avatar_url ? (
+            <img src={entry.avatar_url} alt="" className="size-full object-cover" />
+          ) : (
+            <div className="size-full flex items-center justify-center text-lg font-black text-omega-purple">
+              {entry.alias.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+
+        <p className="text-sm font-black truncate text-omega-text">
+          {entry.alias}
+        </p>
+
+        <div className="flex items-center justify-center gap-1">
+          <Trophy className={`size-4 ${config.starClass}`} />
+          <span className={`text-xl font-black ${config.label}`}>
+            {entry.total}
+          </span>
+          <span className="text-[10px] text-omega-muted">pts</span>
         </div>
       </Link>
     </div>
