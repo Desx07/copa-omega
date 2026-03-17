@@ -39,7 +39,8 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [playerResult, matchesResult, allPlayersResult, last10Result, beysResult, predictionsResult, challengesResult, activeSeasonResult, nextTournamentResult, liveTournamentResult, carouselSettingResult, carouselItemsResult] = await Promise.all([
+  // Core queries (essential for render)
+  const [playerResult, matchesResult, allPlayersResult, last10Result, nextTournamentResult, liveTournamentResult] = await Promise.all([
     supabase
       .from("players")
       .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at, current_login_streak, max_login_streak, onboarding_completed, xp")
@@ -59,7 +60,6 @@ export default async function DashboardPage() {
       .order("stars", { ascending: false })
       .order("wins", { ascending: false })
       .order("created_at", { ascending: true }),
-    // Last 10 matches for dynamic title
     supabase
       .from("matches")
       .select("winner_id")
@@ -67,28 +67,6 @@ export default async function DashboardPage() {
       .eq("status", "completed")
       .order("completed_at", { ascending: false })
       .limit(10),
-    // Onboarding: beys count
-    supabase
-      .from("beys")
-      .select("id", { count: "exact", head: true })
-      .eq("player_id", user.id),
-    // Onboarding: predictions count
-    supabase
-      .from("predictions")
-      .select("id", { count: "exact", head: true })
-      .eq("predictor_id", user.id),
-    // Onboarding: challenges sent count
-    supabase
-      .from("challenges")
-      .select("id", { count: "exact", head: true })
-      .eq("challenger_id", user.id),
-    // Active season
-    supabase
-      .from("seasons")
-      .select("*")
-      .eq("status", "active")
-      .maybeSingle(),
-    // Next upcoming tournament (registration with event_date in the future)
     supabase
       .from("tournaments")
       .select("id, name, event_date, status, format, max_participants, participant_count:tournament_participants(count)")
@@ -98,7 +76,6 @@ export default async function DashboardPage() {
       .order("event_date", { ascending: true })
       .limit(1)
       .maybeSingle(),
-    // Active in-progress tournament
     supabase
       .from("tournaments")
       .select("id, name, event_date, status, format, max_participants, participant_count:tournament_participants(count)")
@@ -106,23 +83,22 @@ export default async function DashboardPage() {
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    // Dashboard carousel setting (separate from landing)
-    supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", "dashboard_carousel_enabled")
-      .maybeSingle(),
-    // Dashboard carousel items only
-    supabase
-      .from("carousel_items")
-      .select("id, type, url, thumbnail_url, title, sort_order")
-      .eq("is_active", true)
-      .eq("target", "dashboard")
-      .order("sort_order", { ascending: true }),
   ]);
 
   const player = playerResult.data;
   if (!player) return null;
+
+  // Secondary queries — run in parallel, lighter batch
+  const [activeSeasonResult, carouselSettingResult, beysResult, predictionsResult, challengesResult, carouselItemsResult] = await Promise.all([
+    supabase.from("seasons").select("*").eq("status", "active").maybeSingle(),
+    supabase.from("app_settings").select("value").eq("key", "dashboard_carousel_enabled").maybeSingle(),
+    supabase.from("beys").select("id", { count: "exact", head: true }).eq("player_id", user.id),
+    supabase.from("predictions").select("id", { count: "exact", head: true }).eq("predictor_id", user.id),
+    supabase.from("challenges").select("id", { count: "exact", head: true }).eq("challenger_id", user.id),
+    supabase.from("carousel_items").select("id, type, url, thumbnail_url, title, sort_order").eq("is_active", true).eq("target", "dashboard").order("sort_order", { ascending: true }),
+  ]);
+
+  const carouselEnabled = carouselSettingResult.data?.value === "true";
 
   const matches = matchesResult.data ?? [];
   const allPlayers = allPlayersResult.data ?? [];
@@ -157,7 +133,6 @@ export default async function DashboardPage() {
   const activeSeason = activeSeasonResult.data;
 
   // Carousel
-  const carouselEnabled = carouselSettingResult.data?.value === "true";
   const carouselItems = carouselItemsResult.data ?? [];
 
   // Next tournament: in_progress takes priority over registration
