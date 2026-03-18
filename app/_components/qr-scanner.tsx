@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ScanLine, X, Camera } from "lucide-react";
+import { ScanLine, X, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function QrScannerButton() {
@@ -30,6 +30,9 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCodeRef = useRef<unknown>(null);
+  const [status, setStatus] = useState<"loading" | "scanning" | "error">("loading");
+  const [errorMsg, setErrorMsg] = useState("");
+  const processedRef = useRef(false);
 
   useEffect(() => {
     let scanner: { stop: () => Promise<void>; clear: () => void } | null = null;
@@ -48,9 +51,14 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
             qrbox: { width: 250, height: 250 },
           },
           (decodedText) => {
+            // Prevent double processing
+            if (processedRef.current) return;
+            processedRef.current = true;
+
+            // Accept any URL that points to a tournament registration
             if (decodedText.includes("/tournaments/") && decodedText.includes("/register")) {
               html5QrCode.stop().then(() => {
-                toast.success("QR escaneado!");
+                toast.success("QR escaneado! Redirigiendo...");
                 try {
                   const url = new URL(decodedText);
                   router.push(url.pathname);
@@ -58,19 +66,33 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
                   router.push(decodedText);
                 }
                 onClose();
+              }).catch(() => {
+                onClose();
               });
             } else {
-              toast.error("QR no valido para un torneo");
+              // Not a tournament QR — let user try again
+              processedRef.current = false;
+              toast.error("Ese QR no es de un torneo. Probá con otro.");
             }
           },
           () => {
-            // Ignore scan errors
+            // Per-frame scan miss — normal, not an error
           }
         );
+
+        setStatus("scanning");
       } catch (err) {
         console.error("Scanner error:", err);
-        toast.error("No se pudo acceder a la camara");
-        onClose();
+        const msg = err instanceof Error ? err.message : String(err);
+
+        if (msg.includes("NotAllowed") || msg.includes("Permission")) {
+          setErrorMsg("Necesitás dar permiso de cámara para escanear el QR.");
+        } else if (msg.includes("NotFound") || msg.includes("no camera")) {
+          setErrorMsg("No se encontró una cámara en este dispositivo.");
+        } else {
+          setErrorMsg("No se pudo abrir la cámara. Intentá de nuevo.");
+        }
+        setStatus("error");
       }
     }
 
@@ -104,15 +126,43 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
 
       {/* Scanner */}
       <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm space-y-4">
+          {status === "loading" && (
+            <div className="flex flex-col items-center gap-3 py-10">
+              <Loader2 className="size-8 animate-spin text-omega-blue" />
+              <p className="text-sm text-omega-muted">Abriendo cámara...</p>
+            </div>
+          )}
+
           <div
             id="qr-reader"
             ref={scannerRef}
-            className="rounded-2xl overflow-hidden shadow-lg"
+            className={`rounded-2xl overflow-hidden shadow-lg ${status === "error" ? "hidden" : ""}`}
           />
-          <p className="text-center text-xs text-omega-muted mt-4">
-            Apuntá la cámara al código QR del torneo
-          </p>
+
+          {status === "scanning" && (
+            <div className="text-center space-y-1">
+              <p className="text-sm text-omega-text font-bold">
+                Apuntá la cámara al código QR
+              </p>
+              <p className="text-xs text-omega-muted">
+                El QR lo genera el admin del torneo
+              </p>
+            </div>
+          )}
+
+          {status === "error" && (
+            <div className="omega-card p-6 text-center space-y-4">
+              <Camera className="size-10 text-omega-red/40 mx-auto" />
+              <p className="text-sm text-omega-red font-bold">{errorMsg}</p>
+              <button
+                onClick={onClose}
+                className="omega-btn omega-btn-secondary text-sm"
+              >
+                Cerrar
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
