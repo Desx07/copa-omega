@@ -102,21 +102,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
       if (orderItems) {
         for (const item of orderItems) {
-          const { data: product } = await adminClient
-            .from("products")
-            .select("stock")
-            .eq("id", item.product_id)
-            .single();
-
-          if (product) {
-            await adminClient
-              .from("products")
-              .update({
-                stock: product.stock + item.quantity,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", item.product_id);
-          }
+          await adminClient.rpc("restore_stock", {
+            p_product_id: item.product_id,
+            p_quantity: item.quantity,
+          });
         }
       }
     }

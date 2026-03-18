@@ -7,20 +7,8 @@ export async function awardXp(
   source: string,
   description?: string
 ) {
-  // Get current XP
-  const { data: player } = await supabase
-    .from("players")
-    .select("xp")
-    .eq("id", playerId)
-    .single();
-
-  if (!player) return;
-
-  // Update XP
-  await supabase
-    .from("players")
-    .update({ xp: player.xp + amount })
-    .eq("id", playerId);
+  // Atomic XP update to avoid race conditions
+  await supabase.rpc("increment_xp", { p_player_id: playerId, p_amount: amount });
 
   // Log transaction
   await supabase

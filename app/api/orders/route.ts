@@ -225,16 +225,10 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: itemsError.message }, { status: 500 });
     }
 
-    // Deduct stock for each product
+    // Deduct stock atomically for each product
     for (const item of orderItems) {
-      const product = productMap.get(item.product_id)!;
       const { error: stockError } = await adminClient
-        .from("products")
-        .update({
-          stock: product.stock - item.quantity,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", item.product_id);
+        .rpc("decrement_stock", { p_product_id: item.product_id, p_quantity: item.quantity });
 
       if (stockError) {
         console.error(
