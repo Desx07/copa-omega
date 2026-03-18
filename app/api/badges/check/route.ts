@@ -144,17 +144,11 @@ export async function POST(request: Request) {
       }
     }
 
-    // Calculate max eliminations in a single tournament (for executioner badge)
-    // In single_elimination format, each win = an elimination
+    // Calculate max wins in a single tournament (for executioner badge)
+    // Counts ALL wins across all stages (swiss/round robin + elimination bracket)
     let maxEliminations = 0;
     if (completedTournaments) {
       for (const tp of completedTournaments) {
-        const tournament = tp.tournament as unknown as {
-          status: string;
-          format: string;
-        };
-        if (!tournament || tournament.format !== "single_elimination") continue;
-
         const { count } = await supabase
           .from("tournament_matches")
           .select("id", { count: "exact", head: true })
