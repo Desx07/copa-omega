@@ -41,7 +41,19 @@ export default function WeeklyMissions() {
   if (missions.length === 0) return null;
 
   const completed = missions.filter(m => m.completed).length;
+  const allDone = completed === missions.length;
   const progress = Math.round((completed / missions.length) * 100);
+
+  // All done: show compact badge instead of full card
+  if (allDone) {
+    return (
+      <div className="omega-card px-4 py-3 border-l-4 border-l-omega-green flex items-center gap-2">
+        <Check className="size-4 text-omega-green" />
+        <span className="text-xs font-bold text-omega-green">Misiones completadas</span>
+        <span className="text-[10px] text-omega-muted ml-auto">{completed}/{missions.length}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="omega-card p-4 space-y-3 border-l-4 border-l-omega-blue">
@@ -61,38 +73,26 @@ export default function WeeklyMissions() {
         />
       </div>
 
-      {/* Mission list */}
+      {/* Mission list — only show pending */}
       <div className="space-y-1">
-        {missions.map(m => {
+        {missions.filter(m => !m.completed).map(m => {
           const Icon = ICON_MAP[m.icon] || Target;
           return (
             <Link
               key={m.id}
               href={HREF_MAP[m.check] || "/dashboard"}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-                m.completed ? "bg-omega-green/10 opacity-60" : "bg-omega-dark/40 hover:bg-omega-blue/10"
-              }`}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all bg-omega-dark/40 hover:bg-omega-blue/10"
             >
-              <div className={`size-6 rounded-full flex items-center justify-center shrink-0 ${
-                m.completed ? "bg-omega-green/20 text-omega-green" : "bg-omega-blue/20 text-omega-blue"
-              }`}>
-                {m.completed ? <Check className="size-3.5" /> : <Icon className="size-3.5" />}
+              <div className="size-6 rounded-full flex items-center justify-center shrink-0 bg-omega-blue/20 text-omega-blue">
+                <Icon className="size-3.5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-xs font-bold ${m.completed ? "line-through text-omega-muted" : "text-omega-text"}`}>
-                  {m.label}
-                </p>
+                <p className="text-xs font-bold text-omega-text">{m.label}</p>
               </div>
             </Link>
           );
         })}
       </div>
-
-      {completed === missions.length && (
-        <p className="text-center text-xs font-bold text-omega-green">
-          Todas las misiones completadas esta semana!
-        </p>
-      )}
     </div>
   );
 }
