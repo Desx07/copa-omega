@@ -6,27 +6,16 @@ import {
   useEffect,
   useState,
   useCallback,
-  useRef,
   type ReactNode,
 } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { RealtimeChannel } from "@supabase/supabase-js";
-
-interface PresenceUser {
-  user_id: string;
-  alias: string;
-  avatar_url: string | null;
-}
 
 interface PresenceContextValue {
-  onlineUsers: Map<string, PresenceUser>;
   onlineCount: number;
   isOnline: (playerId: string) => boolean;
 }
 
 const PresenceContext = createContext<PresenceContextValue>({
-  onlineUsers: new Map(),
-  onlineCount: 0,
+  onlineCount: 1,
   isOnline: () => false,
 });
 
@@ -41,82 +30,52 @@ interface PresenceProviderProps {
   avatarUrl: string | null;
 }
 
+const HEARTBEAT_INTERVAL = 30_000; // 30 seconds
+const POLL_INTERVAL = 30_000; // 30 seconds
+
 export function PresenceProvider({
   children,
   userId,
-  alias,
-  avatarUrl,
 }: PresenceProviderProps) {
-  // Always include self in initial state
-  const [onlineUsers, setOnlineUsers] = useState<Map<string, PresenceUser>>(
-    () => new Map([[userId, { user_id: userId, alias, avatar_url: avatarUrl }]])
-  );
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  const [onlineCount, setOnlineCount] = useState(1); // at least self
 
   const isOnline = useCallback(
-    (playerId: string) => onlineUsers.has(playerId),
-    [onlineUsers]
+    (playerId: string) => playerId === userId,
+    [userId]
   );
 
   useEffect(() => {
-    const self: PresenceUser = { user_id: userId, alias, avatar_url: avatarUrl };
-    const supabase = createClient();
+    // Send heartbeat immediately and then every 30s
+    function heartbeat() {
+      fetch("/api/presence", { method: "POST" }).catch(() => {});
+    }
 
-    const channel = supabase.channel("online-presence", {
-      config: {
-        presence: {
-          key: userId,
-        },
-      },
-    });
+    // Poll online count
+    function pollCount() {
+      fetch("/api/presence")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.online != null) setOnlineCount(Math.max(1, data.online));
+        })
+        .catch(() => {});
+    }
 
-    channelRef.current = channel;
+    // Fire immediately
+    heartbeat();
+    pollCount();
 
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState<PresenceUser>();
-        const users = new Map<string, PresenceUser>();
-
-        // Always include self
-        users.set(userId, self);
-
-        for (const [, presences] of Object.entries(state)) {
-          for (const presence of presences) {
-            users.set(presence.user_id, {
-              user_id: presence.user_id,
-              alias: presence.alias,
-              avatar_url: presence.avatar_url,
-            });
-          }
-        }
-
-        setOnlineUsers(users);
-      })
-      .subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.track({
-            user_id: userId,
-            alias,
-            avatar_url: avatarUrl,
-          });
-        }
-      });
+    const hbInterval = setInterval(heartbeat, HEARTBEAT_INTERVAL);
+    const pollInterval = setInterval(pollCount, POLL_INTERVAL);
 
     return () => {
-      channel.untrack();
-      supabase.removeChannel(channel);
-      channelRef.current = null;
+      clearInterval(hbInterval);
+      clearInterval(pollInterval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, []);
 
   return (
     <PresenceContext.Provider
-      value={{
-        onlineUsers,
-        onlineCount: onlineUsers.size,
-        isOnline,
-      }}
+      value={{ onlineCount, isOnline }}
     >
       {children}
     </PresenceContext.Provider>
