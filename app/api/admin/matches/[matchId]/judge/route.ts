@@ -6,6 +6,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ matchId: string }> }
 ) {
+  try {
   const { matchId } = await params;
   const supabase = await createClient();
 
@@ -84,4 +85,8 @@ export async function PATCH(
   }
 
   return Response.json({ success: true, judge_alias: judge.alias });
+  } catch (err) {
+    console.error("PATCH /api/admin/matches/[matchId]/judge error:", err);
+    return Response.json({ error: "Error interno" }, { status: 500 });
+  }
 }

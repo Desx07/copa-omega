@@ -42,7 +42,15 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mission_id } = body;
 
+    if (!mission_id || typeof mission_id !== "string") {
+      return Response.json({ error: "Falta mission_id" }, { status: 400 });
+    }
+
     const weekStart = getCurrentWeekStart();
+    const validMissions = getMissionsForWeek(weekStart);
+    if (!validMissions.some(m => m.id === mission_id)) {
+      return Response.json({ error: "Misión no válida" }, { status: 400 });
+    }
 
     const { error } = await supabase
       .from("player_missions")

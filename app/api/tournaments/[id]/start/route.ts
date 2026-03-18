@@ -459,7 +459,7 @@ export async function POST(
         // Award point to the participant
         const { error: pointErr } = await adminSupabase
           .from("tournament_participants")
-          .update({ points: 1, tournament_wins: 1 })
+          .update({ points: 3, tournament_wins: 1 })
           .eq("tournament_id", tournamentId)
           .eq("player_id", winnerId);
 

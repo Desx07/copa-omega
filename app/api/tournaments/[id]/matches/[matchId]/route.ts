@@ -398,15 +398,16 @@ export async function PATCH(
 
     // --- FINALS STAGE COMPLETION CHECK ---
     if (tournament?.stage === "finals") {
-      // Check if the finals bracket final match is done (no next_match_id)
-      if (match.stage === "finals" && !updatedMatch.next_match_id) {
+      // Only the Final match (F) triggers completion, not 3P
+      if (match.stage === "finals" && !updatedMatch.next_match_id && updatedMatch.bracket_position === "F") {
         await completeTournament(supabase, request, tournamentId);
       }
     }
 
     // --- SINGLE ELIMINATION: check if final is done ---
     if (tournament?.format === "single_elimination" && tournament.stage == null) {
-      if (!updatedMatch.next_match_id) {
+      // Only the Final match (F) triggers completion, not 3P
+      if (!updatedMatch.next_match_id && updatedMatch.bracket_position === "F") {
         await completeTournament(supabase, request, tournamentId);
       }
     }

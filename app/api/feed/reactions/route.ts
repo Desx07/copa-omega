@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       .select("id, reaction")
       .eq("feed_item_id", feed_item_id)
       .eq("player_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       if (existing.reaction === reaction) {
