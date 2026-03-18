@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * POST /api/presence — heartbeat: update current user's online_at
@@ -9,7 +10,9 @@ export async function POST() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autorizado" }, { status: 401 });
 
-    await supabase
+    // Use admin client to bypass RLS restrictions on players table
+    const admin = createAdminClient();
+    await admin
       .from("players")
       .update({ online_at: new Date().toISOString() })
       .eq("id", user.id);
@@ -21,7 +24,7 @@ export async function POST() {
 }
 
 /**
- * GET /api/presence — get count of users online in last 2 minutes
+ * GET /api/presence — get count of users online in last 90 seconds
  */
 export async function GET() {
   try {
@@ -29,12 +32,12 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autorizado" }, { status: 401 });
 
-    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const threshold = new Date(Date.now() - 90_000).toISOString();
 
     const { count } = await supabase
       .from("players")
       .select("id", { count: "exact", head: true })
-      .gte("online_at", twoMinAgo);
+      .gte("online_at", threshold);
 
     return Response.json({ online: count ?? 0 });
   } catch {

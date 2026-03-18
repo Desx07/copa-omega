@@ -30,8 +30,8 @@ interface PresenceProviderProps {
   avatarUrl: string | null;
 }
 
-const HEARTBEAT_INTERVAL = 30_000; // 30 seconds
-const POLL_INTERVAL = 30_000; // 30 seconds
+const HEARTBEAT_INTERVAL = 20_000; // 20 seconds
+const POLL_INTERVAL = 15_000; // 15 seconds
 
 export function PresenceProvider({
   children,
