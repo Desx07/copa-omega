@@ -18,7 +18,8 @@ export async function POST() {
       .eq("id", user.id);
 
     return Response.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error("POST /api/presence error:", err);
     return Response.json({ error: "Error" }, { status: 500 });
   }
 }
@@ -40,7 +41,8 @@ export async function GET() {
       .gte("online_at", threshold);
 
     return Response.json({ online: count ?? 0 });
-  } catch {
+  } catch (err) {
+    console.error("GET /api/presence error:", err);
     return Response.json({ error: "Error" }, { status: 500 });
   }
 }

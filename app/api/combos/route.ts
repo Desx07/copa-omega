@@ -136,7 +136,7 @@ export async function POST(request: Request) {
       week_start: getCurrentWeekStart(),
       mission_id: "combo",
       completed_at: new Date().toISOString(),
-    }, { onConflict: "player_id,week_start,mission_id" }).then(() => {});
+    }, { onConflict: "player_id,week_start,mission_id" }).then(() => {}).catch(e => console.error("mission upsert:", e));
 
     return Response.json(combo, { status: 201 });
   } catch (err) {

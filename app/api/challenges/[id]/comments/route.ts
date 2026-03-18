@@ -57,7 +57,7 @@ export async function POST(
       week_start: getCurrentWeekStart(),
       mission_id: "comment",
       completed_at: new Date().toISOString(),
-    }, { onConflict: "player_id,week_start,mission_id" }).then(() => {});
+    }, { onConflict: "player_id,week_start,mission_id" }).then(() => {}).catch(e => console.error("mission upsert:", e));
 
     return Response.json(data, { status: 201 });
   } catch (err) {
