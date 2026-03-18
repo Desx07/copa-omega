@@ -32,6 +32,7 @@ import OnboardingChecklist from "@/app/_components/onboarding-checklist";
 import MatchHistory from "@/app/_components/match-history";
 import SeasonBanner from "@/app/_components/season-banner";
 import EventBanner from "@/app/_components/event-banner";
+import UpdateBanner from "@/app/_components/update-banner";
 import TournamentCountdown from "@/app/_components/tournament-countdown";
 import DashboardCarousel from "@/app/_components/dashboard-carousel";
 import WeeklyMissions from "@/app/_components/weekly-missions";
@@ -316,6 +317,11 @@ export default async function DashboardPage() {
       {/* ═══ EVENT BANNER ═══ */}
       <div className="px-4">
         <EventBanner />
+      </div>
+
+      {/* ═══ UPDATE BANNER ═══ */}
+      <div className="px-4">
+        <UpdateBanner />
       </div>
 
       {/* ═══ NEXT TOURNAMENT — compact card ═══ */}
