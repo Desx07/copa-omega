@@ -473,21 +473,37 @@ export async function PATCH(
       console.error("Error resolving predictions:", predErr);
     }
 
-    // Update dynamic titles for both players
+    // Update dynamic titles for both players (combines matches + tournament_matches)
     try {
       const adminSupabase = createAdminClient();
       for (const playerId of [winner_id, loserId].filter(Boolean)) {
-        const { data: last10 } = await adminSupabase
+        const { data: regularMatches } = await adminSupabase
           .from("matches")
-          .select("winner_id")
+          .select("winner_id, completed_at")
           .or(`player1_id.eq.${playerId},player2_id.eq.${playerId}`)
           .eq("status", "completed")
           .order("completed_at", { ascending: false })
           .limit(10);
 
-        if (last10) {
+        const { data: tournamentMatches } = await adminSupabase
+          .from("tournament_matches")
+          .select("winner_id, completed_at")
+          .or(`player1_id.eq.${playerId},player2_id.eq.${playerId}`)
+          .eq("status", "completed")
+          .order("completed_at", { ascending: false })
+          .limit(10);
+
+        const combined = [...(regularMatches ?? []), ...(tournamentMatches ?? [])]
+          .sort((a, b) => {
+            const dateA = a.completed_at ? new Date(a.completed_at).getTime() : 0;
+            const dateB = b.completed_at ? new Date(b.completed_at).getTime() : 0;
+            return dateB - dateA;
+          })
+          .slice(0, 10);
+
+        if (combined.length > 0) {
           const { computeTitleFromMatches } = await import("@/lib/dynamic-titles");
-          const title = computeTitleFromMatches(last10, playerId!, 10);
+          const title = computeTitleFromMatches(combined, playerId!, 10);
           await adminSupabase
             .from("players")
             .update({ current_title: title.label })

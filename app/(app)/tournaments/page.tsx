@@ -30,42 +30,69 @@ export default async function TournamentsPage() {
     (t) => t.status === "completed" || t.status === "cancelled"
   );
 
-  // For completed tournaments, find the champion
+  // For completed tournaments, find the champion (batched to avoid N+1)
   const championsMap = new Map<string, string>();
-  for (const t of past) {
-    if (t.status !== "completed") continue;
+  const completed = past.filter((t) => t.status === "completed");
 
-    if (t.format === "single_elimination") {
-      const { data: finalMatch } = await supabase
-        .from("tournament_matches")
-        .select("winner:players!winner_id(alias)")
-        .eq("tournament_id", t.id)
-        .eq("bracket_position", "F")
-        .single();
+  const eliminationTournaments = completed.filter(
+    (t) => t.format === "single_elimination"
+  );
+  const otherTournaments = completed.filter(
+    (t) => t.format !== "single_elimination"
+  );
 
-      if (finalMatch?.winner) {
-        championsMap.set(
-          t.id,
-          (finalMatch.winner as unknown as { alias: string }).alias
-        );
-      }
-    } else {
-      const { data: topParticipant } = await supabase
-        .from("tournament_participants")
-        .select("player:players!player_id(alias)")
-        .eq("tournament_id", t.id)
-        .order("points", { ascending: false })
-        .limit(1)
-        .single();
+  const championPromises: Promise<void>[] = [];
 
-      if (topParticipant?.player) {
-        championsMap.set(
-          t.id,
-          (topParticipant.player as unknown as { alias: string }).alias
-        );
-      }
-    }
+  if (eliminationTournaments.length > 0) {
+    const eliminationIds = eliminationTournaments.map((t) => t.id);
+    championPromises.push(
+      Promise.resolve(
+        supabase
+          .from("tournament_matches")
+          .select("tournament_id, winner:players!winner_id(alias)")
+          .in("tournament_id", eliminationIds)
+          .eq("bracket_position", "F")
+      ).then(({ data }) => {
+        for (const row of data ?? []) {
+          if (row?.winner) {
+            championsMap.set(
+              row.tournament_id,
+              (row.winner as unknown as { alias: string }).alias
+            );
+          }
+        }
+      })
+    );
   }
+
+  if (otherTournaments.length > 0) {
+    // For non-elimination tournaments, we need the top participant per tournament.
+    // Fetch all participants for these tournaments ordered by points desc,
+    // then pick the first one per tournament_id.
+    const otherIds = otherTournaments.map((t) => t.id);
+    championPromises.push(
+      Promise.resolve(
+        supabase
+          .from("tournament_participants")
+          .select("tournament_id, player:players!player_id(alias)")
+          .in("tournament_id", otherIds)
+          .order("points", { ascending: false })
+      ).then(({ data }) => {
+        const seen = new Set<string>();
+        for (const row of data ?? []) {
+          if (!seen.has(row.tournament_id) && row?.player) {
+            seen.add(row.tournament_id);
+            championsMap.set(
+              row.tournament_id,
+              (row.player as unknown as { alias: string }).alias
+            );
+          }
+        }
+      })
+    );
+  }
+
+  await Promise.all(championPromises);
 
   return (
     <div className="min-h-screen">

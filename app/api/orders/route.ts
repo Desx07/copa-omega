@@ -7,6 +7,14 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY || "");
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 // GET /api/orders — List orders (admin: all, user: own only)
 export async function GET() {
   try {
@@ -271,8 +279,8 @@ export async function POST(request: NextRequest) {
             <p><strong>Pedido:</strong> #${order.id.slice(0, 8)}</p>
             <p><strong>Jugador:</strong> ${playerAlias}</p>
             <p><strong>Método de pago:</strong> ${payment_method === "cash" ? "Efectivo" : "Transferencia"}</p>
-            ${payment_proof_url ? `<p><strong>Comprobante:</strong> <a href="${payment_proof_url}">Ver comprobante</a></p>` : ""}
-            ${notes ? `<p><strong>Notas:</strong> ${notes}</p>` : ""}
+            ${payment_proof_url && typeof payment_proof_url === "string" && payment_proof_url.startsWith("https://") ? `<p><strong>Comprobante:</strong> <a href="${escapeHtml(payment_proof_url)}">Ver comprobante</a></p>` : ""}
+            ${notes && typeof notes === "string" ? `<p><strong>Notas:</strong> ${escapeHtml(notes)}</p>` : ""}
             <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
               <thead>
                 <tr style="background-color: #f5f5f5;">
