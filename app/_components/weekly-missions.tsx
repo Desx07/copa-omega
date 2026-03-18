@@ -22,7 +22,7 @@ const HREF_MAP: Record<string, string> = {
   prediction: "/predictions",
   poll: "/polls",
   ranking: "/ranking",
-  comment: "/feed",
+  comment: "/challenges",
   challenge: "/challenges",
 };
 
