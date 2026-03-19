@@ -13,6 +13,52 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   // NEWEST FIRST
   {
+    version: "1.3",
+    name: "Conocimiento Omega",
+    date: "2026-03-19",
+    categories: [
+      {
+        label: "Nuevo",
+        icon: "Sparkles",
+        color: "text-omega-gold",
+        items: [
+          "Xciclopedia: guía completa de Beyblade X con fichas de 30+ Blades, 13 Ratchets y 48 Bits",
+          "Cada pieza tiene tier (S/A/B/C), descripción y combos recomendados",
+          "Guía para principiantes: física del giro, balance perfecto, armado de combos y más",
+          "BeyBot potenciado: ahora sabe TODO sobre cada pieza del sistema X",
+          "Sistema de actualizaciones: banner de novedades + página /updates con historial de versiones",
+        ],
+      },
+      {
+        label: "Mejorado",
+        icon: "TrendingUp",
+        color: "text-omega-blue",
+        items: [
+          "Predicciones separadas por Torneos y Retos, sin duplicados",
+          "Puntos de torneo calculados desde resultados reales",
+          "Títulos dinámicos ahora incluyen batallas de torneo",
+          "Misiones completadas se colapsan, historial de batallas cerrado por defecto",
+          "Scanner QR con estados de carga y mensajes de error claros",
+          "Badge Verdugo Supremo cuenta todas las fases del torneo",
+        ],
+      },
+      {
+        label: "Arreglado",
+        icon: "Wrench",
+        color: "text-omega-green",
+        items: [
+          "Predicciones en retos ahora se resuelven al completar la partida",
+          "XP y stock usan operaciones atómicas (sin pérdida de datos)",
+          "12 badges nuevos que no se podían desbloquear (faltaban en la base de datos)",
+          "Badge Coleccionista se activa al agregar un bey",
+          "Reacciones del feed ya no tiran error la primera vez",
+          "Byes en torneos suizos dan 3 puntos consistentemente",
+          "Error boundaries para toda la app (pantalla amigable en vez de crash)",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.2",
     name: "Estabilidad Omega",
     date: "2026-03-17",

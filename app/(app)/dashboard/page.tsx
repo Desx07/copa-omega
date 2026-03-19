@@ -17,6 +17,7 @@ import {
   Calendar,
   Search,
   Monitor,
+  BookOpen,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -352,7 +353,7 @@ export default async function DashboardPage() {
       )}
 
       {/* ═══ ENGAGEMENT QUICK LINKS — compact row ═══ */}
-      <div className="grid grid-cols-3 gap-2 px-4">
+      <div className="grid grid-cols-2 gap-2 px-4">
         <Link href="/predictions" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-10 rounded-xl bg-omega-purple/20 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
             <Target className="size-5 text-omega-purple" />
@@ -373,6 +374,13 @@ export default async function DashboardPage() {
           </div>
           <p className="text-xs font-bold text-omega-text">Encuestas</p>
           <p className="text-[10px] text-omega-muted leading-tight">Votá y opiná</p>
+        </Link>
+        <Link href="/encyclopedia" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-gold/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
+          <div className="size-10 rounded-xl bg-omega-gold/20 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors">
+            <BookOpen className="size-5 text-omega-gold" />
+          </div>
+          <p className="text-xs font-bold text-omega-text">Xciclopedia</p>
+          <p className="text-[10px] text-omega-muted leading-tight">Guía de piezas</p>
         </Link>
       </div>
 
