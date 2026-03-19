@@ -10,10 +10,6 @@ import {
 } from "lucide-react";
 import type { BladeEntry, RatchetEntry, BitEntry } from "@/lib/encyclopedia";
 
-// ---------------------------------------------------------------------------
-// Shared config
-// ---------------------------------------------------------------------------
-
 const TYPE_CONFIG: Record<
   string,
   { label: string; icon: typeof Swords; color: string; bg: string }
@@ -43,10 +39,6 @@ const CATEGORY_HEADER: Record<
   balance: { label: "Equilibrio", color: "text-omega-purple", border: "border-omega-purple/30" },
 };
 
-// ---------------------------------------------------------------------------
-// Tabs
-// ---------------------------------------------------------------------------
-
 type Tab = "blades" | "ratchets" | "bits" | "guide";
 
 interface EncyclopediaClientProps {
@@ -54,6 +46,7 @@ interface EncyclopediaClientProps {
   ratchets: RatchetEntry[];
   bits: BitEntry[];
   guide: { title: string; content: string }[];
+  guideImages: Record<string, string>;
 }
 
 export default function EncyclopediaClient({
@@ -61,6 +54,7 @@ export default function EncyclopediaClient({
   ratchets,
   bits,
   guide,
+  guideImages,
 }: EncyclopediaClientProps) {
   const [tab, setTab] = useState<Tab>("blades");
 
@@ -73,7 +67,6 @@ export default function EncyclopediaClient({
 
   return (
     <>
-      {/* Tab bar */}
       <div className="flex gap-1 bg-omega-surface rounded-xl p-1 border border-omega-border/30">
         {tabs.map((t) => (
           <button
@@ -90,10 +83,9 @@ export default function EncyclopediaClient({
         ))}
       </div>
 
-      {/* Content */}
-      {tab === "blades" && <BladesTab blades={blades} />}
-      {tab === "ratchets" && <RatchetsTab ratchets={ratchets} />}
-      {tab === "bits" && <BitsTab bits={bits} />}
+      {tab === "blades" && <BladesTab blades={blades} guideImages={guideImages} />}
+      {tab === "ratchets" && <RatchetsTab ratchets={ratchets} guideImages={guideImages} />}
+      {tab === "bits" && <BitsTab bits={bits} guideImages={guideImages} />}
       {tab === "guide" && <GuideTab sections={guide} />}
     </>
   );
@@ -103,18 +95,43 @@ export default function EncyclopediaClient({
 // Blades
 // ---------------------------------------------------------------------------
 
-function BladesTab({ blades }: { blades: BladeEntry[] }) {
+function BladesTab({ blades, guideImages }: { blades: BladeEntry[]; guideImages: Record<string, string> }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
   const sorted = [...blades].sort(
     (a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]
   );
 
+  // Group images by line
+  const catalogImages = [
+    { label: "Linea BX", images: [guideImages.blades_bx_1, guideImages.blades_bx_2, guideImages.blades_bx_3].filter(Boolean) },
+    { label: "Linea UX", images: [guideImages.blades_ux_1, guideImages.blades_ux_2].filter(Boolean) },
+    { label: "Linea CX", images: [guideImages.blades_cx_1, guideImages.blades_cx_2].filter(Boolean) },
+  ];
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
+      {/* Catalog images */}
+      {catalogImages.map((group) => (
+        <div key={group.label} className="space-y-2">
+          <h3 className="text-xs font-bold text-omega-gold uppercase tracking-wider">{group.label}</h3>
+          {group.images.map((url, i) => (
+            <img key={i} src={url} alt={group.label} className="w-full rounded-xl border border-omega-border/20" />
+          ))}
+        </div>
+      ))}
+
+      {/* Blade cards */}
+      <h3 className="text-xs font-bold text-omega-text uppercase tracking-wider pt-2">Detalle por Blade</h3>
       {sorted.map((blade) => {
         const tc = TYPE_CONFIG[blade.type];
         const TypeIcon = tc.icon;
+        const isOpen = expanded === blade.name;
         return (
-          <div key={blade.name} className="omega-card p-3 space-y-2">
+          <button
+            key={blade.name}
+            onClick={() => setExpanded(isOpen ? null : blade.name)}
+            className="omega-card p-3 space-y-2 w-full text-left"
+          >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <div className={`size-8 rounded-lg ${tc.bg} flex items-center justify-center shrink-0`}>
@@ -134,20 +151,31 @@ function BladesTab({ blades }: { blades: BladeEntry[] }) {
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${TIER_STYLE[blade.tier]}`}>
                   {blade.tier}
                 </span>
+                <ChevronDown className={`size-3.5 text-omega-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
               </div>
             </div>
             <p className="text-xs text-omega-muted leading-relaxed">{blade.description}</p>
-            <div className="flex flex-wrap gap-1">
-              {blade.bestCombos.map((combo) => (
-                <span
-                  key={combo}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-omega-surface border border-omega-border/30 text-omega-muted"
-                >
-                  {combo}
-                </span>
-              ))}
-            </div>
-          </div>
+            {isOpen && (
+              <>
+                {blade.details && (
+                  <p className="text-xs text-omega-text/80 leading-relaxed bg-omega-surface/50 rounded-lg p-2.5 border border-omega-border/20">
+                    {blade.details}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-1 pt-1">
+                  <span className="text-[10px] text-omega-muted font-bold">Combos:</span>
+                  {blade.bestCombos.map((combo) => (
+                    <span
+                      key={combo}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-omega-purple/10 border border-omega-purple/20 text-omega-purple"
+                    >
+                      {combo}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </button>
         );
       })}
     </div>
@@ -158,19 +186,31 @@ function BladesTab({ blades }: { blades: BladeEntry[] }) {
 // Ratchets
 // ---------------------------------------------------------------------------
 
-function RatchetsTab({ ratchets }: { ratchets: RatchetEntry[] }) {
+function RatchetsTab({ ratchets, guideImages }: { ratchets: RatchetEntry[]; guideImages: Record<string, string> }) {
   const sorted = [...ratchets].sort(
     (a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]
   );
 
+  const catalogImages = [guideImages.ratchets_1, guideImages.ratchets_2, guideImages.ratchets_3].filter(Boolean);
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
+      {/* Catalog images */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-bold text-omega-green uppercase tracking-wider">Catalogo de Ratchets</h3>
+        {catalogImages.map((url, i) => (
+          <img key={i} src={url} alt="Ratchets" className="w-full rounded-xl border border-omega-border/20" />
+        ))}
+      </div>
+
+      {/* Ratchet cards */}
+      <h3 className="text-xs font-bold text-omega-text uppercase tracking-wider pt-2">Detalle por Ratchet</h3>
       {sorted.map((r) => (
         <div key={r.number} className="omega-card p-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="size-8 rounded-lg bg-omega-gold/20 flex items-center justify-center shrink-0">
-                <span className="text-sm font-black text-omega-gold">{r.number}</span>
+              <div className="size-8 rounded-lg bg-omega-green/20 flex items-center justify-center shrink-0">
+                <span className="text-sm font-black text-omega-green">{r.number}</span>
               </div>
               <div>
                 <p className="text-sm font-bold text-omega-text">Ratchet {r.number}</p>
@@ -189,16 +229,20 @@ function RatchetsTab({ ratchets }: { ratchets: RatchetEntry[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Bits — grouped by category
+// Bits
 // ---------------------------------------------------------------------------
 
-function BitsTab({ bits }: { bits: BitEntry[] }) {
+function BitsTab({ bits, guideImages }: { bits: BitEntry[]; guideImages: Record<string, string> }) {
   const categories: ("attack" | "stamina" | "defense" | "balance")[] = [
-    "attack",
-    "stamina",
-    "defense",
-    "balance",
+    "attack", "stamina", "defense", "balance",
   ];
+
+  const catImageMap: Record<string, string | undefined> = {
+    attack: guideImages.bits_attack,
+    stamina: guideImages.bits_stamina,
+    defense: guideImages.bits_defense,
+    balance: guideImages.bits_balance,
+  };
 
   return (
     <div className="space-y-4">
@@ -212,6 +256,7 @@ function BitsTab({ bits }: { bits: BitEntry[] }) {
 
         const tc = TYPE_CONFIG[cat];
         const CatIcon = tc.icon;
+        const catImg = catImageMap[cat];
 
         return (
           <div key={cat}>
@@ -220,6 +265,12 @@ function BitsTab({ bits }: { bits: BitEntry[] }) {
               <h3 className={`text-sm font-bold ${header.color}`}>{header.label}</h3>
               <span className="text-[10px] text-omega-muted">({catBits.length})</span>
             </div>
+
+            {/* Catalog image for this category */}
+            {catImg && (
+              <img src={catImg} alt={header.label} className="w-full rounded-xl border border-omega-border/20 mb-3" />
+            )}
+
             <div className="space-y-2">
               {catBits.map((bit) => (
                 <div key={bit.name} className="omega-card p-3 space-y-1.5">
@@ -228,14 +279,9 @@ function BitsTab({ bits }: { bits: BitEntry[] }) {
                       <p className="text-sm font-bold text-omega-text truncate">{bit.name}</p>
                       <p className="text-[10px] text-omega-muted">{bit.weight}</p>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tc.bg} ${tc.color}`}>
-                        {header.label}
-                      </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${TIER_STYLE[bit.tier]}`}>
-                        {bit.tier}
-                      </span>
-                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${TIER_STYLE[bit.tier]}`}>
+                      {bit.tier}
+                    </span>
                   </div>
                   <p className="text-xs text-omega-muted leading-relaxed">{bit.description}</p>
                 </div>
@@ -249,7 +295,7 @@ function BitsTab({ bits }: { bits: BitEntry[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Guide — expandable sections
+// Guide
 // ---------------------------------------------------------------------------
 
 function GuideTab({ sections }: { sections: { title: string; content: string }[] }) {
@@ -274,7 +320,7 @@ function GuideTab({ sections }: { sections: { title: string; content: string }[]
               />
             </div>
             {isOpen && (
-              <p className="text-xs text-omega-muted leading-relaxed">{section.content}</p>
+              <p className="text-xs text-omega-muted leading-relaxed whitespace-pre-line">{section.content}</p>
             )}
           </button>
         );

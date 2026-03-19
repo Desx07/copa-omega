@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, BookOpen } from "lucide-react";
-import { BLADES, RATCHETS, BITS, BEGINNER_GUIDE } from "@/lib/encyclopedia";
+import { BLADES, RATCHETS, BITS, BEGINNER_GUIDE, GUIDE_IMAGES } from "@/lib/encyclopedia";
 import EncyclopediaClient from "./_components/encyclopedia-client";
 
 export default function EncyclopediaPage() {
@@ -57,6 +57,7 @@ export default function EncyclopediaPage() {
           ratchets={RATCHETS}
           bits={BITS}
           guide={BEGINNER_GUIDE.sections}
+          guideImages={GUIDE_IMAGES}
         />
       </div>
     </div>
