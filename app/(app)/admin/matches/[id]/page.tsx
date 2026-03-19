@@ -135,7 +135,6 @@ export default function MatchDetailPage() {
       if (!res.ok) {
         const data = await res.json();
         toast.error(data.error || "Error al resolver la partida");
-        setResolving(false);
         return;
       }
 
@@ -144,6 +143,7 @@ export default function MatchDetailPage() {
       await fetchMatch();
     } catch {
       toast.error("Error al resolver la partida");
+    } finally {
       setResolving(false);
     }
   }
