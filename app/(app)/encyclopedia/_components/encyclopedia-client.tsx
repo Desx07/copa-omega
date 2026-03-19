@@ -174,47 +174,47 @@ function CatalogCollapsible({
 }: {
   images: { label: string; urls: string[] }[];
 }) {
-  const [open, setOpen] = useState(false);
-  const allUrls = images.flatMap((g) => g.urls);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const validGroups = images.filter((g) => g.urls.length > 0);
 
-  if (allUrls.length === 0) return null;
+  if (validGroups.length === 0) return null;
 
   return (
-    <div className="omega-card overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full p-3 text-left"
-        aria-expanded={open}
-      >
-        <div className="flex items-center gap-2">
-          <ImageIcon className="size-4 text-omega-gold" aria-hidden="true" />
-          <span className="text-xs font-bold text-omega-text">Ver catalogo visual</span>
-          <span className="text-[10px] text-omega-muted">({allUrls.length} imgs)</span>
-        </div>
-        <ChevronDown
-          className={`size-4 text-omega-muted transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        />
-      </button>
-      {open && (
-        <div className="px-3 pb-3 space-y-3">
-          {images.map((group) => (
-            <div key={group.label} className="space-y-2">
-              <h4 className="text-[10px] font-bold text-omega-gold uppercase tracking-wider">
-                {group.label}
-              </h4>
-              {group.urls.map((url, i) => (
-                <SafeImage
-                  key={i}
-                  src={url}
-                  alt={group.label}
-                  className="w-full rounded-xl border border-omega-border/20"
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="space-y-2">
+      {validGroups.map((group) => {
+        const isOpen = openGroup === group.label;
+        return (
+          <div key={group.label} className="omega-card overflow-hidden">
+            <button
+              onClick={() => setOpenGroup(isOpen ? null : group.label)}
+              className="flex items-center justify-between w-full p-3 text-left"
+              aria-expanded={isOpen}
+            >
+              <div className="flex items-center gap-2">
+                <ImageIcon className="size-4 text-omega-gold" aria-hidden="true" />
+                <span className="text-xs font-bold text-omega-text">{group.label}</span>
+                <span className="text-[10px] text-omega-muted">({group.urls.length} imgs)</span>
+              </div>
+              <ChevronDown
+                className={`size-4 text-omega-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
+                aria-hidden="true"
+              />
+            </button>
+            {isOpen && (
+              <div className="px-3 pb-3 space-y-2">
+                {group.urls.map((url, i) => (
+                  <SafeImage
+                    key={i}
+                    src={url}
+                    alt={group.label}
+                    className="w-full rounded-xl border border-omega-border/20"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -273,10 +273,17 @@ function useTierFilter() {
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set(TIERS));
   const toggle = useCallback((tier: string) => {
     setActiveTiers((prev) => {
+      // If tapping the only active tier, show all
+      if (prev.size === 1 && prev.has(tier)) {
+        return new Set(TIERS);
+      }
+      // If all are active, switch to just this one
+      if (prev.size === TIERS.length) {
+        return new Set([tier]);
+      }
+      // Otherwise toggle this tier
       const next = new Set(prev);
       if (next.has(tier)) {
-        // Don't allow deselecting all
-        if (next.size === 1) return prev;
         next.delete(tier);
       } else {
         next.add(tier);
