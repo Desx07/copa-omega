@@ -290,7 +290,9 @@ export default function ProfilePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ player_id: player.id }),
-      }).catch(() => {});
+      }).then(r => {
+        if (!r.ok) console.error("Badge check failed:", r.status);
+      }).catch(e => console.error("Badge check error:", e));
     } catch { toast.error("Error de conexión"); }
     finally { setAddingBey(false); }
   }
