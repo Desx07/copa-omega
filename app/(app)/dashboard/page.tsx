@@ -37,6 +37,7 @@ import UpdateBanner from "@/app/_components/update-banner";
 import TournamentCountdown from "@/app/_components/tournament-countdown";
 import DashboardCarousel from "@/app/_components/dashboard-carousel";
 import WeeklyMissions from "@/app/_components/weekly-missions";
+import OnlineUsers from "@/app/_components/online-users";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -295,6 +296,11 @@ export default async function DashboardPage() {
           <Search className="size-5 text-omega-muted" />
           <span className="text-sm text-omega-muted">Buscar bladers...</span>
         </Link>
+      </div>
+
+      {/* ═══ ONLINE USERS ═══ */}
+      <div className="px-4">
+        <OnlineUsers />
       </div>
 
       {/* ═══ DASHBOARD CAROUSEL ═══ */}

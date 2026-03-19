@@ -25,7 +25,7 @@ export async function POST() {
 }
 
 /**
- * GET /api/presence — get count of users online in last 90 seconds
+ * GET /api/presence — get count + list of users online in last 90 seconds
  */
 export async function GET() {
   try {
@@ -35,12 +35,13 @@ export async function GET() {
 
     const threshold = new Date(Date.now() - 90_000).toISOString();
 
-    const { count } = await supabase
+    const { data: onlineUsers } = await supabase
       .from("players")
-      .select("id", { count: "exact", head: true })
-      .gte("online_at", threshold);
+      .select("id, alias, avatar_url")
+      .gte("online_at", threshold)
+      .order("alias");
 
-    return Response.json({ online: count ?? 0 });
+    return Response.json({ online: onlineUsers?.length ?? 0, users: onlineUsers ?? [] });
   } catch (err) {
     console.error("GET /api/presence error:", err);
     return Response.json({ error: "Error" }, { status: 500 });
