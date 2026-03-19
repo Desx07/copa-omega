@@ -252,7 +252,7 @@ function SafeImage({
 // ---------------------------------------------------------------------------
 
 function TierSection({ tier, count, children }: { tier: string; count: number; children: React.ReactNode }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const style = TIER_HEADER_STYLE[tier];
   return (
     <div>
@@ -424,7 +424,6 @@ function BladesTab({
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const { activeTiers, toggle } = useTierFilter();
 
   const catalogImages = [
     {
@@ -443,12 +442,9 @@ function BladesTab({
 
   const sorted = [...blades].sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]);
   const filtered = sorted.filter(
-    (b) =>
-      activeTiers.has(b.tier) &&
-      b.name.toLowerCase().includes(search.toLowerCase())
+    (b) => b.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Group by tier for sticky headers
   const grouped = TIERS.map((tier) => ({
     tier,
     items: filtered.filter((b) => b.tier === tier),
@@ -459,10 +455,6 @@ function BladesTab({
       <CatalogCollapsible images={catalogImages} />
 
       <SearchBar value={search} onChange={setSearch} placeholder="Buscar blade..." />
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <TierFilterChips active={activeTiers} onToggle={toggle} />
-        <ResultCount shown={filtered.length} total={blades.length} />
-      </div>
 
       {grouped.map(({ tier, items }) => (
         <TierSection key={tier} tier={tier} count={items.length}>
@@ -566,7 +558,6 @@ function RatchetsTab({
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const { activeTiers, toggle } = useTierFilter();
 
   const catalogImages = [
     {
@@ -577,9 +568,7 @@ function RatchetsTab({
 
   const sorted = [...ratchets].sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]);
   const filtered = sorted.filter(
-    (r) =>
-      activeTiers.has(r.tier) &&
-      r.number.toLowerCase().includes(search.toLowerCase())
+    (r) => r.number.toLowerCase().includes(search.toLowerCase())
   );
 
   const grouped = TIERS.map((tier) => ({
@@ -592,10 +581,6 @@ function RatchetsTab({
       <CatalogCollapsible images={catalogImages} />
 
       <SearchBar value={search} onChange={setSearch} placeholder="Buscar ratchet..." />
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <TierFilterChips active={activeTiers} onToggle={toggle} />
-        <ResultCount shown={filtered.length} total={ratchets.length} />
-      </div>
 
       {grouped.map(({ tier, items }) => (
         <TierSection key={tier} tier={tier} count={items.length}>
@@ -674,8 +659,6 @@ function BitsTab({
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const { activeTiers, toggle } = useTierFilter();
-
   const categories: ("attack" | "stamina" | "defense" | "balance")[] = [
     "attack",
     "stamina",
@@ -698,9 +681,7 @@ function BitsTab({
     .filter((g) => g.urls.length > 0);
 
   const allFiltered = bits.filter(
-    (b) =>
-      activeTiers.has(b.tier) &&
-      b.name.toLowerCase().includes(search.toLowerCase())
+    (b) => b.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -734,10 +715,7 @@ function BitsTab({
         })}
       </div>
 
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <TierFilterChips active={activeTiers} onToggle={toggle} />
-        <ResultCount shown={allFiltered.length} total={bits.length} />
-      </div>
+      <ResultCount shown={allFiltered.length} total={bits.length} />
 
       {categories.map((cat) => {
         const header = CATEGORY_HEADER[cat];
