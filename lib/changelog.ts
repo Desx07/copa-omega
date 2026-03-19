@@ -13,6 +13,37 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   // NEWEST FIRST
   {
+    version: "1.4",
+    name: "Xciclopedia Completa",
+    date: "2026-03-19",
+    categories: [
+      {
+        label: "Nuevo",
+        icon: "Sparkles",
+        color: "text-omega-gold",
+        items: [
+          "Xciclopedia rediseñada: búsqueda instantánea, filtros por tier (S/A/B/C) y cards expandibles",
+          "Catálogo visual completo de todas las piezas (Blades BX/UX/CX, Ratchets, Bits)",
+          "Guía para principiantes con 8 secciones detalladas basadas en la Xciclopedia oficial",
+          "Bladers online: ve quién está conectado en el dashboard con avatares clickeables",
+          "Cada Blade, Ratchet y Bit tiene descripción detallada con combos recomendados y por qué funcionan",
+        ],
+      },
+      {
+        label: "Mejorado",
+        icon: "TrendingUp",
+        color: "text-omega-blue",
+        items: [
+          "Tab sticky en la Xciclopedia (no se pierde al scrollear)",
+          "Secciones por tier con corona dorada para S-Tier",
+          "Bits organizados por categoría con navegación rápida (ATK/STA/DEF/BAL)",
+          "Guía 'Empezá Acá' como primer tab para nuevos jugadores",
+          "Imágenes de catálogo en collapsible (no bloquean el contenido)",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.3",
     name: "Conocimiento Omega",
     date: "2026-03-19",
