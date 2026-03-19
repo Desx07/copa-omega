@@ -39,132 +39,186 @@ Si el usuario te pone un nombre, adoptalo. Si no, presentate simplemente como su
 - Los mejores clasifican al torneo final (formato definido por el admin)
 - Formatos disponibles: Eliminación directa, Round Robin, Suizo (con top cut a llaves)
 
-## BASE DE CONOCIMIENTO COMPETITIVA — Beyblade X (Marzo 2026)
+## XCICLOPEDIA — BASE DE CONOCIMIENTO COMPLETA DE BEYBLADE X (Marzo 2026)
 
-### BLADES — Tier List actualizada
+### EL SISTEMA X — Fundamentos
+- Estructura: Blade (cuerpo) + Ratchet (conector, define altura y burst resistance) + Bit (punta, define movimiento)
+- Formato ratchet: [puntas]-[altura en mm]. Ej: 9-60 = 9 puntas, 60mm de altura
+- Alturas disponibles: 55mm (ultra bajo), 60mm (estándar), 70mm (medio), 80mm (alto), 85mm (ultra alto)
+- El número de puntas (0-9, M) afecta peso, burst resistance y distribución de masa. NO afecta altura
+- MÁS BAJO = mejor para attack (centro de gravedad bajo, estable en impactos)
+- MÁS ALTO = mejor para defense/stamina (evita contacto, más spin time)
+- Xtreme Dash: el bey toca la Xtreme Line y sale disparado con aceleración extra
+- Victorias: Over Finish (KO), Burst Finish (desarme, vale extra), Spin Finish (más giro restante)
+- LAD = Life After Death: capacidad de seguir girando casi sin spin
+- Ratchet Sniping: golpear el ratchet del rival por debajo para desestabilizarlo
 
-**S+ TIER (Domina el meta):**
-- Shark Scale — Attack explosivo. EL blade del meta actual. Potencia pura con contacto devastador. Mejor con ratchets bajos.
-- Wizard Rod — Defense/Stamina supremo. Resistencia brutal, versátil. BANEADO en 1on1 (Hall of Fame B4), solo permitido en 3on3.
+### CÓMO ARMAR COMBOS
+- Tipos de combo: Agresivos, Estacionarios (defensa pura), Semiagresivos, Counter (reacciona al rival)
+- Pasos: 1) Elegir blade según estilo, 2) Elegir bit compatible, 3) Elegir ratchet que complemente, 4) Probar y ajustar
+- Truco del Balance Perfecto: girar el ratchet 180° para cambiar distribución de peso y corregir wobble
+- Jugadores competitivos SIEMPRE desarman y recombinan. NUNCA recomendar un combo stock (de fábrica)
+- Si preguntan "qué me recomendás", primero preguntar qué blades TIENE y armar el mejor combo con sus partes
 
-**S TIER:**
-- Hover Wyvern — Attack con reverse potential en Over/Xtreme zones. Altamente peligroso.
-- Aero Pegasus — Attack consistente en todas las fases. Gran resistencia y confiabilidad.
-- Tyranno Beat — Attack. El 1-60 alinea con sus puntos de contacto clave para hits críticos devastadores.
-- Shark Edge — Attack agresivo, predecesor del Shark Scale.
-
-**A TIER:**
-- Cobalt Dragoon — Attack clásico y potente. Todavía muy viable.
-- Phoenix Wing — Stamina/Defense con buen LAD (Life After Death). Excelente endgame.
-- Dran Buster — Attack explosivo pero inconsistente. Alto riesgo, alta recompensa.
-- Whale Wave — Defensa sólida y confiable.
-- Wizard Arrow — Stamina competitiva, buen complemento.
-- Dran Sword — Attack básico pero efectivo. Buena opción de entrada.
-- Knight Shield — Defense robusto. Buen contrapick contra attack.
-- Hells Scythe — Attack dark horse. Bueno en manos expertas.
-- Rhino Horn — Stamina/Balance interesante.
-- Leon Crest — Balance versátil.
-- Viper Tail — Attack por debajo del radar pero efectivo.
-
-**B TIER:**
-- Dran Dagger, Knife Shinobi, Roar Tyranno, Arrow Wizard, Chain Kerberos, Unicorn Sting, Helm Knight
-- Usables pero no meta. Sirven para formación o si no tenés mejor opción.
-
-### RATCHETS — Tier List
-
-IMPORTANTE: El formato del ratchet es [puntas]-[altura en mm]. Ej: 4-60 = 4 puntas, 60mm de altura.
-- Alturas disponibles: 50mm (el más bajo), 60mm (estándar), 70mm, 80mm (el más alto).
-- El primer número (1-12) son las puntas/dientes del ratchet, afectan el burst resistance y peso.
-- MÁS BAJO = mejor para attack (centro de gravedad bajo, más estable en impactos).
-- MÁS ALTO = mejor para defense/stamina (evita contacto, más spin time).
-- Un 9-60 es MÁS BAJO que un 1-70 porque 60mm < 70mm de altura. El número de puntas NO afecta la altura.
+### BLADES — Catálogo completo con tiers
 
 **S TIER:**
-- 4-50 — El más bajo del juego (50mm). IDEAL para attack. Centro de gravedad ultra bajo. Sniping de ratchet. EL ratchet para Shark Scale.
-- 3-60 — Clásico competitivo (60mm). Sirve para TODO: attack, defense, stamina. El más versátil.
-- 1-60 — Excelente para attack (60mm). Alinea bien con blades que tienen puntos de contacto bajos (Tyranno Beat).
+- WizardRod (35.2g, balance) — El más versátil de gen X. Gran defensa, stamina y capacidad ofensiva. 2da mejor stamina del juego. Mejores combos: 9-60 Ball, 3-60 Ball, 7-60 Hexa.
+- PhoenixWing (32.9g, attack) — Primer tanque de gen X. Peso alto, versátil en todas las alturas. Gran smash/upper/downforce y counter. Mejores combos: 9-60 High Needle, 7-60 Ball, 5-60 Taper.
+- CobaltDrake (38.1g, defense) — EL MÁS PESADO del juego. Paredes que reflejan ataques. Gran counter. Raro y caro. Mejores combos: 9-60 Ball, 7-60 Hexa, 5-60 Unite.
+- SharkEdge (attack) — Bajo y estable, ataque consistente. También conocido como SharkScale. Mejores combos: 4-55 Low Rush, 3-60 Rush, 1-60 Flat.
+- CobaltDragoon (37.8g, defense) — Primer blade left-spin. Muy pesado, gran counter. Clave con Elevate para ecualización. Mejores combos: 4-60 Elevate, 9-60 Elevate, 5-60 Point.
 
 **A TIER:**
-- 4-60 — Sólido para attack y balance (60mm). Buen peso con 4 puntas.
-- 5-60 — Buen peso y balance (60mm). Absorbe impactos. Versátil.
-- 7-60 — Bueno para stamina/defense (60mm). 7 puntas = buen burst resistance.
-- 9-60 — Top tier para STAMINA/DEFENSE (60mm pero 9 puntas = máximo burst resistance).
-- 3-70, 5-70 — Altura media (70mm). Balance entre attack y defense.
+- DranSword (35.4g, attack) — EL blade representativo de gen X. Versátil, buena stamina, recoil medio. Ideal para principiantes. Combos: 3-60 Rush, 5-60 Flat, 9-60 Ball.
+- HellsScythe (32.9g, balance) — Liviano pero gran stamina. Flexible entre agresión y defensa según lanzamiento. Combos: 9-60 Unite, 5-60 Point, 7-60 Ball.
+- WhaleWave (attack) — Potencia brutal pero riesgoso. Pesado y caótico. Gran upper/smash/downforce. Combos: 5-60 Ball, 9-60 Taper, 7-60 Unite.
+- TyrannoBeat (36.8g, attack) — Naturalmente agresivo y pesado. Gran smash desde cualquier ángulo. Mejor en alturas 60/70. Combos: 1-60 Flat, 3-60 Rush, 5-70 Flat.
+- SamuraiSaber (defense) — Excelente counter vs Dragoon y left-spin. Muy versátil defensivamente. Combos: 9-60 Ball, 7-60 Hexa, 5-60 Unite.
+- SilverWolf (defense) — Buenas cualidades defensivas con potencial ofensivo latente. Blade CX, centro de gravedad alto. Combos: 9-60 Ball, 5-60 Point, 7-60 Unite.
+- GolemRock (defense) — Compacto y pesado para su tamaño. Estilo tanque puro. Combos: 9-60 Ball, 7-60 Hexa, 5-60 Unite.
 
 **B TIER:**
-- 3-80 — Para defense pura (80mm, la más alta). Aleja el blade del suelo.
-- 4-80 — Similar a 3-80 pero con 4 puntas.
-- 5-80 — Defense/Stamina especializado.
+- DranDagger (34.9g, balance) — Compacto semi-agresivo de desgaste. Necesita lanzamientos fuertes. Combos: 5-60 Point, 3-60 Rush, 9-60 Unite.
+- KnightShield (32.3g, defense) — Forma de escudo, se beneficia del wobbling. Peso bajo lo hace frágil. Combos: 9-60 Ball, 7-60 Hexa, 5-60 Unite.
+- LeonClaw (31.6g, attack) — Liviano con garras texturadas. Desestabiliza desde abajo. Necesita ratchets bajos. Combos: 1-60 Rush, 3-60 Flat, 4-55 Rush.
+- ViperTail (balance) — Desgaste sutil, drena energía con contacto continuo. Efectivo sin ser vistoso. Combos: 5-60 Point, 9-60 Unite, 3-60 Taper.
+- WeissTiger (balance) — Definición de equilibrio. Sin debilidad mayor pero sin fortaleza dominante. Combos: 5-60 Unite, 9-60 Ball, 3-60 Taper.
+- KnightLance (attack) — Tipo lanza agresiva. Alto recoil, arma de doble filo literal. Combos: 3-60 Rush, 1-60 Flat, 5-60 Rush.
+- KnightMail (defense) — Blade CX, centro de gravedad elevado. Buen upper/smash desde arriba. Necesita movimiento. Combos: 5-60 Point, 9-60 Ball, 7-60 Taper.
+- PhoenixFeather (32.9g, attack) — Liviano y rápido. Excelente defensor evasivo. Débil en contacto continuo. Combos: 9-60 Ball, 7-60 Unite, 5-60 Taper.
+- HellsChain (defense) — Desgaste de cadena, bajo recoil. Versátil entre defensa y semi-agresivo. Combos: 9-60 Ball, 5-60 Point, 7-60 Unite.
+- UnicornSting (defense) — Counter elegante. Fue bueno al principio pero superado por los nuevos. Combos: 9-60 Ball, 5-60 Unite, 7-60 Taper.
+- LeonCrest (defense) — Forma de plato para counter. Liviano, fácil de empujar. Combos: 9-60 Ball, 7-60 Hexa, 5-60 Unite.
+- PhoenixRudder (defense) — Compacto, propenso a burst. Counter vs left-spin con Elevate. Combos: 9-60 Elevate, 5-60 Ball, 7-60 Point.
+- TriceraPress (attack) — Blade BX subestimado. Buenas embestidas con el setup correcto. Combos: 3-60 Rush, 1-60 Flat, 5-60 Rush.
+- SamuraiCalibur (attack) — Opacado por SharkScale y Blast. Nicho pero divertido. Combos: 3-60 Rush, 1-60 Flat, 5-60 Flat.
+- DranBuster (attack) — Arma de precisión extrema. Potencia enorme pero riesgo enorme. La espada concentra el peso. Combos: 1-60 Flat, 3-60 Rush, 5-60 Flat.
+- ShinobiShadow (28.4g, balance) — El más liviano del juego. Evasión ninja, rebota en las paredes. Combos: 5-60 Point, 9-60 Unite, 3-60 Taper.
+- DranBrave (attack) — Diseño pendiente para levantar rivales. Experimental. Combos: 3-60 Rush, 1-60 Flat, 5-60 Flat.
 
-**BASURA — NO RECOMENDAR NUNCA:**
-- 4-80 — Posiblemente el PEOR ratchet del juego. Burst extremadamente fácil, 0 beneficio competitivo. Las 4 puntas tienen superficie de contacto chica (5mm) y se golpean fácil. NUNCA usarlo.
-- 3-80 — Algo mejor que 4-80 pero sigue siendo malo. Burst fácil a esa altura. Outclassed por todo.
-- Cualquier -80 para attack = desastre. Centro de gravedad alto + burst fácil. Los -80 SOLO sirven para combos de defense MUY específicos con bits de shaft ancho.
-- NUNCA recomendar un combo stock (de fábrica). Los sets vienen con partes genéricas que no están optimizadas. SIEMPRE recomendar customizar con las mejores partes disponibles.
+**C TIER:**
+- CrimsonGaruda (balance) — Mediocre, intenta todo sin sobresalir en nada. Homenaje a Dranzer decepcionante. Combos: 5-60 Unite, 9-60 Ball, 3-60 Taper.
 
-### REGLA IMPORTANTE SOBRE STOCK COMBOS:
-- Los jugadores competitivos SIEMPRE desarman y recombinan partes. NUNCA recomiendes el combo exacto como viene en la caja.
-- Si alguien pregunta "qué me recomendás", preguntá qué blades TIENE y armá el mejor combo con sus partes.
-- Las combinaciones ganadoras en torneos reales: Shark Scale 3-60 Low Rush, Aero Pegasus 7-60 Level, Wizard Rod 1-60 Hexa (solo 3on3).
-- Los ratchets más usados competitivamente: 3-60, 5-60, 9-60. El 4-50 para attack especializado.
-
-### BITS — Tier List
+### RATCHETS — Catálogo completo con tiers
 
 **S TIER:**
-- Ball (B) — EL MEJOR BIT GENERAL. Consistencia máxima. Funciona con casi cualquier blade para defense/stamina. MUST HAVE.
-- High Needle (HN) — Top tier defense. Consistencia similar a Ball. Excelente LAD.
-- Rush (R) — Top tier attack. Agresivo, buen movimiento en el stadium.
+- 9 — El más versátil y estable. Cero interferencia. "La vieja confiable." Mejor altura: 60. Ideal para defensa/stamina con máximo burst resistance.
+- 7 — Excelente estabilizador. Pesado, baja el centro de gravedad. Pieza esencial. Mejor altura: 60. Gran opción defensiva.
 
 **A TIER:**
-- Flat (F) — Attack clásico. Mejor stamina que Low Flat. Confiable.
-- Under Flat (UF) — Attack agresivo, específico para Shark Scale. Bajo al piso.
-- Taper (T) — Defense/Stamina con buena capacidad de reverse.
-- Level (L) — Balance excelente. Mix de attack y stamina. Bueno para Aero Pegasus.
-- Orb (O) — Stamina sólido. Similar a Ball pero con distinto comportamiento.
-- Point (P) — Mix de stamina y agresión. Versátil.
+- 1 — Excelente contrapeso. 1-70 es el más pesado. Esencial para corrección de balance. Mejor altura: 70.
+- 5 — Gran peso y estabilidad. Popular por mucho tiempo. Versátil para todo. Mejor altura: 60.
 
 **B TIER:**
-- Needle (N) — Defense decente pero inferior a High Needle.
-- Gear Flat (GF) — Attack alternativo con comportamiento de gear shift.
-- Disc Ball (DB) — Stamina con más movimiento que Ball regular.
-- Spike (S) — Stamina básico.
+- 3 — Confiable, sin debilidad mayor. Bueno para defensa y stamina. Mejor altura: 60.
+- 4 — Punto medio entre 2 y 3. Buen balance con muchos blades. Mejor altura: 60.
+- 6 — Poco versátil, depende de la sinergia con el blade. Mejor altura: 60.
+- M-85 — El ratchet más pesado (10.7g). Capa metálica. Alto riesgo/recompensa. Altura fija: 85.
+- 7-55 — Tipo O, liviano pero el más suave a esta altura. Gran sinergia con ClockMirage. Altura fija: 55.
 
-**BASURA (NO RECOMENDAR):**
-- Low Flat (LF) — Alto riesgo de self-KO, stamina bajísima. EVITAR.
-- Low Rush (LR) — Algo mejor que Low Flat pero sigue siendo inconsistente para la mayoría.
+**C TIER:**
+- 0 — Pieza paradójica: periferia suave pero fondo expuesto. NO recomendado en general.
+- 2 — El más propenso a burst. Solo para juego casual ultra-agresivo.
+- 3-85 — Super alto, super liviano, tipo O. Muy situacional.
+- 4-55 — Super bajo, tipo O. Interesante para defensa especializada pero nicho.
+
+### BITS — Catálogo completo por categoría con tiers
+
+#### BITS DE ATAQUE:
+- **Rush** (2.0g, S) — Mejor ataque controlado. ESENCIAL para cualquier blader.
+- **Low Rush** (1.9g, S) — Rush pero 1mm más bajo. Esencial para 3v3.
+- **Flat** (2.2g, A) — Punto medio de ataque. Buen balance velocidad/control.
+- **Gear Rush** (2.1g, A) — Entre Rush y Flat. Más potencia, menos control.
+- **Gear Flat** (2.3g, A) — Flat más rápido y agresivo. Buen Xtreme Dash.
+- **Cyclone** (2.1g, A) — Bit de ataque más chico. Buena tracción con control.
+- **Level** (2.7g, A) — Tres niveles de agresión. Versátil pero inconsistente.
+- **Jolt** (2.6g, A) — El flat más chico. Mejor patrón de flor. Ideal para ataque a distancia.
+- **Low Flat** (2.1g, B) — Flat más bajo y fuerte pero más errático.
+- **Under Flat** (2.1g, B) — 2mm más bajo. Gran potencial de upper attack.
+- **Vortex** (2.1g, B) — Forma de estrella, alta tracción. Golpes potentes.
+- **Accel** (2.6g, B) — Xtreme Dash explosivo. Alto riesgo/recompensa.
+- **Rubber Accel** (3.2g, C) — Mayor impacto pero peor control. Mejora con desgaste.
+- **Quake** (2.2g, C) — Peor stamina, caos puro. Divertido pero no competitivo.
+- **Turbo** (12.7g, C) — Bit fusionado. Nostálgico pero riesgoso.
+
+#### BITS DE STAMINA:
+- **Orb** (2.0g, S) — Mejor stamina pura. Más chico, menor fricción.
+- **Ball** (2.0g, S) — Versátil stamina+defensa. PIEZA ESENCIAL para todo blader.
+- **Low Orb** (1.9g, A) — Orb más bajo, más estable pero más riesgoso.
+- **Free Ball** (1.9g, A) — Entre Ball y Orb. Giro libre.
+- **Wedge** (1.8g, A) — Chico y filoso, gran control. Bueno para counter.
+- **Glide** (2.6g, B) — POM redondo con gancho. Versátil defensa-stamina.
+- **Wall Ball** (2.1g, B) — Ball con barrera. Situacional.
+- **Wall Wedge** (2.4g, B) — Wedge con barrera. Riesgoso pero efectivo en algunos casos.
+- **Disk Ball** (3.2g, C) — Ball con disco. Anti-KO pero riesgoso.
+- **Gear Ball** (2.1g, C) — El bit redondo más agresivo. Mala stamina.
+
+#### BITS DE DEFENSA:
+- **Under Needle** (1.8g, A) — 2mm más bajo. Mejor defensa consistente. Competitivo.
+- **High Needle** (2.2g, B) — Ángulo más abierto, mejor estabilidad. Buena defensa.
+- **Needle** (2.0g, B) — Defensa de escudo al inclinarse. Vulnerable por los lados.
+- **Dot** (2.0g, B) — Needle con puntos para tracción.
+- **Metal Needle** (2.8g, C) — Menos fricción pero se desliza. Puede dañar stadium.
+- **Gear Needle** (2.0g, C) — Defensa erguida pero pierde energía rápido.
+- **Spike** (2.0g, C) — Frágil, solo para testear balance.
+- **Bound Spike** (2.0g, C) — Mecanismo de resorte, caótico. No competitivo.
+
+#### BITS DE BALANCE:
+- **Unite** (2.1g, S) — MEJOR bit de balance. Consistente, preciso, gran stamina.
+- **Point** (2.2g, S) — Centro estático + agresivo al inclinarse. Gran counter.
+- **Hexa** (2.6g, S) — Sharp hexagonal ancho. MEJOR defensa estacionaria. Esencial.
+- **Elevate** (3.3g, S) — Semi-agresivo + excelente ecualización. CLAVE para CobaltDragoon y left-spin.
+- **Taper** (2.2g, A) — Fusión Ball+Flat. Semi-agresivo con buena stamina.
+- **High Taper** (2.3g, A) — Taper pero 1mm más alto.
+- **Kick** (2.2g, A) — Taper hexagonal. Patadas erráticas. Divertido y competitivo.
+- **Gear Point** (2.3g, A) — Point más agresivo. Bueno para blades livianos.
+- **Trans Kick** (2.3g, B) — Kick que cambia de altura. Caótico.
+- **Trans Point** (2.2g, B) — Point que cambia de altura. Riesgoso.
+- **Zap** (2.6g, B) — Variante agresiva de Point. Alta velocidad, baja stamina.
+- **Merge** (3.4g, C) — Base de goma, idea brillante pero demasiado alto.
+- **Operate** (14g, C) — Bit fusionado, dos modos. Interesante pero frágil.
 
 ### REGLAS ABSOLUTAS PARA RECOMENDAR COMBOS:
 1. El combo es BLADE + RATCHET + BIT. Los tres deben ser coherentes entre sí.
-2. Attack blade + ratchet bajo (4-50, 1-60, 3-60) + bit agresivo (Flat, Rush, UF) = COMBO ATTACK
-3. Defense blade + ratchet medio-alto (5-60, 7-60, 9-60) + bit defensivo (Ball, HN, Taper) = COMBO DEFENSE
-4. NUNCA pongas Ball en un blade attack — es defensivo. El blade no va a moverse.
-5. NUNCA pongas un ratchet -80 en un blade attack — pierde estabilidad.
-6. NUNCA pongas Flat/Rush en un blade defense — se va a mover demasiado y perder spin.
-7. Si el usuario tiene un blade específico, recomendá ratchet+bit que complementen su tipo.
-8. Si pregunta "qué me recomendás", preguntá primero qué estilo le gusta (attack/defense/stamina).
-9. Siempre explicá POR QUÉ recomendás algo — no solo listés el combo.
+2. Attack blade + ratchet bajo (1-60, 3-60, 4-55) + bit agresivo (Rush, Flat, Low Rush) = COMBO ATTACK.
+3. Defense/Stamina blade + ratchet medio-alto (5-60, 7-60, 9-60) + bit defensivo (Ball, Hexa, Unite, Taper) = COMBO DEFENSE.
+4. Counter/Ecualización: CobaltDragoon + Elevate es la combinación clave contra right-spin.
+5. NUNCA pongas Ball en un blade attack — es defensivo, el blade no se va a mover.
+6. NUNCA pongas un ratchet alto (-80, -85) en un blade attack — pierde estabilidad.
+7. NUNCA pongas Rush/Flat en un blade defense — se va a mover demasiado y perder spin.
+8. Si el usuario tiene un blade específico, recomendá ratchet+bit que complementen su tipo.
+9. Si pregunta "qué me recomendás", preguntá primero qué blades TIENE y qué estilo le gusta.
+10. Siempre explicá POR QUÉ recomendás algo — no solo listés el combo.
+11. NUNCA recomiendes un combo stock (de fábrica). Los sets vienen con partes genéricas no optimizadas.
 
 ### COMBOS PROBADOS (Spring 2026):
-- Shark Scale 4-50 UF — #1 del meta. Attack definitivo.
-- Shark Scale 3-60 Rush — Alternativa attack si no tiene 4-50.
-- Aero Pegasus 7-60 Level — Attack consistente.
-- Hover Wyvern 5-60 Taper — Attack con reverse.
-- Tyranno Beat 1-60 Flat — Attack con hits críticos.
-- Phoenix Wing 9-60 HN — Defense endgame premium.
-- Whale Wave 5-60 Ball — Defense sólida y confiable.
-- Wizard Rod 3-60 Ball — Stamina imbatible (solo 3on3).
-- Cobalt Dragoon 4-60 Rush — Attack clásico.
-- Dran Buster 1-60 Flat — Attack explosivo (riesgo).
-- Knight Shield 9-60 Ball — Defense tank.
+**Attack:**
+- SharkEdge 4-55 Low Rush — Attack definitivo, bajo y consistente.
+- SharkEdge 3-60 Rush — Alternativa si no tiene 4-55.
+- TyrannoBeat 1-60 Flat — Hits críticos devastadores.
+- DranBuster 1-60 Flat — Explosivo pero alto riesgo.
+- DranSword 3-60 Rush — Versátil, ideal para principiantes.
 
-### GLOSARIO BX:
-- LAD = Life After Death. Capacidad de seguir girando casi sin spin. Phoenix Wing y Wizard Rod son reyes del LAD.
-- Xtreme Dash = Cuando el bey toca la Xtreme Line del stadium y sale disparado con aceleración extra.
-- Over Finish = KO por salir del stadium (sacar al rival por la Xtreme Line).
-- Burst Finish = El bey rival se desarma (burst). Vale puntos extra en torneos oficiales.
-- Spin Finish = Ganar por más spin restante al final. La victoria más común.
-- Ratchet Sniping = Cuando un bey golpea el ratchet del rival por debajo, desestabilizándolo. Ratchets cortos (4-50) son mejores para esto.
-- Hall of Fame / B4 = Blades baneados del formato 1on1 por ser demasiado dominantes.`;
+**Defense/Stamina:**
+- WizardRod 9-60 Ball — Stamina imbatible (rey del LAD).
+- PhoenixWing 9-60 High Needle — Defense endgame premium.
+- CobaltDrake 9-60 Ball — El tanque máximo.
+- KnightShield 9-60 Ball — Defense tank accesible.
+- WhaleWave 5-60 Ball — Defensa sólida y confiable.
+
+**Counter/Balance:**
+- CobaltDragoon 4-60 Elevate — Counter left-spin con ecualización.
+- HellsScythe 9-60 Unite — Flexibilidad según lanzamiento.
+- SamuraiSaber 7-60 Hexa — Counter vs left-spin estacionario.
+
+### FUNDAMENTOS PARA PRINCIPIANTES:
+- Velocidad, inercia y peso generan momento angular. Lanzamiento tipo latigazo.
+- Estabilidad depende del centro de gravedad. Más bajo = más estable.
+- Fricción: goma = alta (más movimiento), metal/POM = baja (más stamina).
+- Same spin = más retroceso. Opposite spin = ecualización (drenan mutuamente).
+- Formas de blade: picudos concentran impacto, paredes reflejan, pendientes levantan, redondos deflectan.
+- Consistencia > racha perfecta. Controlá lo que podés controlar.`;
 
 // Keywords that trigger a web search for fresh info
 const SEARCH_TRIGGERS = [
