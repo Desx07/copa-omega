@@ -285,6 +285,12 @@ export default function ProfilePage() {
       setBeys([...beys, data]);
       setNewBeyName("");
       toast.success("Bey agregado!");
+      // Trigger badge check (fire-and-forget)
+      fetch("/api/badges/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ player_id: player.id }),
+      }).catch(() => {});
     } catch { toast.error("Error de conexión"); }
     finally { setAddingBey(false); }
   }
