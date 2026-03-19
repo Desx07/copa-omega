@@ -270,28 +270,27 @@ function TierSectionHeader({ tier }: { tier: string }) {
 // ---------------------------------------------------------------------------
 
 function useTierFilter() {
-  const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set(TIERS));
+  const [activeTiers, setActiveTiers] = useState<string[]>([...TIERS]);
+  const activeSet = new Set(activeTiers);
   const toggle = useCallback((tier: string) => {
     setActiveTiers((prev) => {
+      const has = prev.includes(tier);
       // If tapping the only active tier, show all
-      if (prev.size === 1 && prev.has(tier)) {
-        return new Set(TIERS);
+      if (prev.length === 1 && has) {
+        return [...TIERS];
       }
       // If all are active, switch to just this one
-      if (prev.size === TIERS.length) {
-        return new Set([tier]);
+      if (prev.length === TIERS.length) {
+        return [tier];
       }
-      // Otherwise toggle this tier
-      const next = new Set(prev);
-      if (next.has(tier)) {
-        next.delete(tier);
-      } else {
-        next.add(tier);
+      // Otherwise toggle
+      if (has) {
+        return prev.filter((t) => t !== tier);
       }
-      return next;
+      return [...prev, tier];
     });
   }, []);
-  return { activeTiers, toggle };
+  return { activeTiers: activeSet, toggle };
 }
 
 // ---------------------------------------------------------------------------
