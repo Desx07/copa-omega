@@ -19,7 +19,7 @@ export default function EncyclopediaPage() {
             <BookOpen className="size-5 text-omega-purple" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg font-black text-omega-text">Xciclopedia</h1>
+            <h1 className="text-lg font-black text-omega-text neon-gold">Xciclopedia</h1>
             <p className="text-xs text-omega-muted">Guia completa de Beyblade X</p>
           </div>
         </div>
