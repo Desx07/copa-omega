@@ -251,16 +251,26 @@ function SafeImage({
 // Shared: Sticky tier section header
 // ---------------------------------------------------------------------------
 
-function TierSectionHeader({ tier }: { tier: string }) {
+function TierSection({ tier, count, children }: { tier: string; count: number; children: React.ReactNode }) {
+  const [open, setOpen] = useState(true);
   const style = TIER_HEADER_STYLE[tier];
   return (
-    <div
-      className={`sticky top-0 z-10 flex items-center gap-2 py-1.5 px-2 bg-omega-black/90 backdrop-blur-sm border-b ${style.border}`}
-    >
-      {tier === "S" && <Crown className="size-3.5 text-omega-gold" aria-hidden="true" />}
-      <span className={`text-[11px] font-black tracking-widest ${style.color}`}>
-        {style.label}
-      </span>
+    <div>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`sticky top-0 z-10 flex items-center gap-2 py-2 px-2 w-full text-left bg-omega-black/90 backdrop-blur-sm border-b ${style.border}`}
+      >
+        {tier === "S" && <Crown className="size-3.5 text-omega-gold" aria-hidden="true" />}
+        <span className={`text-[11px] font-black tracking-widest ${style.color}`}>
+          {style.label}
+        </span>
+        <span className="text-[10px] text-omega-muted">({count})</span>
+        <ChevronDown
+          className={`size-3.5 text-omega-muted ml-auto transition-transform ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        />
+      </button>
+      {open && <div className="space-y-2 pt-2">{children}</div>}
     </div>
   );
 }
@@ -455,9 +465,7 @@ function BladesTab({
       </div>
 
       {grouped.map(({ tier, items }) => (
-        <div key={tier}>
-          <TierSectionHeader tier={tier} />
-          <div className="space-y-2 pt-2">
+        <TierSection key={tier} tier={tier} count={items.length}>
             {items.map((blade) => {
               const tc = TYPE_CONFIG[blade.type];
               const TypeIcon = tc.icon;
@@ -533,8 +541,7 @@ function BladesTab({
                 </button>
               );
             })}
-          </div>
-        </div>
+        </TierSection>
       ))}
 
       {filtered.length === 0 && (
@@ -591,9 +598,7 @@ function RatchetsTab({
       </div>
 
       {grouped.map(({ tier, items }) => (
-        <div key={tier}>
-          <TierSectionHeader tier={tier} />
-          <div className="space-y-2 pt-2">
+        <TierSection key={tier} tier={tier} count={items.length}>
             {items.map((r) => {
               const isOpen = expanded === r.number;
               return (
@@ -644,8 +649,7 @@ function RatchetsTab({
                 </button>
               );
             })}
-          </div>
-        </div>
+        </TierSection>
       ))}
 
       {filtered.length === 0 && (
