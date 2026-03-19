@@ -19,7 +19,7 @@ export default function NewMatchPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [player1Id, setPlayer1Id] = useState("");
   const [player2Id, setPlayer2Id] = useState("");
-  const [starsBet, setStarsBet] = useState(1);
+  const [starsBet, setStarsBet] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
 
@@ -80,7 +80,9 @@ export default function NewMatchPage() {
       return;
     }
 
-    if (starsBet < 1 || starsBet > 5) {
+    const starsBetNum = parseInt(starsBet) || 0;
+
+    if (starsBetNum < 1 || starsBetNum > 5) {
       toast.error("Las estrellas deben ser entre 1 y 5");
       return;
     }
@@ -89,12 +91,12 @@ export default function NewMatchPage() {
     const p1 = players.find((p) => p.id === player1Id);
     const p2 = players.find((p) => p.id === player2Id);
 
-    if (p1 && p1.stars < starsBet) {
+    if (p1 && p1.stars < starsBetNum) {
       toast.error(`${p1.alias} no tiene suficientes estrellas (tiene ${p1.stars})`);
       return;
     }
 
-    if (p2 && p2.stars < starsBet) {
+    if (p2 && p2.stars < starsBetNum) {
       toast.error(`${p2.alias} no tiene suficientes estrellas (tiene ${p2.stars})`);
       return;
     }
@@ -116,7 +118,7 @@ export default function NewMatchPage() {
       const { error } = await supabase.from("matches").insert({
         player1_id: player1Id,
         player2_id: player2Id,
-        stars_bet: starsBet,
+        stars_bet: starsBetNum,
         created_by: user.id,
       });
 
@@ -228,7 +230,8 @@ export default function NewMatchPage() {
                 min={1}
                 max={5}
                 value={starsBet}
-                onChange={(e) => setStarsBet(Number(e.target.value))}
+                onChange={(e) => setStarsBet(e.target.value)}
+                placeholder="Estrellas (1-5)"
                 className="omega-input pl-10 py-3"
               />
             </div>
@@ -247,7 +250,7 @@ export default function NewMatchPage() {
                 </span>
                 <span className="omega-badge omega-badge-gold">
                   <Star className="size-3 text-omega-gold fill-omega-gold mr-0.5" />
-                  {starsBet}
+                  {parseInt(starsBet) || "?"}
                 </span>
                 <span className="text-sm font-bold text-omega-text">
                   {players.find((p) => p.id === player2Id)?.alias}

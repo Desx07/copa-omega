@@ -41,8 +41,8 @@ export default function MatchDetailPage() {
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState(false);
   const [showScoreForm, setShowScoreForm] = useState(false);
-  const [p1Score, setP1Score] = useState(0);
-  const [p2Score, setP2Score] = useState(0);
+  const [p1Score, setP1Score] = useState("");
+  const [p2Score, setP2Score] = useState("");
 
   const fetchMatch = useCallback(async () => {
     const supabase = createClient();
@@ -111,11 +111,13 @@ export default function MatchDetailPage() {
 
   async function handleSubmitScore() {
     if (!match) return;
-    if (p1Score === p2Score) {
+    const p1Num = parseInt(p1Score) || 0;
+    const p2Num = parseInt(p2Score) || 0;
+    if (p1Num === p2Num) {
       toast.error("No puede haber empate");
       return;
     }
-    const winnerId = p1Score > p2Score ? match.player1_id : match.player2_id;
+    const winnerId = p1Num > p2Num ? match.player1_id : match.player2_id;
 
     setResolving(true);
 
@@ -125,8 +127,8 @@ export default function MatchDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           winner_id: winnerId,
-          player1_score: p1Score,
-          player2_score: p2Score,
+          player1_score: p1Num,
+          player2_score: p2Num,
         }),
       });
 
@@ -360,7 +362,8 @@ export default function MatchDetailPage() {
                     type="number"
                     min={0}
                     value={p1Score}
-                    onChange={(e) => setP1Score(Number(e.target.value))}
+                    onChange={(e) => setP1Score(e.target.value)}
+                    placeholder="0"
                     className="w-full max-w-[80px] mx-auto block rounded-lg border border-omega-border bg-omega-dark px-3 py-2 text-center text-lg font-black text-omega-text focus:border-omega-purple focus:outline-none"
                   />
                 </div>
@@ -373,12 +376,13 @@ export default function MatchDetailPage() {
                     type="number"
                     min={0}
                     value={p2Score}
-                    onChange={(e) => setP2Score(Number(e.target.value))}
+                    onChange={(e) => setP2Score(e.target.value)}
+                    placeholder="0"
                     className="w-full max-w-[80px] mx-auto block rounded-lg border border-omega-border bg-omega-dark px-3 py-2 text-center text-lg font-black text-omega-text focus:border-omega-purple focus:outline-none"
                   />
                 </div>
               </div>
-              {p1Score === p2Score && p1Score > 0 && (
+              {p1Score !== "" && p2Score !== "" && (parseInt(p1Score) || 0) === (parseInt(p2Score) || 0) && (parseInt(p1Score) || 0) > 0 && (
                 <p className="text-[11px] text-omega-red text-center">
                   No puede haber empate
                 </p>
@@ -393,7 +397,7 @@ export default function MatchDetailPage() {
                 </button>
                 <button
                   onClick={handleSubmitScore}
-                  disabled={resolving || p1Score === p2Score}
+                  disabled={resolving || (parseInt(p1Score) || 0) === (parseInt(p2Score) || 0)}
                   className="omega-btn omega-btn-primary px-4 py-3 text-sm disabled:opacity-50"
                 >
                   {resolving ? (
