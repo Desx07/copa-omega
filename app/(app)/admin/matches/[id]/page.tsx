@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { Star, Swords, Trophy, ArrowLeft, Crown, Loader2, Pencil } from "lucide-react";
+import { Star, Swords, Trophy, ArrowLeft, Crown, Loader2, Pencil, Radio } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -22,6 +22,7 @@ interface Match {
   player1_score: number;
   player2_score: number;
   status: string;
+  is_live: boolean;
   notes: string | null;
   created_at: string;
   completed_at: string | null;
@@ -40,6 +41,7 @@ export default function MatchDetailPage() {
   const [player2, setPlayer2] = useState<MatchPlayer | null>(null);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState(false);
+  const [togglingLive, setTogglingLive] = useState(false);
   const [showScoreForm, setShowScoreForm] = useState(false);
   const [p1Score, setP1Score] = useState("");
   const [p2Score, setP2Score] = useState("");
@@ -148,6 +150,30 @@ export default function MatchDetailPage() {
     }
   }
 
+  async function handleToggleLive() {
+    if (!match) return;
+    setTogglingLive(true);
+    try {
+      const action = match.is_live ? "stop" : "start";
+      const res = await fetch(`/api/matches/${match.id}/live`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Error al cambiar estado en vivo");
+        return;
+      }
+      toast.success(action === "start" ? "Batalla EN VIVO!" : "Batalla fuera de vivo");
+      await fetchMatch();
+    } catch {
+      toast.error("Error al cambiar estado en vivo");
+    } finally {
+      setTogglingLive(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -161,16 +187,20 @@ export default function MatchDetailPage() {
   }
 
   const isPending = match.status === "pending";
+  const isInProgress = match.status === "in_progress";
   const isCompleted = match.status === "completed";
+  const canGoLive = isPending || isInProgress;
 
   return (
     <div className="max-w-lg mx-auto pb-8">
       {/* Hero banner */}
       <div
         className={`-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br ${
-          isPending
-            ? "from-omega-gold/20 via-omega-gold/5 to-omega-dark shadow-lg shadow-omega-gold/10"
-            : "from-omega-green/20 via-omega-green/5 to-omega-dark shadow-lg shadow-omega-green/10"
+          match?.is_live
+            ? "from-red-500/20 via-red-500/5 to-omega-dark shadow-lg shadow-red-500/10"
+            : isPending || isInProgress
+              ? "from-omega-gold/20 via-omega-gold/5 to-omega-dark shadow-lg shadow-omega-gold/10"
+              : "from-omega-green/20 via-omega-green/5 to-omega-dark shadow-lg shadow-omega-green/10"
         } mb-8`}
       >
         <div className="px-5 pt-5 pb-6">
@@ -184,17 +214,25 @@ export default function MatchDetailPage() {
           <div className="flex items-center gap-2.5">
             <div
               className={`size-10 rounded-xl flex items-center justify-center ${
-                isPending ? "bg-omega-gold/20" : "bg-omega-green/20"
+                match?.is_live
+                  ? "bg-red-500/20"
+                  : isPending || isInProgress
+                    ? "bg-omega-gold/20"
+                    : "bg-omega-green/20"
               }`}
             >
-              {isPending ? (
+              {match?.is_live ? (
+                <Radio className="size-5 text-red-400" />
+              ) : isPending || isInProgress ? (
                 <Swords className="size-5 text-omega-gold" />
               ) : (
                 <Trophy className="size-5 text-omega-green" />
               )}
             </div>
             <h1 className="text-2xl font-black">
-              {isPending ? (
+              {match?.is_live ? (
+                <span className="text-red-400">EN VIVO</span>
+              ) : isPending || isInProgress ? (
                 <span className="neon-gold">RESOLVER</span>
               ) : (
                 <span className="neon-blue">RESULTADO</span>
@@ -208,15 +246,49 @@ export default function MatchDetailPage() {
         {/* Match detail card */}
         <div className="rounded-2xl bg-gradient-to-br from-omega-card to-omega-surface border border-white/10 shadow-lg p-6 space-y-6">
           {/* Status */}
-          <div className="text-center">
-            {isPending && (
-              <span className="omega-badge omega-badge-gold px-3 py-1">PENDIENTE</span>
-            )}
-            {isCompleted && (
-              <span className="omega-badge omega-badge-green px-3 py-1">COMPLETADA</span>
-            )}
-            {match.status === "cancelled" && (
-              <span className="omega-badge omega-badge-red px-3 py-1">CANCELADA</span>
+          <div className="text-center space-y-3">
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              {isPending && (
+                <span className="omega-badge omega-badge-gold px-3 py-1">PENDIENTE</span>
+              )}
+              {isInProgress && !match.is_live && (
+                <span className="omega-badge omega-badge-gold px-3 py-1">EN PROGRESO</span>
+              )}
+              {isCompleted && (
+                <span className="omega-badge omega-badge-green px-3 py-1">COMPLETADA</span>
+              )}
+              {match.status === "cancelled" && (
+                <span className="omega-badge omega-badge-red px-3 py-1">CANCELADA</span>
+              )}
+              {match.is_live && (
+                <span className="inline-flex items-center gap-1.5 bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full animate-pulse">
+                  <span className="relative flex size-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                    <span className="relative inline-flex size-2 rounded-full bg-red-500" />
+                  </span>
+                  EN VIVO
+                </span>
+              )}
+            </div>
+
+            {/* Live toggle button */}
+            {canGoLive && (
+              <button
+                onClick={handleToggleLive}
+                disabled={togglingLive}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 ${
+                  match.is_live
+                    ? "bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30"
+                    : "bg-omega-dark border border-omega-border text-omega-text hover:border-red-500/40 hover:text-red-400"
+                }`}
+              >
+                {togglingLive ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Radio className="size-4" />
+                )}
+                {match.is_live ? "Quitar EN VIVO" : "Poner EN VIVO"}
+              </button>
             )}
           </div>
 
@@ -332,8 +404,8 @@ export default function MatchDetailPage() {
             </div>
           )}
 
-          {/* Resolve section for pending matches */}
-          {isPending && !showScoreForm && (
+          {/* Resolve section for pending / in_progress matches */}
+          {(isPending || isInProgress) && !showScoreForm && (
             <div className="space-y-3 text-center">
               <p className="text-xs text-omega-muted">
                 Carga el resultado de esta batalla
@@ -365,7 +437,7 @@ export default function MatchDetailPage() {
             </div>
           )}
 
-          {(isPending || isCompleted) && showScoreForm && (
+          {(isPending || isInProgress || isCompleted) && showScoreForm && (
             <div className="space-y-4">
               <p className="text-xs text-omega-muted text-center">
                 Ingresá el puntaje de cada jugador

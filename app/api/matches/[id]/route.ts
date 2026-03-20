@@ -139,6 +139,10 @@ export async function PATCH(
       }
     }
 
+    // Clear live flag when match is resolved
+    const adminLive = createAdminClient();
+    await adminLive.from("matches").update({ is_live: false }).eq("id", id);
+
     const matchData = currentMatch;
 
     // Side effects only on first resolve (not on edit)
