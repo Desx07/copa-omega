@@ -164,3 +164,53 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return Response.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    // Only admins can delete challenges
+    const { data: player } = await supabase
+      .from("players")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+
+    if (!player?.is_admin) {
+      return Response.json(
+        { error: "Solo administradores pueden eliminar retos" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await params;
+
+    const { error: deleteError } = await supabase
+      .from("challenges")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      return Response.json({ error: deleteError.message }, { status: 500 });
+    }
+
+    return Response.json({ success: true });
+  } catch (err) {
+    console.error("DELETE /api/challenges/[id] error:", err);
+    return Response.json(
+      { error: "Error interno del servidor" },
+      { status: 500 }
+    );
+  }
+}

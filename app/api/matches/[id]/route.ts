@@ -52,40 +52,102 @@ export async function PATCH(
       );
     }
 
-    const { data, error } = await supabase.rpc("resolve_match", {
-      p_match_id: id,
-      p_winner_id: winner_id,
-    });
-
-    // Save scores if provided
-    if (!error && player1_score != null && player2_score != null) {
-      await supabase
-        .from("matches")
-        .update({ player1_score, player2_score })
-        .eq("id", id);
-    }
-
-    if (error) {
-      return Response.json({ error: error.message }, { status: 400 });
-    }
-
-    // Fetch match to find both players for badge checking and feed
-    const { data: matchData, error: matchFetchError } = await supabase
+    // Fetch match first to check current status
+    const { data: currentMatch, error: matchFetchError } = await supabase
       .from("matches")
-      .select("player1_id, player2_id, stars_bet")
+      .select("player1_id, player2_id, stars_bet, status, winner_id")
       .eq("id", id)
       .single();
 
-    if (matchFetchError) {
-      console.error("[matches] Error fetching match data:", matchFetchError);
+    if (matchFetchError || !currentMatch) {
+      return Response.json({ error: "Partida no encontrada" }, { status: 404 });
     }
 
-    // Insert match_result event into activity_feed
-    if (matchData) {
+    const isEdit = currentMatch.status === "completed";
+
+    if (isEdit) {
+      // EDIT MODE: match already completed, admin is correcting the result
+      const adminSupabase = createAdminClient();
+      const oldWinnerId = currentMatch.winner_id;
+      const starsBet = currentMatch.stars_bet ?? 0;
+
+      // If winner changed, reverse old star transfer and apply new one
+      if (oldWinnerId && oldWinnerId !== winner_id) {
+        const oldLoserId = oldWinnerId === currentMatch.player1_id
+          ? currentMatch.player2_id
+          : currentMatch.player1_id;
+
+        // Fetch both players current stats
+        const { data: bothPlayers } = await adminSupabase
+          .from("players")
+          .select("id, stars, wins, losses")
+          .in("id", [currentMatch.player1_id, currentMatch.player2_id]);
+
+        if (bothPlayers && bothPlayers.length === 2) {
+          const oldWinner = bothPlayers.find((p) => p.id === oldWinnerId)!;
+          const oldLoser = bothPlayers.find((p) => p.id === oldLoserId)!;
+
+          // Reverse old result + apply new result in one update per player
+          // Old winner becomes new loser: -starsBet (reverse) -starsBet (new loss) = -2*starsBet
+          // Old loser becomes new winner: +starsBet (reverse) +starsBet (new win) = +2*starsBet
+          await adminSupabase
+            .from("players")
+            .update({
+              stars: oldWinner.stars - 2 * starsBet,
+              wins: Math.max(0, oldWinner.wins - 1),
+              losses: oldWinner.losses + 1,
+            })
+            .eq("id", oldWinnerId);
+
+          await adminSupabase
+            .from("players")
+            .update({
+              stars: oldLoser.stars + 2 * starsBet,
+              wins: oldLoser.wins + 1,
+              losses: Math.max(0, oldLoser.losses - 1),
+            })
+            .eq("id", oldLoserId);
+        }
+      }
+
+      // Update match record (scores only if winner didn't change, or scores + winner)
+      const updatePayload: Record<string, unknown> = { winner_id };
+      if (player1_score != null) updatePayload.player1_score = player1_score;
+      if (player2_score != null) updatePayload.player2_score = player2_score;
+
+      await adminSupabase
+        .from("matches")
+        .update(updatePayload)
+        .eq("id", id);
+    } else {
+      // FIRST RESOLVE: use the RPC
+      const { error } = await supabase.rpc("resolve_match", {
+        p_match_id: id,
+        p_winner_id: winner_id,
+      });
+
+      // Save scores if provided
+      if (!error && player1_score != null && player2_score != null) {
+        await supabase
+          .from("matches")
+          .update({ player1_score, player2_score })
+          .eq("id", id);
+      }
+
+      if (error) {
+        return Response.json({ error: error.message }, { status: 400 });
+      }
+    }
+
+    const matchData = currentMatch;
+
+    // Side effects only on first resolve (not on edit)
+    if (!isEdit && matchData) {
       const loserId = matchData.player1_id === winner_id
         ? matchData.player2_id
         : matchData.player1_id;
 
+      // Insert match_result event into activity_feed
       try {
         const adminSupabase = createAdminClient();
 
@@ -144,10 +206,8 @@ export async function PATCH(
       } catch (pushErr) {
         console.error("Error sending match push notifications:", pushErr);
       }
-    }
 
-    // Mark any linked challenges as "completed"
-    if (matchData) {
+      // Mark any linked challenges as "completed"
       try {
         const adminSupabase = createAdminClient();
         // Find accepted challenges between these two players and mark completed
@@ -291,7 +351,7 @@ export async function PATCH(
       }
     }
 
-    return Response.json({ success: true, data });
+    return Response.json({ success: true });
   } catch (err) {
     console.error("PATCH /api/matches/[id] error:", err);
     return Response.json({ error: "Error interno del servidor" }, { status: 500 });

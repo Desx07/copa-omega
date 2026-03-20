@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { Star, Swords, Trophy, ArrowLeft, Crown, Loader2 } from "lucide-react";
+import { Star, Swords, Trophy, ArrowLeft, Crown, Loader2, Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -138,11 +138,11 @@ export default function MatchDetailPage() {
         return;
       }
 
-      toast.success("Partida resuelta!");
+      toast.success(isCompleted ? "Resultado actualizado!" : "Partida resuelta!");
       setShowScoreForm(false);
       await fetchMatch();
     } catch {
-      toast.error("Error al resolver la partida");
+      toast.error("Error al guardar el resultado");
     } finally {
       setResolving(false);
     }
@@ -336,7 +336,7 @@ export default function MatchDetailPage() {
           {isPending && !showScoreForm && (
             <div className="space-y-3 text-center">
               <p className="text-xs text-omega-muted">
-                Cargá el resultado de esta batalla
+                Carga el resultado de esta batalla
               </p>
               <button
                 onClick={() => setShowScoreForm(true)}
@@ -348,7 +348,24 @@ export default function MatchDetailPage() {
             </div>
           )}
 
-          {isPending && showScoreForm && (
+          {/* Edit result button for completed matches */}
+          {isCompleted && !showScoreForm && (
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  setP1Score(String(match.player1_score ?? 0));
+                  setP2Score(String(match.player2_score ?? 0));
+                  setShowScoreForm(true);
+                }}
+                className="omega-btn omega-btn-secondary px-5 py-2.5 text-sm"
+              >
+                <Pencil className="size-4" />
+                Editar resultado
+              </button>
+            </div>
+          )}
+
+          {(isPending || isCompleted) && showScoreForm && (
             <div className="space-y-4">
               <p className="text-xs text-omega-muted text-center">
                 Ingresá el puntaje de cada jugador

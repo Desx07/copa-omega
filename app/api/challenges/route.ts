@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     // Verify both players exist and have enough stars
     const { data: players, error: playersError } = await supabase
       .from("players")
-      .select("id, alias, stars, is_eliminated")
+      .select("id, alias, stars, is_eliminated, is_admin")
       .in("id", [user.id, challenged_id]);
 
     if (playersError) {
@@ -123,6 +123,14 @@ export async function POST(request: Request) {
     if (challenger?.is_eliminated || challenged?.is_eliminated) {
       return Response.json(
         { error: "Uno o ambos jugadores estan eliminados" },
+        { status: 400 }
+      );
+    }
+
+    // Admins cannot be challenged
+    if (challenged?.is_admin) {
+      return Response.json(
+        { error: "No se puede retar al administrador" },
         { status: 400 }
       );
     }

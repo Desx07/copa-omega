@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   Zap,
   Search,
+  Trash2,
 } from "lucide-react";
 import ChallengeButton from "@/app/_components/challenge-button";
 import ChallengeComments from "./challenge-comments";
@@ -41,7 +42,7 @@ type Challenge = {
 
 type Tab = "pending_for_me" | "my_sent" | "all_active";
 
-export default function ChallengesClient({ userId }: { userId: string }) {
+export default function ChallengesClient({ userId, isAdmin }: { userId: string; isAdmin: boolean }) {
   const [tab, setTab] = useState<Tab>("pending_for_me");
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +73,22 @@ export default function ChallengesClient({ userId }: { userId: string }) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        setChallenges((prev) => prev.filter((c) => c.id !== challengeId));
+      }
+    } catch {
+      // ignore
+    }
+    setActioning(null);
+  }
+
+  async function handleDeleteChallenge(challengeId: string) {
+    if (!confirm("Eliminar este reto?")) return;
+    setActioning(challengeId);
+    try {
+      const res = await fetch(`/api/challenges/${challengeId}`, {
+        method: "DELETE",
       });
       if (res.ok) {
         setChallenges((prev) => prev.filter((c) => c.id !== challengeId));
@@ -324,6 +341,26 @@ export default function ChallengesClient({ userId }: { userId: string }) {
                   )}
                 </div>
 
+                {/* Admin delete */}
+                {isAdmin && (
+                  <div className="px-4 py-1.5 bg-omega-surface/30 border-t border-white/[0.04] flex items-center justify-end">
+                    <button
+                      onClick={() => handleDeleteChallenge(challenge.id)}
+                      disabled={actioning === challenge.id}
+                      className="text-[11px] text-omega-muted hover:text-omega-red transition-colors flex items-center gap-1"
+                    >
+                      {actioning === challenge.id ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <>
+                          <Trash2 className="size-3" />
+                          Eliminar reto
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
                 {/* Comments */}
                 <ChallengeComments challengeId={challenge.id} userId={userId} />
               </div>
@@ -349,6 +386,7 @@ function SearchAndChallenge() {
       .select("id, alias, avatar_url, stars")
       .or(`alias.ilike.%${query.trim()}%,full_name.ilike.%${query.trim()}%`)
       .eq("is_hidden", false)
+      .eq("is_admin", false)
       .limit(8);
     setResults(data ?? []);
     setSearching(false);
