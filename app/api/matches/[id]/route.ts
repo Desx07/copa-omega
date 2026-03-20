@@ -361,3 +361,96 @@ export async function PATCH(
     return Response.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return Response.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    // Check admin or judge
+    const { data: adminPlayer } = await supabase
+      .from("players")
+      .select("is_admin, is_judge")
+      .eq("id", user.id)
+      .single();
+
+    if (!adminPlayer?.is_admin && !adminPlayer?.is_judge) {
+      return Response.json({ error: "Solo administradores o jueces" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const adminSupabase = createAdminClient();
+
+    // Fetch match data
+    const { data: match, error: matchError } = await adminSupabase
+      .from("matches")
+      .select("player1_id, player2_id, stars_bet, status, winner_id")
+      .eq("id", id)
+      .single();
+
+    if (matchError || !match) {
+      return Response.json({ error: "Partida no encontrada" }, { status: 404 });
+    }
+
+    // If match was completed, reverse the star transfer and win/loss counts
+    if (match.status === "completed" && match.winner_id) {
+      const loserId =
+        match.winner_id === match.player1_id
+          ? match.player2_id
+          : match.player1_id;
+      const starsBet = match.stars_bet ?? 0;
+
+      const { data: bothPlayers } = await adminSupabase
+        .from("players")
+        .select("id, stars, wins, losses")
+        .in("id", [match.winner_id, loserId]);
+
+      if (bothPlayers && bothPlayers.length === 2) {
+        const winner = bothPlayers.find((p) => p.id === match.winner_id)!;
+        const loser = bothPlayers.find((p) => p.id === loserId)!;
+
+        await adminSupabase
+          .from("players")
+          .update({
+            stars: winner.stars - starsBet,
+            wins: Math.max(0, winner.wins - 1),
+          })
+          .eq("id", match.winner_id);
+
+        await adminSupabase
+          .from("players")
+          .update({
+            stars: loser.stars + starsBet,
+            losses: Math.max(0, loser.losses - 1),
+          })
+          .eq("id", loserId);
+      }
+    }
+
+    // Delete the match
+    const { error: deleteError } = await adminSupabase
+      .from("matches")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      return Response.json({ error: deleteError.message }, { status: 400 });
+    }
+
+    return Response.json({ success: true });
+  } catch (err) {
+    console.error("DELETE /api/matches/[id] error:", err);
+    return Response.json({ error: "Error interno del servidor" }, { status: 500 });
+  }
+}

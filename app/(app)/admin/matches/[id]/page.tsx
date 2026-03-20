@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { Star, Swords, Trophy, ArrowLeft, Crown, Loader2, Pencil, Radio } from "lucide-react";
+import { Star, Swords, Trophy, ArrowLeft, Crown, Loader2, Pencil, Radio, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -45,6 +45,7 @@ export default function MatchDetailPage() {
   const [showScoreForm, setShowScoreForm] = useState(false);
   const [p1Score, setP1Score] = useState("");
   const [p2Score, setP2Score] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const fetchMatch = useCallback(async () => {
     const supabase = createClient();
@@ -171,6 +172,26 @@ export default function MatchDetailPage() {
       toast.error("Error al cambiar estado en vivo");
     } finally {
       setTogglingLive(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!match) return;
+    if (!confirm("¿Seguro que querés eliminar esta partida? Se revertirán las estrellas.")) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/matches/${match.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Error al eliminar la partida");
+        return;
+      }
+      toast.success("Partida eliminada");
+      router.push("/admin/matches");
+    } catch {
+      toast.error("Error al eliminar la partida");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -501,6 +522,22 @@ export default function MatchDetailPage() {
               </div>
             </div>
           )}
+
+          {/* Delete match */}
+          <div className="pt-4 border-t border-omega-border/30 text-center">
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-red-400 border border-transparent hover:border-red-500/40 transition-all disabled:opacity-50"
+            >
+              {deleting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Trash2 className="size-4" />
+              )}
+              Eliminar partida
+            </button>
+          </div>
 
           {/* Match metadata */}
           <div className="pt-4 border-t border-omega-border/30 text-center">
