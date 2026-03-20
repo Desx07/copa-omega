@@ -36,11 +36,8 @@ export const CHANGELOG: ChangelogEntry[] = [
         items: [
           "Retos reorganizados en 3 secciones: Pendientes, Aceptados, Completados",
           "Buscador de retos por nombre de blader",
-          "Ranking muestra todas las batallas recientes (antes solo 10)",
-          "Timestamps relativos en ranking: 'hace 5m', 'hace 2h'",
-          "Admin puede eliminar retos y editar resultados de partidas",
-          "Admin no aparece como objetivo de retos",
-          "Input de estrellas ya no muestra el 0 molesto",
+          "Ranking muestra todas las batallas recientes con timestamps relativos",
+          "Jueces pueden crear y resolver partidas desde su perfil",
         ],
       },
       {
