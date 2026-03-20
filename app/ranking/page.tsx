@@ -24,7 +24,7 @@ export default async function RankingPage() {
       .select("id, player1_id, player2_id, winner_id, stars_bet, completed_at, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)")
       .eq("status", "completed")
       .order("completed_at", { ascending: false })
-      .limit(20),
+      .limit(50),
     supabase
       .from("tournament_points")
       .select("player_id, points, player:players!player_id(alias, avatar_url)"),

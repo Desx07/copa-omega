@@ -399,8 +399,7 @@ export function RankingTabs({
             const dayCounts = new Map<string, number>();
             for (const m of matches) {
               if (!m.completed_at) continue;
-              const d = new Date(m.completed_at);
-              const key = `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
+              const key = new Date(m.completed_at).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", day: "2-digit", month: "2-digit", year: "numeric" });
               dayCounts.set(key, (dayCounts.get(key) ?? 0) + 1);
             }
             const days = [...dayCounts.entries()].slice(0, 7);
