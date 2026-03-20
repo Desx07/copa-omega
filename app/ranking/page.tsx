@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { RankingTabs } from "./_components/ranking-tabs";
 import TournamentCountdown from "@/app/_components/tournament-countdown";
 
+export const dynamic = "force-dynamic";
+
 export default async function RankingPage() {
   const supabase = await createClient();
 
@@ -22,7 +24,7 @@ export default async function RankingPage() {
       .select("id, player1_id, player2_id, winner_id, stars_bet, completed_at, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)")
       .eq("status", "completed")
       .order("completed_at", { ascending: false })
-      .limit(10),
+      .limit(20),
     supabase
       .from("tournament_points")
       .select("player_id, points, player:players!player_id(alias, avatar_url)"),

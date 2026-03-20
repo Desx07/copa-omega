@@ -38,13 +38,29 @@ export async function GET(request: Request) {
       case "all_active":
         query = query.in("status", ["pending", "accepted"]);
         break;
+      case "all": {
+        // Return all challenges (all statuses) — used by restructured page
+        // Admins see everything, regular users see only their own
+        const { data: adminCheck } = await supabase
+          .from("players")
+          .select("is_admin")
+          .eq("id", user.id)
+          .single();
+        if (!adminCheck?.is_admin) {
+          query = query.or(
+            `challenger_id.eq.${user.id},challenged_id.eq.${user.id}`
+          );
+        }
+        break;
+      }
       default:
         query = query
           .eq("challenged_id", user.id)
           .eq("status", "pending");
     }
 
-    const { data: challenges, error } = await query.limit(50);
+    const limit = filter === "all" ? 100 : 50;
+    const { data: challenges, error } = await query.limit(limit);
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 });
@@ -161,7 +177,7 @@ export async function POST(request: Request) {
 
     if (existing && existing.length > 0) {
       return Response.json(
-        { error: "Ya existe un reto pendiente entre ustedes" },
+        { error: "Ya tenés un reto pendiente con este blader" },
         { status: 409 }
       );
     }
