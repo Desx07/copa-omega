@@ -23,6 +23,7 @@ import {
   Trophy,
   ImageIcon,
   Pencil,
+  Gavel,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ interface Player {
   accent_color: string;
   created_at: string;
   profile_card_url: string | null;
+  is_judge: boolean;
 }
 
 interface Bey {
@@ -109,7 +111,7 @@ export default function ProfilePage() {
     const [playerResult, beysResult, badgesResult, allPlayersResult, tournamentBadgesResult] = await Promise.all([
       supabase
         .from("players")
-        .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at, profile_card_url")
+        .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at, profile_card_url, is_judge")
         .eq("id", user.id)
         .single(),
       supabase
@@ -646,6 +648,37 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* ═══ ZONA JUEZ ═══ */}
+        {player.is_judge && (
+          <div className="px-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Gavel className="size-4 text-omega-gold" />
+              <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">Zona Juez</h2>
+            </div>
+            <div className="omega-card p-4 space-y-3">
+              <p className="text-xs text-omega-muted">
+                Como juez, podes crear y resolver partidas.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <Link
+                  href="/admin/matches/new"
+                  className="omega-btn omega-btn-primary px-4 py-2.5 text-sm justify-center"
+                >
+                  <Plus className="size-4" />
+                  Crear partida
+                </Link>
+                <Link
+                  href="/admin/matches"
+                  className="omega-btn omega-btn-secondary px-4 py-2.5 text-sm justify-center"
+                >
+                  <Swords className="size-4" />
+                  Ver partidas
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ═══ LOGOUT ═══ */}
         <div className="px-4">

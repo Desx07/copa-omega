@@ -15,9 +15,9 @@ export default async function AdminMatchesPage() {
     redirect("/auth/login");
   }
 
-  // Verificar admin + obtener partidas en paralelo (queries independientes)
+  // Verificar admin/juez + obtener partidas en paralelo (queries independientes)
   const [profileResult, matchesResult] = await Promise.all([
-    supabase.from("players").select("is_admin").eq("id", user.id).single(),
+    supabase.from("players").select("is_admin, is_judge").eq("id", user.id).single(),
     supabase
       .from("matches")
       .select(
@@ -29,7 +29,7 @@ export default async function AdminMatchesPage() {
   const { data: profile } = profileResult;
   const { data: matches } = matchesResult;
 
-  if (!profile?.is_admin) {
+  if (!profile?.is_admin && !profile?.is_judge) {
     redirect("/dashboard");
   }
 

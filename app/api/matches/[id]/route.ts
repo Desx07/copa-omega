@@ -19,15 +19,15 @@ export async function PATCH(
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Check admin
+    // Check admin or judge
     const { data: adminPlayer } = await supabase
       .from("players")
-      .select("is_admin")
+      .select("is_admin, is_judge")
       .eq("id", user.id)
       .single();
 
-    if (!adminPlayer?.is_admin) {
-      return Response.json({ error: "Solo administradores" }, { status: 403 });
+    if (!adminPlayer?.is_admin && !adminPlayer?.is_judge) {
+      return Response.json({ error: "Solo administradores o jueces" }, { status: 403 });
     }
 
     const { id } = await params;

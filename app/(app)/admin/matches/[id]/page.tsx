@@ -57,14 +57,14 @@ export default function MatchDetailPage() {
       return;
     }
 
-    // Verificar que es admin
+    // Verificar que es admin o juez
     const { data: profile } = await supabase
       .from("players")
-      .select("is_admin")
+      .select("is_admin, is_judge")
       .eq("id", user.id)
       .single();
 
-    if (!profile?.is_admin) {
+    if (!profile?.is_admin && !profile?.is_judge) {
       router.push("/dashboard");
       return;
     }
