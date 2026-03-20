@@ -57,7 +57,7 @@ export default async function DashboardPage() {
       .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
       .eq("status", "completed")
       .order("completed_at", { ascending: false })
-      .limit(5),
+      .limit(15),
     supabase
       .from("players")
       .select("id")
