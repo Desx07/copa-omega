@@ -13,6 +13,52 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   // NEWEST FIRST
   {
+    version: "1.5",
+    name: "Arena Mejorada",
+    date: "2026-03-19",
+    categories: [
+      {
+        label: "Nuevo",
+        icon: "Sparkles",
+        color: "text-omega-gold",
+        items: [
+          "Bladers online: ve quién está conectado en el dashboard con avatares",
+          "Contador de batallas por fecha en el ranking (actividad diaria)",
+          "Batallas agrupadas por fecha en tu historial personal",
+          "67 Blades en la Xciclopedia (antes eran 31) con tiers actualizados al meta 2026",
+          "MeteorDragoon, ScorpioSpear, ClockMirage y 30+ blades nuevos agregados",
+        ],
+      },
+      {
+        label: "Mejorado",
+        icon: "TrendingUp",
+        color: "text-omega-blue",
+        items: [
+          "Retos reorganizados en 3 secciones: Pendientes, Aceptados, Completados",
+          "Buscador de retos por nombre de blader",
+          "Ranking muestra todas las batallas recientes (antes solo 10)",
+          "Timestamps relativos en ranking: 'hace 5m', 'hace 2h'",
+          "Admin puede eliminar retos y editar resultados de partidas",
+          "Admin no aparece como objetivo de retos",
+          "Input de estrellas ya no muestra el 0 molesto",
+        ],
+      },
+      {
+        label: "Arreglado",
+        icon: "Wrench",
+        color: "text-omega-green",
+        items: [
+          "Ranking no se actualizaba (página cacheada en Vercel)",
+          "No se pueden enviar retos duplicados al mismo blader",
+          "Retos ya no expiran (las notificaciones push no llegaban)",
+          "Resolver partidas ya no se traba (botón girando infinito)",
+          "Hora argentina en contadores de fecha (antes usaba UTC)",
+          "593 correcciones de acentos y ortografía en la Xciclopedia",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.4",
     name: "Xciclopedia Completa",
     date: "2026-03-19",
