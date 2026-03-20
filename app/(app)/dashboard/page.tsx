@@ -18,6 +18,8 @@ import {
   Search,
   Monitor,
   BookOpen,
+  Gavel,
+  Plus,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -48,7 +50,7 @@ export default async function DashboardPage() {
   const [playerResult, matchesResult, allPlayersResult, last10Result, nextTournamentResult, liveTournamentResult] = await Promise.all([
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, created_at, current_login_streak, max_login_streak, onboarding_completed, xp")
+      .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, is_judge, created_at, current_login_streak, max_login_streak, onboarding_completed, xp")
       .eq("id", user.id)
       .single(),
     supabase
@@ -467,6 +469,30 @@ export default async function DashboardPage() {
       <div className="px-4">
         <StoreButton />
       </div>
+
+      {/* ═══ ZONA JUEZ — only for judges ═══ */}
+      {(player as unknown as { is_judge: boolean }).is_judge && (
+        <div className="px-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Gavel className="size-4 text-omega-gold" />
+            <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Zona Juez</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Link href="/admin/matches/new" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Plus className="size-5 text-white" />
+              </div>
+              <p className="text-xs font-bold text-white">Crear partida</p>
+            </Link>
+            <Link href="/admin/matches" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-gold/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-gold/20">
+              <div className="size-10 rounded-xl bg-omega-gold/20 mb-2 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors">
+                <Swords className="size-5 text-omega-gold" />
+              </div>
+              <p className="text-xs font-bold text-omega-text">Ver partidas</p>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* ═══ MATCH HISTORY — collapsed by default ═══ */}
       <MatchHistory matches={matches} userId={user.id} />
