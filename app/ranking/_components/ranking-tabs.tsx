@@ -10,6 +10,7 @@ import {
   Swords,
   Medal,
   ChevronDown,
+  CalendarDays,
 } from "lucide-react";
 import { OnlineDot } from "@/app/_components/online-dot";
 
@@ -392,6 +393,43 @@ export function RankingTabs({
               }`}
             />
           </button>
+
+          {/* Daily activity counter */}
+          {matchesOpen && (() => {
+            const dayCounts = new Map<string, number>();
+            for (const m of matches) {
+              if (!m.completed_at) continue;
+              const d = new Date(m.completed_at);
+              const key = `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
+              dayCounts.set(key, (dayCounts.get(key) ?? 0) + 1);
+            }
+            const days = [...dayCounts.entries()].slice(0, 7);
+            if (days.length === 0) return null;
+
+            return (
+              <div className="omega-card p-3 space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <CalendarDays className="size-3.5 text-omega-blue" />
+                  <span className="text-[11px] font-bold text-omega-text uppercase tracking-wider">
+                    Actividad reciente
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {days.map(([date, count]) => (
+                    <div
+                      key={date}
+                      className="flex items-center gap-1.5 rounded-lg bg-omega-dark/60 border border-white/[0.06] px-2.5 py-1.5"
+                    >
+                      <span className="text-xs font-bold text-omega-text">{date}</span>
+                      <span className="omega-badge omega-badge-blue text-[10px]">
+                        {count} {count === 1 ? "batalla" : "batallas"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Collapsible content */}
           {matchesOpen && (
