@@ -126,9 +126,10 @@ export async function PATCH(
         p_winner_id: winner_id,
       });
 
-      // Save scores if provided
+      // Save scores if provided (use admin client to bypass RLS for judges)
       if (!error && player1_score != null && player2_score != null) {
-        await supabase
+        const adminScores = createAdminClient();
+        await adminScores
           .from("matches")
           .update({ player1_score, player2_score })
           .eq("id", id);
