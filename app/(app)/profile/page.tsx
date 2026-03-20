@@ -138,6 +138,7 @@ export default function ProfilePage() {
     ]);
 
     if (playerResult.data) {
+      console.log("PROFILE DATA:", JSON.stringify({ is_judge: playerResult.data.is_judge, alias: playerResult.data.alias }));
       setPlayer(playerResult.data);
       setTaglineInput(playerResult.data.tagline || "");
     }
