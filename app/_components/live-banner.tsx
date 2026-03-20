@@ -66,79 +66,58 @@ export default function LiveBanner() {
       {/* Red gradient top edge */}
       <div className="h-0.5 bg-gradient-to-r from-red-500 via-red-400 to-red-500" />
 
-      <div className="bg-gradient-to-r from-red-500/10 via-red-500/5 to-red-500/10 px-4 py-3">
-        <div className="flex items-center gap-3">
-          {/* Pulsing red dot + EN VIVO badge */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="relative flex size-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex size-2.5 rounded-full bg-red-500" />
-            </span>
-            <span className="flex items-center gap-1 bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
-              <Radio className="size-3" />
-              En Vivo
-            </span>
-          </div>
-
-          {/* Player matchup */}
-          <div className="flex-1 flex items-center justify-center gap-2 min-w-0">
-            {/* Player 1 */}
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className="size-7 rounded-full bg-omega-dark border border-omega-border overflow-hidden shrink-0">
-                {match.player1.avatar_url ? (
-                  <img
-                    src={match.player1.avatar_url}
-                    alt={match.player1.alias}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <div className="size-full flex items-center justify-center text-[10px] font-black text-omega-purple">
-                    {match.player1.alias.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <span className="text-xs font-bold text-omega-text truncate max-w-[60px]">
-                {match.player1.alias}
-              </span>
-            </div>
-
-            {/* VS */}
-            <Swords className="size-3.5 text-red-400 shrink-0" />
-
-            {/* Player 2 */}
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs font-bold text-omega-text truncate max-w-[60px]">
-                {match.player2.alias}
-              </span>
-              <div className="size-7 rounded-full bg-omega-dark border border-omega-border overflow-hidden shrink-0">
-                {match.player2.avatar_url ? (
-                  <img
-                    src={match.player2.avatar_url}
-                    alt={match.player2.alias}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <div className="size-full flex items-center justify-center text-[10px] font-black text-omega-purple">
-                    {match.player2.alias.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Stars bet */}
-          <div className="flex items-center gap-1 shrink-0">
+      <div className="bg-gradient-to-r from-red-500/10 via-red-500/5 to-red-500/10 px-4 py-3 space-y-2">
+        {/* EN VIVO badge centrado */}
+        <div className="flex items-center justify-center gap-2">
+          <span className="relative flex size-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-red-500" />
+          </span>
+          <span className="flex items-center gap-1 bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
+            <Radio className="size-3" />
+            En Vivo
+          </span>
+          <div className="flex items-center gap-1">
             <Star className="size-3 text-omega-gold fill-omega-gold" />
             <span className="text-xs font-bold text-omega-gold">{match.stars_bet}</span>
           </div>
         </div>
 
-        {/* Call to action */}
-        <div className="mt-2 text-center">
-          <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider group-hover:text-red-300 transition-colors">
-            Ver batalla en vivo &rarr;
-          </span>
+        {/* Jugadores */}
+        <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="size-8 rounded-full bg-omega-dark border border-omega-border overflow-hidden shrink-0">
+              {match.player1.avatar_url ? (
+                <img src={match.player1.avatar_url} alt="" className="size-full object-cover" />
+              ) : (
+                <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                  {match.player1.alias.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <span className="text-sm font-bold text-omega-text truncate">{match.player1.alias}</span>
+          </div>
+
+          <Swords className="size-4 text-red-400 shrink-0" />
+
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-sm font-bold text-omega-text truncate">{match.player2.alias}</span>
+            <div className="size-8 rounded-full bg-omega-dark border border-omega-border overflow-hidden shrink-0">
+              {match.player2.avatar_url ? (
+                <img src={match.player2.avatar_url} alt="" className="size-full object-cover" />
+              ) : (
+                <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                  {match.player2.alias.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* CTA */}
+        <p className="text-center text-[10px] font-bold text-red-400 uppercase tracking-wider group-hover:text-red-300 transition-colors">
+          Ver batalla en vivo &rarr;
+        </p>
       </div>
     </Link>
   );
