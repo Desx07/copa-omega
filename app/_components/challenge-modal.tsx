@@ -6,7 +6,7 @@ import { Swords, Star, X, Loader2, Zap, Send } from "lucide-react";
 type ChallengeModalProps = {
   targetId: string;
   targetAlias: string;
-  onClose: () => void;
+  onClose: (created?: boolean) => void;
 };
 
 export default function ChallengeModal({
@@ -45,7 +45,7 @@ export default function ChallengeModal({
       }
 
       setSuccess(true);
-      setTimeout(() => onClose(), 1500);
+      setTimeout(() => onClose(true), 1500);
     } catch {
       setError("Error de conexion");
       setSubmitting(false);
@@ -57,7 +57,7 @@ export default function ChallengeModal({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={() => onClose()}
       />
 
       {/* Modal */}
@@ -68,7 +68,7 @@ export default function ChallengeModal({
             <Swords className="size-4 text-omega-red" />
             Retar a {targetAlias}
           </div>
-          <button onClick={onClose} className="text-omega-muted hover:text-omega-text">
+          <button onClick={() => onClose()} className="text-omega-muted hover:text-omega-text">
             <X className="size-4" />
           </button>
         </div>
