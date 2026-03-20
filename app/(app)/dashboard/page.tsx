@@ -497,6 +497,20 @@ export default async function DashboardPage() {
       {/* ═══ MATCH HISTORY — collapsed by default ═══ */}
       <MatchHistory matches={matches} userId={user.id} />
 
+      {/* ═══ ALL MATCHES LINK ═══ */}
+      <div className="px-4">
+        <Link
+          href="/matches"
+          className="omega-card flex items-center justify-between px-4 py-3 hover:border-omega-blue/30 transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <Swords className="size-5 text-omega-blue" />
+            <span className="text-sm font-bold text-omega-text">Ver todas las partidas</span>
+          </div>
+          <span className="text-xs text-omega-muted group-hover:text-omega-blue transition-colors">&rarr;</span>
+        </Link>
+      </div>
+
       {/* ═══ ADMIN ZONE — visually separated ═══ */}
       {player.is_admin && (
         <div className="px-4 space-y-3">
