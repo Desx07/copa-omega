@@ -38,7 +38,6 @@ type Challenge = {
   stars_bet: number;
   message: string | null;
   status: string;
-  expires_at: string;
   created_at: string;
   responded_at: string | null;
   challenger: PlayerInfo;
@@ -181,8 +180,7 @@ export default function ChallengesClient({
   const completedChallenges = filtered.filter(
     (c) =>
       c.status === "completed" ||
-      c.status === "declined" ||
-      c.status === "expired"
+      c.status === "declined"
   );
 
   const sections: { key: SectionKey; items: Challenge[] }[] = [
@@ -462,14 +460,6 @@ function ChallengeCard({
         <div className="flex items-center gap-2 text-[11px] text-omega-muted">
           <Clock className="size-3" />
           <span>{timeAgo(challenge.created_at)}</span>
-          {challenge.status === "pending" && (
-            <>
-              <span className="text-omega-muted/30">|</span>
-              <span className="text-omega-gold">
-                {timeLeft(challenge.expires_at)}
-              </span>
-            </>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -536,7 +526,6 @@ function ChallengeCard({
               {challenge.status === "accepted" && "Aceptado"}
               {challenge.status === "declined" && "Rechazado"}
               {challenge.status === "completed" && "Completado"}
-              {challenge.status === "expired" && "Expirado"}
             </span>
           )}
         </div>
@@ -681,13 +670,3 @@ function timeAgo(date: string) {
   return `hace ${days}d`;
 }
 
-function timeLeft(expiresAt: string) {
-  const diff = new Date(expiresAt).getTime() - Date.now();
-  if (diff <= 0) return "Expirado";
-  const hours = Math.floor(diff / 3600000);
-  if (hours < 1) {
-    const mins = Math.floor(diff / 60000);
-    return `${mins}m restantes`;
-  }
-  return `${hours}h restantes`;
-}

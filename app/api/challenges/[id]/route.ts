@@ -56,18 +56,6 @@ export async function PATCH(
       );
     }
 
-    // Check if expired
-    if (new Date(challenge.expires_at) < new Date()) {
-      await supabase
-        .from("challenges")
-        .update({ status: "expired" })
-        .eq("id", id);
-      return Response.json(
-        { error: "Este reto ha expirado" },
-        { status: 400 }
-      );
-    }
-
     const newStatus = action === "accept" ? "accepted" : "declined";
 
     const { error: updateError } = await supabase

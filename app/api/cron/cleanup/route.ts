@@ -10,20 +10,7 @@ export async function POST(request: Request) {
     const supabase = createAdminClient();
     const errors: string[] = [];
 
-    // 1. Expire challenges
-    const { data: expiredChallengesData, error: challengeError } = await supabase
-      .from("challenges")
-      .update({ status: "expired" })
-      .eq("status", "pending")
-      .lt("expires_at", new Date().toISOString())
-      .select("id");
-
-    if (challengeError) {
-      console.error("[cron] Error expiring challenges:", challengeError);
-      errors.push("challenges: " + challengeError.message);
-    }
-
-    // 2. Deactivate expired polls
+    // 1. Deactivate expired polls
     const { data: expiredPollsData, error: pollError } = await supabase
       .from("polls")
       .update({ is_active: false })
@@ -38,7 +25,6 @@ export async function POST(request: Request) {
     }
 
     return Response.json({
-      expired_challenges: expiredChallengesData?.length ?? 0,
       expired_polls: expiredPollsData?.length ?? 0,
       errors: errors.length > 0 ? errors : undefined,
       timestamp: new Date().toISOString(),
