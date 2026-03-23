@@ -21,6 +21,14 @@ import { useCart } from "../_components/cart-context";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
+/** Formatea precio argentino */
+function formatPrice(n: number): string {
+  if (Number.isInteger(n)) {
+    return `\$${n.toLocaleString("es-AR")}`;
+  }
+  return `\$${n.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 type PaymentMethod = "cash" | "transfer";
 
 export default function CartPage() {
@@ -255,7 +263,7 @@ export default function CartPage() {
                         {item.name}
                       </p>
                       <p className="text-xs text-omega-muted mt-0.5">
-                        ${Number(item.price).toFixed(2)} c/u
+                        {formatPrice(Number(item.price))} c/u
                       </p>
                     </div>
 
@@ -285,7 +293,7 @@ export default function CartPage() {
                     {/* Subtotal & remove */}
                     <div className="text-right shrink-0 space-y-1">
                       <p className="text-sm font-black text-omega-gold">
-                        ${(Number(item.price) * item.quantity).toFixed(2)}
+                        {formatPrice(Number(item.price) * item.quantity)}
                       </p>
                       <button
                         onClick={() => removeItem(item.product_id)}
@@ -303,7 +311,7 @@ export default function CartPage() {
               <div className="omega-section-header justify-between">
                 <span>Total</span>
                 <span className="text-xl font-black text-omega-gold">
-                  ${totalPrice.toFixed(2)}
+                  {formatPrice(totalPrice)}
                 </span>
               </div>
             </div>
@@ -449,7 +457,7 @@ export default function CartPage() {
               ) : (
                 <>
                   <CheckCircle className="size-5" />
-                  Confirmar pedido -- ${totalPrice.toFixed(2)}
+                  Confirmar pedido -- {formatPrice(totalPrice)}
                 </>
               )}
             </button>

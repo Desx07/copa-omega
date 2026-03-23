@@ -20,6 +20,7 @@ import {
   BookOpen,
   Gavel,
   Plus,
+  TrendingUp,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -476,8 +477,8 @@ export default async function DashboardPage() {
         <StoreButton />
       </div>
 
-      {/* ═══ ZONA JUEZ — only for judges ═══ */}
-      {(player as unknown as { is_judge: boolean }).is_judge && (
+      {/* ═══ ZONA JUEZ — for judges and admins ═══ */}
+      {(player.is_admin || player.is_judge) && (
         <div className="px-4 space-y-3">
           <div className="flex items-center gap-2">
             <Gavel className="size-4 text-omega-gold" />
@@ -495,6 +496,12 @@ export default async function DashboardPage() {
                 <Swords className="size-5 text-omega-gold" />
               </div>
               <p className="text-xs font-bold text-omega-text">Ver partidas</p>
+            </Link>
+            <Link href="/admin/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Trophy className="size-5 text-white" />
+              </div>
+              <p className="text-xs font-bold text-white">Torneos</p>
             </Link>
           </div>
         </div>
@@ -517,26 +524,14 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* ═══ ADMIN ZONE — visually separated ═══ */}
-      {(player.is_admin || player.is_judge) && (
+      {/* ═══ ADMIN ZONE — only for admins ═══ */}
+      {player.is_admin && (
         <div className="px-4 space-y-3">
           <div className="flex items-center gap-2">
             <Shield className="size-4 text-omega-blue" />
-            <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Administracion</h2>
+            <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Zona Admin</h2>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Link href="/admin/matches" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
-              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                <Swords className="size-5 text-white" />
-              </div>
-              <p className="text-xs font-bold text-white">Partidas</p>
-            </Link>
-            <Link href="/admin/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
-              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                <Shield className="size-5 text-white" />
-              </div>
-              <p className="text-xs font-bold text-white">Torneos</p>
-            </Link>
             <Link href="/admin/products" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <Package className="size-5 text-white" />
@@ -549,6 +544,12 @@ export default async function DashboardPage() {
               </div>
               <p className="text-xs font-bold text-white">Pedidos</p>
             </Link>
+            <Link href="/admin/players" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <User className="size-5 text-white" />
+              </div>
+              <p className="text-xs font-bold text-white">Jugadores</p>
+            </Link>
             <Link href="/admin/carousel" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <Image className="size-5 text-white" />
@@ -560,6 +561,12 @@ export default async function DashboardPage() {
                 <Calendar className="size-5 text-white" />
               </div>
               <p className="text-xs font-bold text-white">Temporadas</p>
+            </Link>
+            <Link href="/admin/analytics" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <TrendingUp className="size-5 text-white" />
+              </div>
+              <p className="text-xs font-bold text-white">Analytics</p>
             </Link>
           </div>
           <StoreToggle />
