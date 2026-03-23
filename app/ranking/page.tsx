@@ -16,6 +16,7 @@ export default async function RankingPage() {
       .from("players")
       .select("id, alias, full_name, stars, wins, losses, is_eliminated, avatar_url")
       .eq("is_hidden", false)
+      .or("wins.gt.0,losses.gt.0")
       .order("stars", { ascending: false })
       .order("wins", { ascending: false })
       .order("created_at", { ascending: true }),
