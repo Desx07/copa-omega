@@ -67,58 +67,17 @@ export async function PATCH(
 
     if (isEdit) {
       // EDIT MODE: match already completed, admin is correcting the result
-      const adminSupabase = createAdminClient();
-      const oldWinnerId = currentMatch.winner_id;
-      const starsBet = currentMatch.stars_bet ?? 0;
+      // Use atomic RPC to handle star reversal + match update in a single transaction
+      const { error: editError } = await supabase.rpc("edit_match_winner", {
+        p_match_id: id,
+        p_new_winner_id: winner_id,
+        p_player1_score: player1_score ?? null,
+        p_player2_score: player2_score ?? null,
+      });
 
-      // If winner changed, reverse old star transfer and apply new one
-      if (oldWinnerId && oldWinnerId !== winner_id) {
-        const oldLoserId = oldWinnerId === currentMatch.player1_id
-          ? currentMatch.player2_id
-          : currentMatch.player1_id;
-
-        // Fetch both players current stats
-        const { data: bothPlayers } = await adminSupabase
-          .from("players")
-          .select("id, stars, wins, losses")
-          .in("id", [currentMatch.player1_id, currentMatch.player2_id]);
-
-        if (bothPlayers && bothPlayers.length === 2) {
-          const oldWinner = bothPlayers.find((p) => p.id === oldWinnerId)!;
-          const oldLoser = bothPlayers.find((p) => p.id === oldLoserId)!;
-
-          // Reverse old result + apply new result in one update per player
-          // Old winner becomes new loser: -starsBet (reverse) -starsBet (new loss) = -2*starsBet
-          // Old loser becomes new winner: +starsBet (reverse) +starsBet (new win) = +2*starsBet
-          await adminSupabase
-            .from("players")
-            .update({
-              stars: oldWinner.stars - 2 * starsBet,
-              wins: Math.max(0, oldWinner.wins - 1),
-              losses: oldWinner.losses + 1,
-            })
-            .eq("id", oldWinnerId);
-
-          await adminSupabase
-            .from("players")
-            .update({
-              stars: oldLoser.stars + 2 * starsBet,
-              wins: oldLoser.wins + 1,
-              losses: Math.max(0, oldLoser.losses - 1),
-            })
-            .eq("id", oldLoserId);
-        }
+      if (editError) {
+        return Response.json({ error: editError.message }, { status: 400 });
       }
-
-      // Update match record (scores only if winner didn't change, or scores + winner)
-      const updatePayload: Record<string, unknown> = { winner_id };
-      if (player1_score != null) updatePayload.player1_score = player1_score;
-      if (player2_score != null) updatePayload.player2_score = player2_score;
-
-      await adminSupabase
-        .from("matches")
-        .update(updatePayload)
-        .eq("id", id);
     } else {
       // FIRST RESOLVE: use the RPC
       const { error } = await supabase.rpc("resolve_match", {
@@ -404,38 +363,14 @@ export async function DELETE(
       return Response.json({ error: "Partida no encontrada" }, { status: 404 });
     }
 
-    // If match was completed, reverse the star transfer and win/loss counts
+    // If match was completed, atomically reverse the star transfer and win/loss counts
     if (match.status === "completed" && match.winner_id) {
-      const loserId =
-        match.winner_id === match.player1_id
-          ? match.player2_id
-          : match.player1_id;
-      const starsBet = match.stars_bet ?? 0;
+      const { error: reverseError } = await supabase.rpc("reverse_match_stars", {
+        p_match_id: id,
+      });
 
-      const { data: bothPlayers } = await adminSupabase
-        .from("players")
-        .select("id, stars, wins, losses")
-        .in("id", [match.winner_id, loserId]);
-
-      if (bothPlayers && bothPlayers.length === 2) {
-        const winner = bothPlayers.find((p) => p.id === match.winner_id)!;
-        const loser = bothPlayers.find((p) => p.id === loserId)!;
-
-        await adminSupabase
-          .from("players")
-          .update({
-            stars: winner.stars - starsBet,
-            wins: Math.max(0, winner.wins - 1),
-          })
-          .eq("id", match.winner_id);
-
-        await adminSupabase
-          .from("players")
-          .update({
-            stars: loser.stars + starsBet,
-            losses: Math.max(0, loser.losses - 1),
-          })
-          .eq("id", loserId);
+      if (reverseError) {
+        return Response.json({ error: reverseError.message }, { status: 400 });
       }
     }
 

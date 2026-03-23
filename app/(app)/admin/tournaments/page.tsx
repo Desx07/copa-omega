@@ -17,14 +17,14 @@ export default async function AdminTournamentsPage() {
   }
 
   const [profileResult, tournamentsResult] = await Promise.all([
-    supabase.from("players").select("is_admin").eq("id", user.id).single(),
+    supabase.from("players").select("is_admin, is_judge").eq("id", user.id).single(),
     supabase
       .from("tournaments")
       .select("*, participant_count:tournament_participants(count)")
       .order("sort_order", { ascending: true }),
   ]);
 
-  if (!profileResult.data?.is_admin) {
+  if (!profileResult.data?.is_admin && !profileResult.data?.is_judge) {
     redirect("/dashboard");
   }
 

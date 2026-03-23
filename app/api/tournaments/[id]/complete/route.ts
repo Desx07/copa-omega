@@ -38,15 +38,15 @@ export async function POST(
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Verify admin
+    // Verify admin or judge
     const { data: currentPlayer } = await supabase
       .from("players")
-      .select("is_admin")
+      .select("is_admin, is_judge")
       .eq("id", user.id)
       .single();
 
-    if (!currentPlayer?.is_admin) {
-      return Response.json({ error: "Solo administradores" }, { status: 403 });
+    if (!currentPlayer?.is_admin && !currentPlayer?.is_judge) {
+      return Response.json({ error: "Solo administradores o jueces" }, { status: 403 });
     }
 
     // Get tournament

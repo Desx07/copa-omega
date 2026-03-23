@@ -423,7 +423,7 @@ export async function PATCH(
           cookie: request.headers.get("cookie") ?? "",
         },
         body: JSON.stringify({ player_id: playerId }),
-      }).catch(() => {});
+      }).catch((err) => console.error("Badge check failed:", err));
     }
 
     // Resolve predictions for this tournament match

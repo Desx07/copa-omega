@@ -90,12 +90,12 @@ export async function PATCH(
 
     const { data: admin } = await supabase
       .from("players")
-      .select("is_admin")
+      .select("is_admin, is_judge")
       .eq("id", user.id)
       .single();
 
-    if (!admin?.is_admin) {
-      return Response.json({ error: "Solo administradores" }, { status: 403 });
+    if (!admin?.is_admin && !admin?.is_judge) {
+      return Response.json({ error: "Solo administradores o jueces" }, { status: 403 });
     }
 
     // Fetch tournament to check status
@@ -118,15 +118,9 @@ export async function PATCH(
       );
     }
 
-    // Admins can edit any tournament (including completed ones to fix data)
-    // Non-admins can only edit during registration
-    const { data: adminCheck } = await supabase
-      .from("players")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-
-    if (tournament.status !== "registration" && !adminCheck?.is_admin) {
+    // Admins/judges can edit any tournament (including completed ones to fix data)
+    // Others can only edit during registration
+    if (tournament.status !== "registration" && !admin?.is_admin && !admin?.is_judge) {
       return Response.json(
         { error: "Solo se puede editar un torneo en fase de inscripción" },
         { status: 400 }
@@ -237,12 +231,12 @@ export async function DELETE(
 
     const { data: admin } = await supabase
       .from("players")
-      .select("is_admin")
+      .select("is_admin, is_judge")
       .eq("id", user.id)
       .single();
 
-    if (!admin?.is_admin) {
-      return Response.json({ error: "Solo administradores" }, { status: 403 });
+    if (!admin?.is_admin && !admin?.is_judge) {
+      return Response.json({ error: "Solo administradores o jueces" }, { status: 403 });
     }
 
     // Use admin client to bypass RLS for cascade delete

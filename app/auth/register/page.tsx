@@ -22,6 +22,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (alias.trim().length < 3) {
+      toast.error("Tu nombre de batalla debe tener al menos 3 caracteres");
+      return;
+    }
+
     setLoading(true);
     try {
       const supabase = createClient();
@@ -109,6 +114,7 @@ export default function RegisterPage() {
             id="alias"
             type="text"
             required
+            minLength={3}
             value={alias}
             onChange={(e) => setAlias(e.target.value)}
             placeholder="Ej: ShadowDranzer, StarBreaker"

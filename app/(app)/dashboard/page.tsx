@@ -518,7 +518,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ═══ ADMIN ZONE — visually separated ═══ */}
-      {player.is_admin && (
+      {(player.is_admin || player.is_judge) && (
         <div className="px-4 space-y-3">
           <div className="flex items-center gap-2">
             <Shield className="size-4 text-omega-blue" />

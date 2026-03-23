@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { awardXp } from "@/lib/award-xp";
 import { getCurrentWeekStart } from "@/lib/missions";
 
@@ -92,9 +93,10 @@ export async function POST(
       return Response.json({ error: insertError.message }, { status: 500 });
     }
 
-    // Award XP for voting (fire-and-forget)
+    // Award XP for voting (fire-and-forget, uses admin client to bypass RLS)
     try {
-      await awardXp(supabase, user.id, 2, "vote_poll", "Voto en encuesta");
+      const adminSupabase = createAdminClient();
+      await awardXp(adminSupabase, user.id, 2, "vote_poll", "Voto en encuesta");
     } catch (xpErr) {
       console.error("Error awarding poll vote XP:", xpErr);
     }

@@ -38,7 +38,8 @@ export async function PATCH(request: Request) {
   let body;
   try {
     body = await request.json();
-  } catch {
+  } catch (err) {
+    console.error("Failed to parse carousel settings body:", err);
     return Response.json({ error: "Body invalido" }, { status: 400 });
   }
 

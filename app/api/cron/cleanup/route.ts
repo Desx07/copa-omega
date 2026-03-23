@@ -24,8 +24,23 @@ export async function POST(request: Request) {
       errors.push("polls: " + pollError.message);
     }
 
+    // 2. Expire pending challenges past their expires_at
+    const { data: expiredChallengesData, error: challengeError } = await supabase
+      .from("challenges")
+      .update({ status: "expired" })
+      .eq("status", "pending")
+      .not("expires_at", "is", null)
+      .lt("expires_at", new Date().toISOString())
+      .select("id");
+
+    if (challengeError) {
+      console.error("[cron] Error expiring challenges:", challengeError);
+      errors.push("challenges: " + challengeError.message);
+    }
+
     return Response.json({
       expired_polls: expiredPollsData?.length ?? 0,
+      expired_challenges: expiredChallengesData?.length ?? 0,
       errors: errors.length > 0 ? errors : undefined,
       timestamp: new Date().toISOString(),
     });

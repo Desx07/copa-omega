@@ -34,6 +34,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validar que player_id sea un UUID valido para evitar inyeccion en .or()
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(player_id)) {
+      return Response.json(
+        { error: "player_id no es un UUID valido" },
+        { status: 400 }
+      );
+    }
+
     // Only allow checking own badges or admin checking any
     const { data: currentPlayer } = await supabase
       .from("players")

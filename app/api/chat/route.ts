@@ -266,7 +266,8 @@ async function searchWeb(query: string): Promise<string> {
       .join("\n");
 
     return `[Resultados de búsqueda web actualizada]:\n${snippets}`;
-  } catch {
+  } catch (err) {
+    console.error("Web search failed:", err);
     return "";
   }
 }

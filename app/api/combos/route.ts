@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { awardXp } from "@/lib/award-xp";
 import { getCurrentWeekStart } from "@/lib/missions";
 
@@ -123,9 +124,10 @@ export async function POST(request: Request) {
       return Response.json({ error: error.message }, { status: 500 });
     }
 
-    // Award XP for sharing combo (fire-and-forget)
+    // Award XP for sharing combo (fire-and-forget, uses admin client to bypass RLS)
     try {
-      await awardXp(supabase, user.id, 3, "share_combo", "Combo compartido");
+      const adminSupabase = createAdminClient();
+      await awardXp(adminSupabase, user.id, 3, "share_combo", "Combo compartido");
     } catch (xpErr) {
       console.error("Error awarding combo XP:", xpErr);
     }

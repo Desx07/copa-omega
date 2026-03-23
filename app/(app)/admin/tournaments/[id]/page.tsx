@@ -69,7 +69,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
 
   const [profileResult, tournamentResult, participantsResult, matchesResult] =
     await Promise.all([
-      supabase.from("players").select("is_admin").eq("id", user.id).single(),
+      supabase.from("players").select("is_admin, is_judge").eq("id", user.id).single(),
       supabase.from("tournaments").select("*").eq("id", id).single(),
       supabase
         .from("tournament_participants")
@@ -88,7 +88,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
         .order("match_order", { ascending: true }),
     ]);
 
-  if (!profileResult.data?.is_admin) {
+  if (!profileResult.data?.is_admin && !profileResult.data?.is_judge) {
     redirect("/dashboard");
   }
 

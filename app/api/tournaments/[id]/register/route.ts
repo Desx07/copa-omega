@@ -24,14 +24,14 @@ export async function POST(
     try {
       const body = await request.json();
       if (body.player_id) {
-        // Verify caller is admin
+        // Verify caller is admin or judge
         const { data: admin } = await supabase
           .from("players")
-          .select("is_admin")
+          .select("is_admin, is_judge")
           .eq("id", user.id)
           .single();
-        if (!admin?.is_admin) {
-          return Response.json({ error: "Solo admins pueden inscribir a otros" }, { status: 403 });
+        if (!admin?.is_admin && !admin?.is_judge) {
+          return Response.json({ error: "Solo admins/jueces pueden inscribir a otros" }, { status: 403 });
         }
         targetPlayerId = body.player_id;
       }
