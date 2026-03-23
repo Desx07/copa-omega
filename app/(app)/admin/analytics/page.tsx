@@ -249,9 +249,7 @@ export default function AdminAnalyticsPage() {
             </div>
             <h1 className="text-2xl font-black neon-gold">ANALYTICS DE VENTAS</h1>
           </div>
-          <p className="text-xs text-omega-muted mt-2">
-            Costo base por unidad: {formatARS(COST_BASIS)}
-          </p>
+{/* Costo base removido - se calcula internamente */}
         </div>
       </div>
 
@@ -282,7 +280,7 @@ export default function AdminAnalyticsPage() {
             <div className="rounded-2xl bg-gradient-to-br from-omega-red/15 to-omega-red/5 p-4 text-center shadow-sm border border-omega-red/20">
               <Package className="size-4 text-omega-red mx-auto mb-1" />
               <p className="text-lg font-black text-omega-red leading-tight">{formatARS(summary.totalCost)}</p>
-              <p className="text-[11px] text-omega-muted">costo ({summary.totalItemsSold} uds)</p>
+              <p className="text-[11px] text-omega-muted">costo ({summary.totalItemsSold} unidades)</p>
             </div>
 
             {/* Ganancia neta */}
