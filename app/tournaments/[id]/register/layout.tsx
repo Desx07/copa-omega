@@ -1,5 +1,3 @@
-import { Toaster } from "sonner";
-
 export default function TournamentRegisterLayout({
   children,
 }: {
@@ -16,7 +14,6 @@ export default function TournamentRegisterLayout({
       </div>
 
       {children}
-      <Toaster position="top-center" richColors />
     </div>
   );
 }

@@ -39,32 +39,37 @@ export default function TournamentRegisterPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
 
-      const res = await fetch(`/api/tournaments/${tournamentId}`);
-      if (!res.ok) {
-        toast.error("Torneo no encontrado");
+        const res = await fetch(`/api/tournaments/${tournamentId}`);
+        if (!res.ok) {
+          toast.error("Torneo no encontrado");
+          setLoading(false);
+          return;
+        }
+        const data = await res.json();
+        setTournament(data);
+        setParticipantCount(data.participants?.length ?? 0);
+
+        if (user) {
+          setIsLoggedIn(true);
+          const { data: playerData } = await supabase
+            .from("players")
+            .select("id, alias, avatar_url, stars")
+            .eq("id", user.id)
+            .single();
+          setPlayer(playerData);
+
+          const already = data.participants?.some((p: { player_id: string }) => p.player_id === user.id);
+          setAlreadyRegistered(!!already);
+        }
+      } catch (err) {
+        console.error("Error loading register page:", err);
+        toast.error("Error al cargar el torneo");
+      } finally {
         setLoading(false);
-        return;
       }
-      const data = await res.json();
-      setTournament(data);
-      setParticipantCount(data.participants?.length ?? 0);
-
-      if (user) {
-        setIsLoggedIn(true);
-        const { data: playerData } = await supabase
-          .from("players")
-          .select("id, alias, avatar_url, stars")
-          .eq("id", user.id)
-          .single();
-        setPlayer(playerData);
-
-        const already = data.participants?.some((p: { player_id: string }) => p.player_id === user.id);
-        setAlreadyRegistered(!!already);
-      }
-
-      setLoading(false);
     }
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
