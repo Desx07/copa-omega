@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { ScanLine, X, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,7 +26,6 @@ export function QrScannerButton() {
 }
 
 function QrScannerModal({ onClose }: { onClose: () => void }) {
-  const router = useRouter();
   const scannerRef = useRef<HTMLDivElement>(null);
   const html5QrCodeRef = useRef<unknown>(null);
   const [status, setStatus] = useState<"loading" | "scanning" | "error">("loading");
@@ -59,11 +57,14 @@ function QrScannerModal({ onClose }: { onClose: () => void }) {
             if (decodedText.includes("/tournaments/") && decodedText.includes("/register")) {
               html5QrCode.stop().then(() => {
                 toast.success("QR escaneado! Redirigiendo...");
+                // Hard navigation: la ruta /tournaments/[id]/register está fuera
+                // del grupo (app), así que router.push falla al cambiar de layout tree.
+                // window.location.href fuerza full page reload.
                 try {
                   const url = new URL(decodedText);
-                  router.push(url.pathname);
+                  window.location.href = url.pathname;
                 } catch {
-                  router.push(decodedText);
+                  window.location.href = decodedText;
                 }
                 onClose();
               }).catch(() => {

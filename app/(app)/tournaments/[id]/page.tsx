@@ -417,13 +417,15 @@ export default async function TournamentDetailPage({ params }: PageProps) {
                 </p>
               </div>
             ) : (
-              <Link
+              // <a> en vez de <Link>: la ruta /tournaments/[id]/register está fuera
+              // del grupo (app), necesita hard navigation (cambio de layout tree)
+              <a
                 href={`/tournaments/${tournament.id}/register`}
                 className="omega-btn omega-btn-primary w-full px-4 py-3 text-base shadow-lg shadow-omega-purple/20"
               >
                 <UserPlus className="size-5" />
                 {user ? "Inscribirme" : "Registrarme e inscribirme"}
-              </Link>
+              </a>
             )}
           </div>
         )}
