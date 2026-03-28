@@ -162,7 +162,7 @@ export async function POST(request: Request) {
 
     // Generate QR code data (URL for registration)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-      || "https://copa-omega-rho.vercel.app";
+      || "https://bladers-sf.vercel.app";
     const qrCode = `${baseUrl}/tournaments/${tournament.id}/register`;
 
     // Update with QR code data

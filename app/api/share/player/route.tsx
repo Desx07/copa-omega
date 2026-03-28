@@ -233,7 +233,7 @@ export async function GET(request: Request) {
             display: "flex",
           }}
         >
-          copa-omega-rho.vercel.app
+          bladers-sf.vercel.app
         </div>
       </div>
     ),

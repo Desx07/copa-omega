@@ -116,6 +116,9 @@ export default function PollsPage() {
         setOptions(["", ""]);
         setShowCreate(false);
         fetchPolls();
+      } else {
+        const data = await res.json().catch(() => null);
+        alert(data?.error || "Error al crear la encuesta");
       }
     } finally {
       setCreating(false);

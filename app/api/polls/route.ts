@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * POST /api/polls
@@ -52,7 +53,11 @@ export async function POST(request: Request) {
       }
     }
 
-    const { data: poll, error } = await supabase
+    // Usar admin client para bypasear RLS (la política es admin-only pero
+    // queremos que cualquier usuario autenticado pueda crear encuestas)
+    const adminSupabase = createAdminClient();
+
+    const { data: poll, error } = await adminSupabase
       .from("polls")
       .insert({
         question,

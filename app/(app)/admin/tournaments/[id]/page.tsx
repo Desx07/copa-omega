@@ -117,7 +117,7 @@ export default async function AdminTournamentDetailPage({ params }: PageProps) {
 
   const status = STATUS_CONFIG[tournament.status];
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://copaomega.ar";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bladers-sf.vercel.app";
   const registerUrl = `${baseUrl}/tournaments/${tournament.id}/register`;
 
   const isRoundBased =
