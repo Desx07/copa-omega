@@ -799,6 +799,31 @@ async function generateFinalsBracket(
     }
   }
 
+  // Create 3rd place match (between semifinal losers) if bracket has semifinals
+  if (totalRounds >= 2) {
+    const finalRound = roundOffset + totalRounds;
+    const { data: tpMatch, error: tpErr } = await adminSupabase
+      .from("tournament_matches")
+      .insert({
+        tournament_id: tournamentId,
+        round: finalRound,
+        match_order: orderStart++,
+        player1_id: null,
+        player2_id: null,
+        bracket_position: "3P",
+        status: "pending",
+        stage: "finals",
+      })
+      .select("id")
+      .single();
+
+    if (tpErr) {
+      console.error("[Finals] Error creating 3rd place match:", tpErr);
+    } else {
+      console.log(`[Finals] Created 3rd place match: ${tpMatch.id}`);
+    }
+  }
+
   // Update tournament: switch to finals stage
   const { error: stageErr } = await adminSupabase
     .from("tournaments")
