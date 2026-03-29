@@ -102,6 +102,7 @@ export default async function AdminMatchesPage() {
           matches={allMatches}
           mode="admin"
           linkPrefix="/admin/matches"
+          isAdmin
         />
       </div>
     </div>

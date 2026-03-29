@@ -33,6 +33,7 @@ export default function NewTournamentPage() {
   const [maxParticipants, setMaxParticipants] = useState(32);
   const [topCut, setTopCut] = useState<number | null>(null);
   const [swissRounds, setSwissRounds] = useState<number | null>(null);
+  const [category, setCategory] = useState<"standard" | "jr">("standard");
   const [logoUrl, setLogoUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -61,6 +62,7 @@ export default function NewTournamentPage() {
           name: name.trim(),
           description: description.trim() || null,
           format,
+          category,
           max_participants: maxParticipants,
           top_cut: showTopCut ? topCut : null,
           swiss_rounds: format === "swiss" ? swissRounds : null,
@@ -127,6 +129,63 @@ export default function NewTournamentPage() {
               maxLength={100}
               className="omega-input"
             />
+          </div>
+
+          {/* Category */}
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-omega-muted uppercase tracking-wider">
+              Categoria
+            </label>
+            <div className="flex gap-3">
+              <label
+                className={`flex-1 flex items-center gap-3 rounded-xl border-l-4 bg-omega-card px-4 py-3 shadow-sm cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
+                  category === "standard"
+                    ? "border-l-omega-purple aura-purple"
+                    : "border-l-omega-border hover:border-l-omega-purple"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="category"
+                  value="standard"
+                  checked={category === "standard"}
+                  onChange={() => setCategory("standard")}
+                  className="accent-[var(--color-omega-purple)]"
+                />
+                <div>
+                  <p className={`text-sm font-bold ${category === "standard" ? "text-omega-purple" : "text-omega-text"}`}>
+                    Estandar
+                  </p>
+                  <p className="text-[11px] text-omega-muted mt-0.5">
+                    Torneo principal
+                  </p>
+                </div>
+              </label>
+              <label
+                className={`flex-1 flex items-center gap-3 rounded-xl border-l-4 bg-omega-card px-4 py-3 shadow-sm cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
+                  category === "jr"
+                    ? "border-l-omega-blue aura-blue"
+                    : "border-l-omega-border hover:border-l-omega-blue"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="category"
+                  value="jr"
+                  checked={category === "jr"}
+                  onChange={() => setCategory("jr")}
+                  className="accent-[var(--color-omega-blue)]"
+                />
+                <div>
+                  <p className={`text-sm font-bold ${category === "jr" ? "text-omega-blue" : "text-omega-text"}`}>
+                    JR
+                  </p>
+                  <p className="text-[11px] text-omega-muted mt-0.5">
+                    Categoria junior
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Description */}
@@ -322,6 +381,10 @@ export default function NewTournamentPage() {
                 {name || "Nombre del torneo"}
               </p>
               <p className="text-[11px] text-omega-muted uppercase tracking-wider">
+                <span className={category === "jr" ? "text-omega-blue font-bold" : "text-omega-purple font-bold"}>
+                  {category === "jr" ? "JR" : "Estandar"}
+                </span>
+                {" -- "}
                 {FORMAT_OPTIONS.find((f) => f.value === format)?.label} -- Max{" "}
                 {maxParticipants} jugadores
                 {topCut && showTopCut && ` -> Top ${topCut} a llaves`}

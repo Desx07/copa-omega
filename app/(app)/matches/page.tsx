@@ -16,24 +16,30 @@ export default async function PublicMatchesPage() {
     redirect("/auth/login");
   }
 
-  // Fetch all matches with player aliases — pending + in_progress fully, completed last 50
-  const [pendingResult, completedResult] = await Promise.all([
+  // Fetch matches + check admin/judge role in parallel
+  const matchSelect =
+    "id, status, stars_bet, created_at, completed_at, tournament_id, player1_id, player2_id, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)";
+
+  const [pendingResult, completedResult, profileResult] = await Promise.all([
     supabase
       .from("matches")
-      .select(
-        "id, status, stars_bet, created_at, completed_at, tournament_id, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)"
-      )
+      .select(matchSelect)
       .in("status", ["pending", "in_progress"])
       .order("created_at", { ascending: false }),
     supabase
       .from("matches")
-      .select(
-        "id, status, stars_bet, created_at, completed_at, tournament_id, player1:players!player1_id(alias), player2:players!player2_id(alias), winner:players!winner_id(alias)"
-      )
+      .select(matchSelect)
       .in("status", ["completed", "cancelled"])
       .order("completed_at", { ascending: false })
       .limit(50),
+    supabase
+      .from("players")
+      .select("is_admin, is_judge")
+      .eq("id", user.id)
+      .single(),
   ]);
+
+  const isAdmin = !!(profileResult.data?.is_admin || profileResult.data?.is_judge);
 
   const pendingMatches = (pendingResult.data ?? []) as unknown as MatchData[];
   const completedMatches = (completedResult.data ?? []) as unknown as MatchData[];
@@ -91,6 +97,7 @@ export default async function PublicMatchesPage() {
           matches={allMatches}
           mode="public"
           linkPrefix="/matches"
+          isAdmin={isAdmin}
         />
       </div>
     </div>

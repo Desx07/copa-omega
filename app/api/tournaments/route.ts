@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, description, format, max_participants, top_cut, swiss_rounds, logo_url } = body;
+    const { name, description, format, category, max_participants, top_cut, swiss_rounds, logo_url } = body;
 
     // Validate required fields
     if (!name || !format || max_participants == null) {
@@ -75,6 +75,15 @@ export async function POST(request: Request) {
         {
           error: `Formato inválido. Debe ser uno de: ${validFormats.join(", ")}`,
         },
+        { status: 400 }
+      );
+    }
+
+    // Validate category
+    const validCategories = ["standard", "jr"];
+    if (category && !validCategories.includes(category)) {
+      return Response.json(
+        { error: `Categoria invalida. Debe ser: ${validCategories.join(", ")}` },
         { status: 400 }
       );
     }
@@ -146,6 +155,7 @@ export async function POST(request: Request) {
         name,
         description: description || null,
         format,
+        category: category || "standard",
         max_participants,
         top_cut: top_cut ?? null,
         swiss_rounds: format === "swiss" ? (swiss_rounds ?? null) : null,

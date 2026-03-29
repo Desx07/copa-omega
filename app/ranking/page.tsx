@@ -11,7 +11,7 @@ export default async function RankingPage() {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [playersResult, matchesResult, tournamentPointsResult, nextTournamentResult, liveTournamentResult] = await Promise.all([
+  const [playersResult, matchesResult, standardPointsResult, jrPointsResult, nextTournamentResult, liveTournamentResult] = await Promise.all([
     supabase
       .from("players")
       .select("id, alias, full_name, stars, wins, losses, is_eliminated, avatar_url")
@@ -26,9 +26,16 @@ export default async function RankingPage() {
       .eq("status", "completed")
       .order("completed_at", { ascending: false })
       .limit(50),
+    // Puntos de torneos standard
     supabase
       .from("tournament_points")
-      .select("player_id, points, player:players!player_id(alias, avatar_url)"),
+      .select("player_id, points, player:players!player_id(alias, avatar_url), tournaments!inner(category)")
+      .eq("tournaments.category", "standard"),
+    // Puntos de torneos JR
+    supabase
+      .from("tournament_points")
+      .select("player_id, points, player:players!player_id(alias, avatar_url), tournaments!inner(category)")
+      .eq("tournaments.category", "jr"),
     // Next upcoming tournament (registration with future event_date)
     supabase
       .from("tournaments")
@@ -51,30 +58,41 @@ export default async function RankingPage() {
 
   const players = playersResult.data;
   const { data: recentMatches } = matchesResult;
-  const rawTournamentPoints = tournamentPointsResult.data ?? [];
+  const rawStandardPoints = standardPointsResult.data ?? [];
+  const rawJrPoints = jrPointsResult.data ?? [];
 
   const leaderboard = players ?? [];
   const matches = recentMatches ?? [];
 
-  // Aggregate tournament points by player
-  const pointsMap = new Map<string, { alias: string; avatar_url: string | null; total: number }>();
-  for (const tp of rawTournamentPoints) {
-    const player = tp.player as unknown as { alias: string; avatar_url: string | null };
-    if (!player) continue;
-    const existing = pointsMap.get(tp.player_id);
-    if (existing) {
-      existing.total += tp.points;
-    } else {
-      pointsMap.set(tp.player_id, {
-        alias: player.alias,
-        avatar_url: player.avatar_url,
-        total: tp.points,
-      });
+  // Función para agregar puntos por jugador
+  function aggregatePoints(rawPoints: typeof rawStandardPoints) {
+    const pointsMap = new Map<string, { alias: string; avatar_url: string | null; total: number }>();
+    for (const tp of rawPoints) {
+      const player = tp.player as unknown as { alias: string; avatar_url: string | null };
+      if (!player) continue;
+      const existing = pointsMap.get(tp.player_id);
+      if (existing) {
+        existing.total += tp.points;
+      } else {
+        pointsMap.set(tp.player_id, {
+          alias: player.alias,
+          avatar_url: player.avatar_url,
+          total: tp.points,
+        });
+      }
     }
+    return [...pointsMap.entries()]
+      .map(([id, data]) => ({ id, ...data }))
+      .sort((a, b) => b.total - a.total);
   }
-  const tournamentRanking = [...pointsMap.entries()]
-    .map(([id, data]) => ({ id, ...data }))
-    .sort((a, b) => b.total - a.total);
+
+  const standardRanking = aggregatePoints(rawStandardPoints);
+  const jrRanking = aggregatePoints(rawJrPoints);
+  // Para el stat counter del hero, usamos el total combinado
+  const totalTournamentPlayers = new Set([
+    ...standardRanking.map((e) => e.id),
+    ...jrRanking.map((e) => e.id),
+  ]).size;
 
   // Calculate current win streaks for all players
   const streaks: Record<string, number> = {};
@@ -170,12 +188,12 @@ export default async function RankingPage() {
             <span className="font-bold text-omega-blue">{matches.length}</span>
             <span className="text-omega-muted text-xs">partidas recientes</span>
           </div>
-          {tournamentRanking.length > 0 && (
+          {totalTournamentPlayers > 0 && (
             <>
               <div className="w-px h-4 bg-white/10" />
               <div className="flex items-center gap-1.5 text-sm">
                 <Medal className="size-3.5 text-omega-purple" />
-                <span className="font-bold text-omega-purple">{tournamentRanking.length}</span>
+                <span className="font-bold text-omega-purple">{totalTournamentPlayers}</span>
                 <span className="text-omega-muted text-xs">en torneos</span>
               </div>
             </>
@@ -194,7 +212,8 @@ export default async function RankingPage() {
       <RankingTabs
         leaderboard={leaderboard}
         streaks={streaks}
-        tournamentRanking={tournamentRanking}
+        standardRanking={standardRanking}
+        jrRanking={jrRanking}
         matches={serializedMatches}
       />
     </div>

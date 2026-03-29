@@ -8,7 +8,11 @@ import {
   Crown,
   ChevronDown,
   Search,
+  RotateCcw,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -21,6 +25,8 @@ export type MatchData = {
   created_at: string;
   completed_at: string | null;
   tournament_id: string | null;
+  player1_id?: string;
+  player2_id?: string;
   player1: { alias: string } | null;
   player2: { alias: string } | null;
   winner: { alias: string } | null;
@@ -64,10 +70,12 @@ export default function MatchesClient({
   matches,
   mode,
   linkPrefix,
+  isAdmin = false,
 }: {
   matches: MatchData[];
   mode: "admin" | "public";
   linkPrefix: string;
+  isAdmin?: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
@@ -136,6 +144,7 @@ export default function MatchesClient({
           onToggle={() => toggleSection(key)}
           mode={mode}
           linkPrefix={linkPrefix}
+          isAdmin={isAdmin}
         />
       ))}
     </div>
@@ -153,6 +162,7 @@ function MatchSection({
   onToggle,
   mode,
   linkPrefix,
+  isAdmin,
 }: {
   sectionKey: SectionKey;
   matches: MatchData[];
@@ -160,6 +170,7 @@ function MatchSection({
   onToggle: () => void;
   mode: "admin" | "public";
   linkPrefix: string;
+  isAdmin: boolean;
 }) {
   const config = SECTION_CONFIG[sectionKey];
 
@@ -206,6 +217,7 @@ function MatchSection({
                 match={match}
                 mode={mode}
                 linkPrefix={linkPrefix}
+                isAdmin={isAdmin}
               />
             ))
           )}
@@ -223,11 +235,15 @@ function MatchCard({
   match,
   mode,
   linkPrefix,
+  isAdmin,
 }: {
   match: MatchData;
   mode: "admin" | "public";
   linkPrefix: string;
+  isAdmin: boolean;
 }) {
+  const router = useRouter();
+  const [rematchLoading, setRematchLoading] = useState(false);
   const isPending = match.status === "pending";
   const isCompleted = match.status === "completed";
   const isCancelled = match.status === "cancelled";
@@ -240,6 +256,41 @@ function MatchCard({
       : isCompleted
         ? "border-l-omega-green"
         : "border-l-omega-red";
+
+  const canRematch =
+    isAdmin && isCompleted && !!match.player1_id && !!match.player2_id;
+
+  async function handleRematch(e: React.MouseEvent) {
+    // Evitar que el click propague al Link padre en modo admin
+    e.preventDefault();
+    e.stopPropagation();
+    if (!match.player1_id || !match.player2_id) return;
+
+    setRematchLoading(true);
+    try {
+      const res = await fetch("/api/matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          player1_id: match.player1_id,
+          player2_id: match.player2_id,
+          stars_bet: match.stars_bet,
+        }),
+      });
+
+      if (res.ok) {
+        toast.success("Revancha creada!");
+        router.refresh();
+      } else {
+        const data = (await res.json()) as { error?: string };
+        toast.error(data.error ?? "Error al crear revancha");
+      }
+    } catch {
+      toast.error("Error de conexion");
+    } finally {
+      setRematchLoading(false);
+    }
+  }
 
   const baseClassName = `block rounded-xl border-l-4 ${borderColor} bg-omega-card px-4 py-3 shadow-sm ${isCancelled ? "opacity-50" : ""}`;
   const adminClassName = `${baseClassName} hover:shadow-md hover:scale-[1.01] transition-all`;
@@ -317,16 +368,34 @@ function MatchCard({
             minute: "2-digit",
           })}
         </p>
-        {mode === "admin" && isPending && (
-          <span className="text-xs font-bold text-omega-blue">
-            Resolver &rarr;
-          </span>
-        )}
-        {isCompleted && match.winner && (
-          <p className="text-[11px] text-omega-green">
-            Ganador: <span className="font-bold">{match.winner.alias}</span>
-          </p>
-        )}
+        <div className="flex items-center gap-2">
+          {canRematch && (
+            <button
+              onClick={handleRematch}
+              disabled={rematchLoading}
+              className="omega-btn omega-btn-secondary !px-2 !py-1 text-[10px] !rounded-md gap-1"
+              title="Crear revancha con los mismos jugadores y estrellas"
+              data-testid="rematch-btn"
+            >
+              {rematchLoading ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <RotateCcw className="size-3" />
+              )}
+              Revancha
+            </button>
+          )}
+          {mode === "admin" && isPending && (
+            <span className="text-xs font-bold text-omega-blue">
+              Resolver &rarr;
+            </span>
+          )}
+          {isCompleted && match.winner && (
+            <p className="text-[11px] text-omega-green">
+              Ganador: <span className="font-bold">{match.winner.alias}</span>
+            </p>
+          )}
+        </div>
       </div>
     </>
   );

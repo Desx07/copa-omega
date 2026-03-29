@@ -51,7 +51,8 @@ interface TournamentEntry {
 interface RankingTabsProps {
   leaderboard: LeaderboardPlayer[];
   streaks: Record<string, number>;
-  tournamentRanking: TournamentEntry[];
+  standardRanking: TournamentEntry[];
+  jrRanking: TournamentEntry[];
   matches: MatchEntry[];
 }
 
@@ -75,10 +76,11 @@ function timeAgo(dateStr: string): string {
 export function RankingTabs({
   leaderboard,
   streaks,
-  tournamentRanking,
+  standardRanking,
+  jrRanking,
   matches,
 }: RankingTabsProps) {
-  const [activeTab, setActiveTab] = useState<"estrellas" | "torneos">(
+  const [activeTab, setActiveTab] = useState<"estrellas" | "standard" | "jr">(
     "estrellas"
   );
   const [matchesOpen, setMatchesOpen] = useState(true);
@@ -102,17 +104,30 @@ export function RankingTabs({
             Estrellas
           </button>
           <button
-            onClick={() => setActiveTab("torneos")}
+            onClick={() => setActiveTab("standard")}
             className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-bold transition-all ${
-              activeTab === "torneos"
+              activeTab === "standard"
                 ? "bg-omega-card text-omega-purple shadow-sm"
                 : "text-omega-muted hover:text-omega-text"
             }`}
           >
             <Trophy
-              className={`size-3.5 ${activeTab === "torneos" ? "text-omega-purple" : ""}`}
+              className={`size-3.5 ${activeTab === "standard" ? "text-omega-purple" : ""}`}
             />
-            Torneos
+            Estandar
+          </button>
+          <button
+            onClick={() => setActiveTab("jr")}
+            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-bold transition-all ${
+              activeTab === "jr"
+                ? "bg-omega-card text-omega-blue shadow-sm"
+                : "text-omega-muted hover:text-omega-text"
+            }`}
+          >
+            <Medal
+              className={`size-3.5 ${activeTab === "jr" ? "text-omega-blue" : ""}`}
+            />
+            JR
           </button>
         </div>
       </div>
@@ -280,94 +295,24 @@ export function RankingTabs({
           })()}
       </div>
 
-      {/* ═══ TAB CONTENT: TORNEOS ═══ */}
-      <div className={activeTab === "torneos" ? "space-y-5" : "hidden"}>
-        {tournamentRanking.length === 0 && (
-          <div className="mx-4 omega-card p-12 text-center space-y-4">
-            <Medal className="size-16 text-omega-muted/30 mx-auto" />
-            <div className="space-y-2">
-              <p className="text-lg font-bold text-omega-muted">
-                No hay puntos de torneo todavia
-              </p>
-              <p className="text-sm text-omega-muted/70">
-                Los puntos se asignan al participar en torneos oficiales
-              </p>
-            </div>
-          </div>
-        )}
+      {/* ═══ TAB CONTENT: ESTANDAR ═══ */}
+      <div className={activeTab === "standard" ? "space-y-5" : "hidden"}>
+        <TournamentRankingSection
+          ranking={standardRanking}
+          label="Ranking Estandar"
+          emptyMessage="No hay puntos de torneo estandar todavia"
+          accentColor="purple"
+        />
+      </div>
 
-        {/* Top 3 podium for tournaments */}
-        {tournamentRanking.length >= 3 && (
-          <div className="grid grid-cols-3 gap-3 px-4">
-            <TournamentPodiumCard entry={tournamentRanking[1]} rank={2} />
-            <TournamentPodiumCard entry={tournamentRanking[0]} rank={1} />
-            <TournamentPodiumCard entry={tournamentRanking[2]} rank={3} />
-          </div>
-        )}
-
-        {tournamentRanking.length > 0 && (
-          <div className="px-4 space-y-3">
-            {/* Section header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Medal className="size-4 text-omega-gold" />
-                <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">
-                  Ranking de Torneos
-                </h2>
-              </div>
-              <span className="omega-badge omega-badge-gold">
-                {tournamentRanking.length}
-              </span>
-            </div>
-
-            {/* List rows (skip top 3 if podium shown) */}
-            <div className="space-y-2">
-              {tournamentRanking.slice(tournamentRanking.length >= 3 ? 3 : 0).map((entry, index) => {
-                const rank = (tournamentRanking.length >= 3 ? index + 3 : index) + 1;
-                return (
-                  <Link
-                    key={entry.id}
-                    href={`/player/${entry.id}`}
-                    className="rounded-xl border-l-4 border-l-omega-border bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3"
-                  >
-                    {/* Rank */}
-                    <span className="text-sm font-black w-6 text-center shrink-0 text-omega-muted/70">
-                      {rank}
-                    </span>
-
-                    {/* Avatar */}
-                    <div className="size-9 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
-                      {entry.avatar_url ? (
-                        <img
-                          src={entry.avatar_url}
-                          alt=""
-                          className="size-full object-cover"
-                        />
-                      ) : (
-                        <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
-                          {entry.alias.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Alias */}
-                    <span className="text-sm font-bold text-omega-text flex-1 truncate">
-                      {entry.alias}
-                    </span>
-
-                    {/* Points */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      <span className="text-sm font-black text-omega-gold">
-                        {entry.total}
-                      </span>
-                      <span className="text-[10px] text-omega-muted">pts</span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
+      {/* ═══ TAB CONTENT: JR ═══ */}
+      <div className={activeTab === "jr" ? "space-y-5" : "hidden"}>
+        <TournamentRankingSection
+          ranking={jrRanking}
+          label="Ranking JR"
+          emptyMessage="No hay puntos de torneo JR todavia"
+          accentColor="blue"
+        />
       </div>
 
       {/* ═══ COLLAPSIBLE RECENT MATCHES (always visible, below tabs) ═══ */}
@@ -482,6 +427,116 @@ export function RankingTabs({
               })}
             </div>
           )}
+        </div>
+      )}
+    </>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Tournament Ranking Section (reutilizable para Standard y JR)               */
+/* -------------------------------------------------------------------------- */
+
+function TournamentRankingSection({
+  ranking,
+  label,
+  emptyMessage,
+  accentColor,
+}: {
+  ranking: TournamentEntry[];
+  label: string;
+  emptyMessage: string;
+  accentColor: "purple" | "blue";
+}) {
+  const badgeClass = accentColor === "purple" ? "omega-badge-gold" : "omega-badge-blue";
+  const iconClass = accentColor === "purple" ? "text-omega-gold" : "text-omega-blue";
+
+  return (
+    <>
+      {ranking.length === 0 && (
+        <div className="mx-4 omega-card p-12 text-center space-y-4">
+          <Medal className="size-16 text-omega-muted/30 mx-auto" />
+          <div className="space-y-2">
+            <p className="text-lg font-bold text-omega-muted">
+              {emptyMessage}
+            </p>
+            <p className="text-sm text-omega-muted/70">
+              Los puntos se asignan al participar en torneos oficiales
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Top 3 podium */}
+      {ranking.length >= 3 && (
+        <div className="grid grid-cols-3 gap-3 px-4">
+          <TournamentPodiumCard entry={ranking[1]} rank={2} />
+          <TournamentPodiumCard entry={ranking[0]} rank={1} />
+          <TournamentPodiumCard entry={ranking[2]} rank={3} />
+        </div>
+      )}
+
+      {ranking.length > 0 && (
+        <div className="px-4 space-y-3">
+          {/* Section header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Medal className={`size-4 ${iconClass}`} />
+              <h2 className="text-xs font-bold text-omega-text uppercase tracking-wider">
+                {label}
+              </h2>
+            </div>
+            <span className={`omega-badge ${badgeClass}`}>
+              {ranking.length}
+            </span>
+          </div>
+
+          {/* List rows (skip top 3 if podium shown) */}
+          <div className="space-y-2">
+            {ranking.slice(ranking.length >= 3 ? 3 : 0).map((entry, index) => {
+              const rank = (ranking.length >= 3 ? index + 3 : index) + 1;
+              return (
+                <Link
+                  key={entry.id}
+                  href={`/player/${entry.id}`}
+                  className="rounded-xl border-l-4 border-l-omega-border bg-omega-card px-4 py-3 shadow-sm transition-all hover:shadow-md hover:scale-[1.01] flex items-center gap-3"
+                >
+                  {/* Rank */}
+                  <span className="text-sm font-black w-6 text-center shrink-0 text-omega-muted/70">
+                    {rank}
+                  </span>
+
+                  {/* Avatar */}
+                  <div className="size-9 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
+                    {entry.avatar_url ? (
+                      <img
+                        src={entry.avatar_url}
+                        alt=""
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                        {entry.alias.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Alias */}
+                  <span className="text-sm font-bold text-omega-text flex-1 truncate">
+                    {entry.alias}
+                  </span>
+
+                  {/* Points */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-sm font-black text-omega-gold">
+                      {entry.total}
+                    </span>
+                    <span className="text-[10px] text-omega-muted">pts</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       )}
     </>

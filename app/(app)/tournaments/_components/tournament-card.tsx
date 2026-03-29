@@ -6,6 +6,7 @@ interface Tournament {
   name: string;
   description: string | null;
   format: "round_robin" | "swiss" | "single_elimination";
+  category?: "standard" | "jr";
   max_participants: number;
   status: "registration" | "in_progress" | "completed" | "cancelled";
   current_round: number;
@@ -75,9 +76,16 @@ export default function TournamentCard({ tournament, href }: TournamentCardProps
           <h3 className="text-base font-black text-omega-text truncate">
             {tournament.name}
           </h3>
-          <p className="text-[11px] text-omega-muted uppercase tracking-wider font-medium mt-0.5">
-            {FORMAT_LABELS[tournament.format]}
-          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-[11px] text-omega-muted uppercase tracking-wider font-medium">
+              {FORMAT_LABELS[tournament.format]}
+            </p>
+            {tournament.category === "jr" ? (
+              <span className="omega-badge omega-badge-blue text-[9px]">JR</span>
+            ) : (
+              <span className="omega-badge omega-badge-purple text-[9px]">EST</span>
+            )}
+          </div>
         </div>
 
         {/* Status badge */}
