@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+<style>
+  @font-face {
+    font-family: 'Normatica';
+    src: url('file:///C:/Users/ariel/AppData/Local/Microsoft/Windows/Fonts/Normatica-Bold.ttf');
+    font-weight: bold;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* CAPA 1: Gradiente de 2 tonos (fondo completo) */
+  .layer-gradient {
+    position: absolute;
+    top: 0; left: 0;
+    width: 1080px;
+    height: 1920px;
+    background: linear-gradient(
+      to bottom,
+      #ec790f 0%,
+      #d06030 25%,
+      #b04060 45%,
+      #8B1A5C 60%,
+      #6B1248 100%
+    );
+    z-index: 1;
+  }
+
+  /* CAPA 2: Imagen arriba (mitad superior) */
+  .layer-image {
+    position: absolute;
+    top: 0; left: 0;
+    width: 1080px;
+    height: 960px;
+    z-index: 2;
+    overflow: hidden;
+  }
+  .layer-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  /* CAPA 3: PNG de puntitos (textura) */
+  .layer-dots {
+    position: absolute;
+    top: 0; left: 0;
+    width: 1080px;
+    height: 1920px;
+    z-index: 3;
+    opacity: 0.23;
+    background-image: url('pattern_dots.png');
+    background-size: 1080px 1920px;
+  }
+
+  /* CAPA 4: Logo del torneo (centro) */
+  .layer-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%);
+    width: 380px;
+    z-index: 4;
+    filter: drop-shadow(0 6px 20px rgba(0,0,0,0.5));
+  }
+
+  /* CAPA 5: Data/texto (abajo) */
+  .layer-data {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 1080px;
+    height: 800px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    font-family: 'Normatica', 'Impact', sans-serif;
+    text-transform: uppercase;
+    color: #ffffff;
+  }
+
+  .inscripciones {
+    font-size: 72px;
+    font-weight: bold;
+    line-height: 75px;
+    text-align: center;
+    text-shadow: 0 7.5px 7.5px rgba(0,0,0,0.25);
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-top: 10px;
+  }
+  .info-block {
+    text-align: center;
+  }
+  .info-main {
+    font-size: 63px;
+    font-weight: bold;
+    line-height: 71px;
+    text-shadow: 0 6.5px 6.5px rgba(0,0,0,0.25);
+  }
+  .info-sub {
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 0 3px 3px rgba(0,0,0,0.25);
+    opacity: 0.9;
+  }
+  .separator {
+    width: 7px;
+    height: 95px;
+    background: #ffffff;
+  }
+
+  .hora {
+    font-size: 40px;
+    font-weight: bold;
+    color: #FF80B0;
+    text-shadow: 0 4.3px 4.3px rgba(0,0,0,0.25);
+    margin-top: 5px;
+  }
+
+  .cta-btn {
+    width: 669px;
+    height: 58px;
+    border-radius: 19px;
+    background: linear-gradient(to right, #e61e11, #fca011);
+    opacity: 0.65;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5px;
+  }
+  .cta-text {
+    font-size: 41px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 4.3px 4.3px rgba(0,0,0,0.25);
+  }
+
+  .bladers-logo {
+    width: 260px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+  <!-- CAPA 1: Gradiente 2 tonos -->
+  <div class="layer-gradient"></div>
+
+  <!-- CAPA 2: Imagen superior -->
+  <div class="layer-image">
+    <img src="fondo_ghost_face.png" alt="bg">
+  </div>
+
+  <!-- CAPA 3: Puntitos -->
+  <div class="layer-dots"></div>
+
+  <!-- CAPA 4: Logo torneo -->
+  <img class="layer-logo" src="logo_fantasma_clean.png" alt="logo">
+
+  <!-- CAPA 5: Data -->
+  <div class="layer-data">
+    <div class="inscripciones">¡INSCRIPCIONES<br>ABIERTAS!</div>
+    <div class="info-row">
+      <div class="info-block">
+        <div class="info-main">SAB-28</div>
+        <div class="info-sub">MARZO</div>
+      </div>
+      <div class="separator"></div>
+      <div class="info-block">
+        <div class="info-main">BLADERS.SFE</div>
+        <div class="info-sub">📍 PARQUE FEDERAL</div>
+      </div>
+    </div>
+    <div class="hora">Hora de comienzo: 16:00h</div>
+    <div class="cta-btn">
+      <span class="cta-text">PARTICIPÁ POR UN BEYBLADE 🏆</span>
+    </div>
+    <img class="bladers-logo" src="../../bladers-logo.png" alt="Bladers SF">
+  </div>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 25pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+}
+.bar { margin: 0 0 14pt 0; }
+.intro {
+  color: #94A3B8;
+  font-size: 13pt;
+  margin: 0 0 16pt 0;
+}
+.columns {
+  display: flex;
+  flex-direction: row;
+  gap: 20pt;
+}
+.col { width: 315pt; }
+.card-star {
+  background: #111827;
+  border: 2px solid #F59E0B;
+  border-radius: 10pt;
+  padding: 14pt 16pt;
+}
+.card-coin {
+  background: #111827;
+  border: 2px solid #8B5CF6;
+  border-radius: 10pt;
+  padding: 14pt 16pt;
+}
+.card-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8pt;
+  margin: 0 0 6pt 0;
+}
+h2 {
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0;
+}
+.star-color { color: #F59E0B; }
+.coin-color { color: #8B5CF6; }
+.label {
+  font-size: 10pt;
+  margin: 2pt 0 8pt 0;
+  font-weight: bold;
+}
+.label-star { color: #FBBF24; }
+.label-coin { color: #A78BFA; }
+ul {
+  margin: 0;
+  padding: 0 0 0 14pt;
+  color: #FFFFFF;
+  font-size: 10pt;
+  line-height: 2.0;
+}
+.footer-box {
+  background: #111827;
+  border: 2px solid #EF4444;
+  border-radius: 8pt;
+  padding: 10pt 16pt;
+  margin: 16pt 0 0 0;
+  text-align: center;
+}
+.footer-text {
+  color: #EF4444;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Dos Sistemas Separados</h1>
+  <img src="assets/accent-purple.png" class="bar" style="width: 650pt; height: 3pt;">
+  <p class="intro">En Copa Omega hay DOS monedas que NUNCA se mezclan:</p>
+  <div class="columns">
+    <div class="col">
+      <div class="card-star">
+        <div class="card-header">
+          <img src="assets/star-icon.png" style="width: 26pt; height: 26pt;">
+          <h2 class="star-color">ESTRELLAS = RANKING</h2>
+        </div>
+        <p class="label label-star">Muestran que tan groso sos</p>
+        <ul>
+          <li>Se apuestan en retos</li>
+          <li>Definen tu posicion en el ranking</li>
+          <li>Cuantas mas tenes, mas arriba estas</li>
+          <li>NO sirven para comprar nada</li>
+          <li>NO se usan para inscripcion</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card-coin">
+        <div class="card-header">
+          <img src="assets/coin-icon.png" style="width: 26pt; height: 26pt;">
+          <h2 class="coin-color">OMEGA COINS = PLATA</h2>
+        </div>
+        <p class="label label-coin">Tu billetera virtual</p>
+        <ul>
+          <li>Compras beyblades REALES</li>
+          <li>Pagas inscripcion al torneo</li>
+          <li>Se ganan en torneos y retos</li>
+          <li>Se ganan por misiones, check-in, referidos</li>
+          <li>Se pueden comprar con $ARS</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-box">
+    <p class="footer-text">NUNCA se convierten entre si. Son sistemas paralelos.</p>
+  </div>
+</div>
+</body>
+</html>

@@ -123,6 +123,10 @@ async function addBackground(slideData, targetSlide, tmpDir) {
     let imagePath = slideData.background.path.startsWith('file://')
       ? slideData.background.path.replace('file://', '')
       : slideData.background.path;
+    // Fix Windows paths: /C:/... -> C:/...
+    if (process.platform === 'win32' && imagePath.match(/^\/[A-Za-z]:\//)) {
+      imagePath = imagePath.substring(1);
+    }
     targetSlide.background = { path: imagePath };
   } else if (slideData.background.type === 'color' && slideData.background.value) {
     targetSlide.background = { color: slideData.background.value };
@@ -134,6 +138,10 @@ function addElements(slideData, targetSlide, pres) {
   for (const el of slideData.elements) {
     if (el.type === 'image') {
       let imagePath = el.src.startsWith('file://') ? el.src.replace('file://', '') : el.src;
+      // Fix Windows paths: /C:/... -> C:/...
+      if (process.platform === 'win32' && imagePath.match(/^\/[A-Za-z]:\//)) {
+        imagePath = imagePath.substring(1);
+      }
       targetSlide.addImage({
         path: imagePath,
         x: el.position.x,

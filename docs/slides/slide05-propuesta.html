@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-title.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 30pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+  text-align: center;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 20pt 0;
+}
+.subtitle {
+  color: #94A3B8;
+  font-size: 12pt;
+  text-align: center;
+  margin: 0 0 20pt 0;
+}
+.coins {
+  display: flex;
+  flex-direction: row;
+  gap: 25pt;
+  justify-content: center;
+}
+.coin-card {
+  width: 280pt;
+  background: #1A1D33;
+  border-radius: 10pt;
+  padding: 20pt;
+  text-align: center;
+}
+.coin-card-star {
+  border: 2px solid #F59E0B;
+}
+.coin-card-omega {
+  border: 2px solid #8B5CF6;
+}
+.coin-icon {
+  margin: 0 auto 8pt auto;
+}
+h2 {
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+}
+.star-title {
+  color: #F59E0B;
+}
+.omega-title {
+  color: #8B5CF6;
+}
+.coin-type {
+  font-size: 11pt;
+  margin: 0 0 10pt 0;
+}
+.free-type {
+  color: #10B981;
+}
+.premium-type {
+  color: #F59E0B;
+}
+.coin-desc {
+  color: #94A3B8;
+  font-size: 10pt;
+  margin: 0;
+  line-height: 1.6;
+}
+.both-label {
+  color: #FFFFFF;
+  font-size: 12pt;
+  text-align: center;
+  margin: 18pt 0 0 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Propuesta Copa Omega: Doble Moneda</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <p class="subtitle">Sistema de dos monedas complementarias</p>
+  <div class="coins">
+    <div class="coin-card coin-card-star">
+      <img src="assets/star-icon.png" class="coin-icon" style="width: 50pt; height: 50pt;">
+      <h2 class="star-title">ESTRELLAS</h2>
+      <p class="coin-type free-type">Moneda GRATIS</p>
+      <p class="coin-desc">Se ganan compitiendo en torneos,<br>batallas y misiones semanales.</p>
+    </div>
+    <div class="coin-card coin-card-omega">
+      <img src="assets/coin-icon.png" class="coin-icon" style="width: 50pt; height: 50pt;">
+      <h2 class="omega-title">OMEGA COINS</h2>
+      <p class="coin-type premium-type">Moneda PREMIUM</p>
+      <p class="coin-desc">Se compran con $ARS.<br>Mejor conversion para compras.</p>
+    </div>
+  </div>
+  <p class="both-label"><b>Ambas se pueden gastar en la Store y en torneos</b></p>
+</div>
+</body>
+</html>

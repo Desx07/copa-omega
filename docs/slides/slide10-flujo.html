@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-flow.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 25pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 14pt 0;
+}
+.flow-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+}
+.flow-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6pt;
+}
+.flow-box {
+  background: #1A1D33;
+  border-radius: 6pt;
+  padding: 8pt 12pt;
+  text-align: center;
+}
+.box-purple {
+  border: 1px solid #8B5CF6;
+}
+.box-gold {
+  border: 1px solid #F59E0B;
+}
+.box-green {
+  border: 1px solid #10B981;
+}
+.box-red {
+  border: 1px solid #EF4444;
+}
+.label-title {
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0 0 2pt 0;
+}
+.purple-label { color: #8B5CF6; }
+.gold-label { color: #F59E0B; }
+.green-label { color: #10B981; }
+.flow-text {
+  color: #FFFFFF;
+  font-size: 9pt;
+  margin: 0;
+}
+.flow-muted {
+  color: #94A3B8;
+  font-size: 8pt;
+  margin: 0;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0 0 6pt 0;
+}
+.arrow-img {
+  margin: 0 2pt;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Flujo de Circulacion</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <div class="flow-section">
+    <p class="section-title"><span style="color: #8B5CF6;">1.</span> Flujo Premium (Omega Coins)</p>
+    <div class="flow-row">
+      <div class="flow-box box-purple">
+        <p class="label-title purple-label">JUGADOR</p>
+        <p class="flow-text">Compra OC</p>
+        <p class="flow-muted">con $ARS</p>
+      </div>
+      <img src="assets/arrow-right.png" class="arrow-img" style="width: 18pt; height: 18pt;">
+      <div class="flow-box box-gold">
+        <p class="label-title gold-label">STORE</p>
+        <p class="flow-text">Gasta OC</p>
+        <p class="flow-muted">productos/torneos</p>
+      </div>
+      <img src="assets/arrow-right.png" class="arrow-img" style="width: 18pt; height: 18pt;">
+      <div class="flow-box box-green">
+        <p class="label-title green-label">ARIEL</p>
+        <p class="flow-text">Recibe $ARS</p>
+        <p class="flow-muted">margen mantenido</p>
+      </div>
+    </div>
+    <p class="section-title"><span style="color: #F59E0B;">2.</span> Flujo Gratis (Estrellas)</p>
+    <div class="flow-row">
+      <div class="flow-box box-gold">
+        <p class="label-title gold-label">JUGADOR</p>
+        <p class="flow-text">Gana estrellas</p>
+        <p class="flow-muted">batallas/misiones</p>
+      </div>
+      <img src="assets/arrow-right.png" class="arrow-img" style="width: 18pt; height: 18pt;">
+      <div class="flow-box box-purple">
+        <p class="label-title purple-label">DESCUENTOS</p>
+        <p class="flow-text">Usa estrellas</p>
+        <p class="flow-muted">en la store</p>
+      </div>
+      <img src="assets/arrow-right.png" class="arrow-img" style="width: 18pt; height: 18pt;">
+      <div class="flow-box box-green">
+        <p class="label-title green-label">INCENTIVO</p>
+        <p class="flow-text">Juega mas</p>
+        <p class="flow-muted">compra OC</p>
+      </div>
+    </div>
+    <p class="section-title"><span style="color: #10B981;">3.</span> Flujo de Stock</p>
+    <div class="flow-row">
+      <div class="flow-box box-red">
+        <p class="label-title" style="color: #EF4444;">ARIEL</p>
+        <p class="flow-text">Compra stock</p>
+        <p class="flow-muted">$16.000/ud</p>
+      </div>
+      <img src="assets/arrow-right.png" class="arrow-img" style="width: 18pt; height: 18pt;">
+      <div class="flow-box box-gold">
+        <p class="label-title gold-label">VENDE</p>
+        <p class="flow-text">$25k o 2000 OC</p>
+        <p class="flow-muted">precio flexible</p>
+      </div>
+      <img src="assets/arrow-right.png" class="arrow-img" style="width: 18pt; height: 18pt;">
+      <div class="flow-box box-green">
+        <p class="label-title green-label">MARGEN</p>
+        <p class="flow-text">$4k-$9k/ud</p>
+        <p class="flow-muted">siempre positivo</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

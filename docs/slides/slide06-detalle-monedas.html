@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-main.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 28pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 16pt 0;
+}
+.columns {
+  display: flex;
+  flex-direction: row;
+  gap: 20pt;
+}
+.col {
+  width: 310pt;
+}
+.card-star {
+  background: #1A1D33;
+  border: 1px solid #F59E0B;
+  border-radius: 8pt;
+  padding: 15pt;
+}
+.card-omega {
+  background: #1A1D33;
+  border: 1px solid #8B5CF6;
+  border-radius: 8pt;
+  padding: 15pt;
+}
+.card-title-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8pt;
+  margin: 0 0 10pt 0;
+}
+h2 {
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 0;
+}
+.star-t { color: #F59E0B; }
+.omega-t { color: #8B5CF6; }
+ul {
+  margin: 0;
+  padding: 0 0 0 14pt;
+  color: #FFFFFF;
+  font-size: 10pt;
+  line-height: 2.0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Detalle de Monedas</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <div class="columns">
+    <div class="col">
+      <div class="card-star">
+        <div class="card-title-row">
+          <img src="assets/star-icon.png" style="width: 24pt; height: 24pt;">
+          <h2 class="star-t">ESTRELLAS</h2>
+        </div>
+        <ul>
+          <li>Se ganan jugando (batallas, torneos, misiones)</li>
+          <li>Cap semanal: 100 max por semana</li>
+          <li>Se usan para descuentos en la Store</li>
+          <li>Reset estacional (cada 3 meses)</li>
+          <li>No se pueden transferir entre jugadores</li>
+          <li>25 estrellas iniciales al registrarse</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card-omega">
+        <div class="card-title-row">
+          <img src="assets/coin-icon.png" style="width: 24pt; height: 24pt;">
+          <h2 class="omega-t">OMEGA COINS</h2>
+        </div>
+        <ul>
+          <li>Se compran con $ARS ($1.000 = 100 OC)</li>
+          <li>Se usan para compras completas en Store</li>
+          <li>No expiran nunca</li>
+          <li>Intransferibles (seguridad anti-fraude)</li>
+          <li>Ariel controla el precio de conversion</li>
+          <li>Mejor ratio que pagar full price en $ARS</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

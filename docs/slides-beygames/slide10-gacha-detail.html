@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 16pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.bar { margin: 0 0 8pt 0; }
+.slot-row {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 8pt 0;
+}
+.columns {
+  display: flex;
+  flex-direction: row;
+  gap: 16pt;
+}
+.col-left {
+  width: 320pt;
+}
+.col-right {
+  width: 314pt;
+}
+.card {
+  background: #111827;
+  border: 2px solid #F59E0B;
+  border-radius: 10pt;
+  padding: 12pt 14pt;
+}
+.card-cyan {
+  background: #111827;
+  border: 2px solid #06B6D4;
+  border-radius: 10pt;
+  padding: 12pt 14pt;
+}
+h2 {
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 6pt 0;
+}
+.gold { color: #F59E0B; }
+.cyan { color: #06B6D4; }
+ul {
+  margin: 0;
+  padding: 0 0 0 14pt;
+  color: #FFFFFF;
+  font-size: 10pt;
+  line-height: 2.0;
+}
+.hl-gold { color: #F59E0B; font-weight: bold; }
+.hl-cyan { color: #06B6D4; font-weight: bold; }
+.hl-green { color: #10B981; font-weight: bold; }
+.prob-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 6pt;
+  margin: 8pt 0 0 0;
+}
+.prob-item {
+  background: #0F172A;
+  border-radius: 6pt;
+  padding: 6pt 8pt;
+  text-align: center;
+  width: 64pt;
+}
+.prob-tier {
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+.tier-s { color: #F59E0B; }
+.tier-a { color: #8B5CF6; }
+.tier-b { color: #06B6D4; }
+.tier-c { color: #94A3B8; }
+.prob-pct {
+  color: #94A3B8;
+  font-size: 9pt;
+  margin: 2pt 0 0 0;
+  text-align: center;
+}
+.footer-box {
+  background: #111827;
+  border: 1px solid #10B981;
+  border-radius: 8pt;
+  padding: 6pt 14pt;
+  margin: 8pt 0 0 0;
+  text-align: center;
+}
+.footer-text {
+  color: #10B981;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>BEYGACHA — Detalles</h1>
+  <img src="assets/accent-gold.png" class="bar" style="width: 650pt; height: 3pt;">
+  <div class="slot-row">
+    <img src="assets/slot-machine.png" style="width: 340pt; height: 136pt;">
+  </div>
+  <div class="columns">
+    <div class="col-left">
+      <div class="card">
+        <h2 class="gold">Como Funciona</h2>
+        <ul>
+          <li>Pagas <span class="hl-gold">30 OC</span> por tirada</li>
+          <li>El sistema arma un combo <span class="hl-gold">RANDOM</span></li>
+          <li>3 columnas: Blade + Ratchet + Bit</li>
+        </ul>
+        <div class="prob-grid">
+          <div class="prob-item">
+            <p class="prob-tier tier-s">S</p>
+            <p class="prob-pct">5%</p>
+          </div>
+          <div class="prob-item">
+            <p class="prob-tier tier-a">A</p>
+            <p class="prob-pct">15%</p>
+          </div>
+          <div class="prob-item">
+            <p class="prob-tier tier-b">B</p>
+            <p class="prob-pct">35%</p>
+          </div>
+          <div class="prob-item">
+            <p class="prob-tier tier-c">C</p>
+            <p class="prob-pct">45%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="card-cyan">
+        <h2 class="cyan">Torneo Gacha</h2>
+        <ul>
+          <li>Todos juegan con <span class="hl-cyan">combos random</span></li>
+          <li>Nadie elige su beyblade</li>
+          <li>Ganar con tier C = <span class="hl-gold">bonus doble</span></li>
+          <li>La habilidad pura decide</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-box">
+    <p class="footer-text">Todos empiezan en igualdad de condiciones</p>
+  </div>
+</div>
+</body>
+</html>

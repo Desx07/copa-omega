@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-main.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 25pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 14pt 0;
+}
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+}
+.card {
+  background: #1A1D33;
+  border: 1px solid #2D3065;
+  border-radius: 8pt;
+  padding: 12pt 20pt;
+  display: flex;
+  flex-direction: row;
+  gap: 15pt;
+}
+.card-header {
+  width: 130pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.card-body {
+  width: 470pt;
+}
+h2 {
+  color: #8B5CF6;
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.model-desc {
+  color: #94A3B8;
+  font-size: 9pt;
+  margin: 0;
+}
+.mechanism {
+  color: #FFFFFF;
+  font-size: 11pt;
+  margin: 0 0 6pt 0;
+}
+.pros-cons {
+  display: flex;
+  flex-direction: row;
+  gap: 12pt;
+}
+.pro {
+  color: #10B981;
+  font-size: 10pt;
+  margin: 0;
+}
+.con {
+  color: #EF4444;
+  font-size: 10pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Modelos de Referencia (Parte 2)</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <div class="cards">
+    <div class="card">
+      <div class="card-header">
+        <h2>FIFA UT</h2>
+        <p class="model-desc">EA Sports</p>
+      </div>
+      <div class="card-body">
+        <p class="mechanism">FUT Coins (ganados jugando) + FIFA Points (comprados con dinero)</p>
+        <div class="pros-cons">
+          <p class="pro">PRO: Economia dual madura y rentable</p>
+          <p class="con">CON: Percibido como pay-to-win</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Pokemon GO</h2>
+        <p class="model-desc">Niantic</p>
+      </div>
+      <div class="card-body">
+        <p class="mechanism">PokeCoins del gimnasio (gratis) + compra directa con dinero</p>
+        <div class="pros-cons">
+          <p class="pro">PRO: Ganar gratis motiva la actividad diaria</p>
+          <p class="con">CON: Ganancia gratis muy limitada (50/dia)</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Starbucks</h2>
+        <p class="model-desc">Rewards</p>
+      </div>
+      <div class="card-body">
+        <p class="mechanism">Gastar dinero &rarr; acumular estrellas &rarr; canjear por productos</p>
+        <div class="pros-cons">
+          <p class="pro">PRO: Simple y efectivo, fideliza clientes</p>
+          <p class="con">CON: No hay componente de competencia</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

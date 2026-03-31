@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 20pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 20pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.bar { margin: 0 0 12pt 0; }
+.main-row {
+  display: flex;
+  flex-direction: row;
+  gap: 24pt;
+  align-items: flex-start;
+}
+.card-col {
+  width: 200pt;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.info-col {
+  width: 400pt;
+  display: flex;
+  flex-direction: column;
+}
+.features-card {
+  background: #111827;
+  border: 2px solid #EC4899;
+  border-radius: 10pt;
+  padding: 12pt 14pt;
+  margin: 0 0 10pt 0;
+}
+h2 {
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 6pt 0;
+}
+.pink { color: #EC4899; }
+ul {
+  margin: 0;
+  padding: 0 0 0 14pt;
+  color: #FFFFFF;
+  font-size: 10pt;
+  line-height: 2.0;
+}
+.hl-pink { color: #EC4899; font-weight: bold; }
+.hl-gold { color: #F59E0B; font-weight: bold; }
+.hl-purple { color: #8B5CF6; font-weight: bold; }
+.border-card {
+  background: #111827;
+  border: 2px solid #F59E0B;
+  border-radius: 10pt;
+  padding: 10pt 14pt;
+}
+.border-row {
+  display: flex;
+  flex-direction: row;
+  gap: 6pt;
+  align-items: center;
+  margin: 0 0 4pt 0;
+}
+.border-label {
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0;
+}
+.gold-text { color: #F59E0B; }
+.purple-text { color: #8B5CF6; }
+.cyan-text { color: #06B6D4; }
+.border-desc {
+  color: #94A3B8;
+  font-size: 9pt;
+  margin: 0;
+}
+.footer-text {
+  color: #94A3B8;
+  font-size: 10pt;
+  margin: 10pt 0 0 0;
+  text-align: center;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>CARTAS DE BLADER — Detalles</h1>
+  <img src="assets/accent-pink.png" class="bar" style="width: 650pt; height: 3pt;">
+  <div class="main-row">
+    <div class="card-col">
+      <img src="assets/blader-card.png" style="width: 180pt; height: 258pt;">
+    </div>
+    <div class="info-col">
+      <div class="features-card">
+        <h2 class="pink">Tu Carta Incluye</h2>
+        <ul>
+          <li>Avatar y <span class="hl-pink">nombre de blader</span></li>
+          <li>Estrellas: <span class="hl-gold">28</span> | Wins: 5 | Losses: 2</li>
+          <li>Main bey: <span class="hl-pink">Shark Scale 4-55LO</span></li>
+          <li>Win Rate: <span class="hl-gold">71%</span></li>
+          <li>Badge: <span class="hl-gold">Champion</span></li>
+        </ul>
+      </div>
+      <div class="border-card">
+        <h2 class="gold-text">Color del Borde = Ranking</h2>
+        <div class="border-row">
+          <p class="border-label gold-text">DORADO</p>
+          <p class="border-desc">Top 3 del ranking</p>
+        </div>
+        <div class="border-row">
+          <p class="border-label purple-text">VIOLETA</p>
+          <p class="border-desc">Top 10 del ranking</p>
+        </div>
+        <div class="border-row">
+          <p class="border-label cyan-text">CYAN</p>
+          <p class="border-desc">Resto de los bladers</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="footer-text">Las cartas se generan automaticamente con tus stats reales</p>
+</div>
+</body>
+</html>

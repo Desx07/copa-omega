@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-main.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 28pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 16pt 0;
+}
+.table-container {
+  background: #1A1D33;
+  border: 1px solid #2D3065;
+  border-radius: 8pt;
+  overflow: hidden;
+}
+.table-row {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #2D3065;
+  padding: 10pt 12pt;
+}
+.table-row-last {
+  display: flex;
+  flex-direction: row;
+  padding: 10pt 12pt;
+}
+.table-header {
+  background: #2D1B69;
+  padding: 10pt 12pt;
+}
+.col-feature { width: 155pt; }
+.col-ggo { width: 120pt; text-align: center; }
+.col-fortnite { width: 120pt; text-align: center; }
+.col-copa { width: 225pt; text-align: center; }
+.header-text {
+  color: #8B5CF6;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0;
+}
+.header-copa {
+  color: #F59E0B;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0;
+}
+.feature-text {
+  color: #FFFFFF;
+  font-size: 10pt;
+  margin: 0;
+}
+.yes-text {
+  color: #10B981;
+  font-size: 10pt;
+  margin: 0;
+}
+.no-text {
+  color: #EF4444;
+  font-size: 10pt;
+  margin: 0;
+}
+.warn-text {
+  color: #F59E0B;
+  font-size: 10pt;
+  margin: 0;
+}
+.copa-highlight {
+  background: #1E1040;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Comparacion de Modelos</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <div class="table-container">
+    <div class="table-row table-header">
+      <div class="col-feature"><p class="header-text">Feature</p></div>
+      <div class="col-ggo"><p class="header-text">GGO / SAO</p></div>
+      <div class="col-fortnite"><p class="header-text">Fortnite</p></div>
+      <div class="col-copa"><p class="header-copa">Copa Omega</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-feature"><p class="feature-text">Cash out</p></div>
+      <div class="col-ggo"><p class="warn-text">Si (riesgoso)</p></div>
+      <div class="col-fortnite"><p class="no-text">No</p></div>
+      <div class="col-copa"><p class="yes-text">No (seguro)</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-feature"><p class="feature-text">Doble moneda</p></div>
+      <div class="col-ggo"><p class="no-text">No</p></div>
+      <div class="col-fortnite"><p class="yes-text">Si (V-Bucks)</p></div>
+      <div class="col-copa"><p class="yes-text">Si (estrellas + OC)</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-feature"><p class="feature-text">Ganar jugando</p></div>
+      <div class="col-ggo"><p class="yes-text">Si</p></div>
+      <div class="col-fortnite"><p class="warn-text">Limitado</p></div>
+      <div class="col-copa"><p class="yes-text">Si</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-feature"><p class="feature-text">Productos reales</p></div>
+      <div class="col-ggo"><p class="no-text">No (digital)</p></div>
+      <div class="col-fortnite"><p class="no-text">No (digital)</p></div>
+      <div class="col-copa"><p class="yes-text">Si (beyblades)</p></div>
+    </div>
+    <div class="table-row-last">
+      <div class="col-feature"><p class="feature-text">Comunidad presencial</p></div>
+      <div class="col-ggo"><p class="no-text">No</p></div>
+      <div class="col-fortnite"><p class="no-text">No</p></div>
+      <div class="col-copa"><p class="yes-text">Si (semanal)</p></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -301,10 +301,300 @@ body {
 }
 
 /* ═══════════════════════════════════════════
+   BLADER CARDS — Holographic & Flip
+   ═══════════════════════════════════════════ */
+
+@keyframes holoShine {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Card flip transition */
+.duration-600 { transition-duration: 600ms; }
+
+/* ═══════════════════════════════════════════
    REDUCED MOTION
    ═══════════════════════════════════════════ */
 
 @media (prefers-reduced-motion: reduce) {
   .animate-float, .animate-float-d1, .animate-float-d2, .animate-float-d3,
   .orb-1, .orb-2, .orb-3, .star-glow { animation: none; }
+}
+
+/* ═══════════════════════════════════════════
+   BEYGACHA ANIMATIONS
+   ═══════════════════════════════════════════ */
+
+/* Radial gradient background */
+.bg-gradient-radial {
+  background: radial-gradient(ellipse at center, var(--tw-gradient-from), var(--tw-gradient-to, transparent));
+}
+
+/* Slot machine spinning effect */
+@keyframes slot-spin {
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-20px); }
+  50% { transform: translateY(0); }
+  75% { transform: translateY(20px); }
+  100% { transform: translateY(0); }
+}
+.animate-slot-spin {
+  animation: slot-spin 0.3s linear infinite;
+}
+
+/* Card flip reveal */
+@keyframes flip-in {
+  0% {
+    transform: perspective(400px) rotateY(90deg) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: perspective(400px) rotateY(-10deg) scale(1.05);
+    opacity: 1;
+  }
+  70% {
+    transform: perspective(400px) rotateY(5deg) scale(1.02);
+  }
+  100% {
+    transform: perspective(400px) rotateY(0deg) scale(1);
+  }
+}
+.animate-flip-in {
+  animation: flip-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1.2) forwards;
+}
+
+/* Tier reveal zoom in */
+@keyframes tier-reveal {
+  0% {
+    transform: scale(0) rotate(-10deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(2deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.95) rotate(-1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+.animate-tier-reveal {
+  animation: tier-reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1.3) forwards;
+}
+
+/* Fade in up for final combo */
+@keyframes fade-in-up {
+  0% {
+    transform: translateY(15px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+
+/* Golden particles for S-tier */
+@keyframes particle-rise {
+  0% {
+    transform: translateY(100%) scale(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(80%) scale(1);
+  }
+  100% {
+    transform: translateY(-200%) scale(0);
+    opacity: 0;
+  }
+}
+.animate-particle {
+  animation: particle-rise 2.5s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slot-spin, .animate-flip-in, .animate-tier-reveal,
+  .animate-fade-in-up, .animate-particle { animation: none; }
+}
+
+/* ═══════════════════════════════════════════
+   BEYPET (TAMAGOTCHI) ANIMATIONS
+   ═══════════════════════════════════════════ */
+
+/* Floating / hovering animation — the pet feels alive */
+@keyframes beypet-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(1deg); }
+  50% { transform: translateY(-14px) rotate(0deg); }
+  75% { transform: translateY(-8px) rotate(-1deg); }
+}
+.beypet-float { animation: beypet-float 4s ease-in-out infinite; }
+
+/* Breathing / pulsing — subtle scale */
+@keyframes beypet-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.beypet-breathe { animation: beypet-breathe 3s ease-in-out infinite; }
+
+/* Glow pulse for Champion and Ultimate */
+@keyframes beypet-glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.beypet-glow { animation: beypet-glow-pulse 2s ease-in-out infinite; }
+
+/* Feed pulse — heart beat when fed */
+@keyframes beypet-feed {
+  0% { transform: scale(1); }
+  15% { transform: scale(1.05); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.03); }
+  60% { transform: scale(1); }
+}
+.beypet-feed-pulse { animation: beypet-feed 0.8s ease-in-out; }
+
+/* Particles for Ultimate level */
+@keyframes beypet-particle-drift {
+  0% { transform: translateY(100%) translateX(0) scale(0); opacity: 0; }
+  20% { opacity: 1; transform: translateY(60%) translateX(var(--drift-x, 10px)) scale(1); }
+  80% { opacity: 0.6; }
+  100% { transform: translateY(-20%) translateX(var(--drift-x, 10px)) scale(0.3); opacity: 0; }
+}
+
+.beypet-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-omega-gold);
+  animation: beypet-particle-drift 3s ease-out infinite;
+}
+.beypet-particle-1 { left: 20%; --drift-x: -15px; animation-delay: 0s; }
+.beypet-particle-2 { left: 40%; --drift-x: 10px; animation-delay: 0.5s; }
+.beypet-particle-3 { left: 60%; --drift-x: -8px; animation-delay: 1s; }
+.beypet-particle-4 { left: 80%; --drift-x: 12px; animation-delay: 1.5s; }
+.beypet-particle-5 { left: 30%; --drift-x: -20px; animation-delay: 2s; background: var(--color-omega-purple); }
+.beypet-particle-6 { left: 70%; --drift-x: 18px; animation-delay: 2.5s; background: var(--color-omega-purple); }
+
+/* Battle entrance animations */
+@keyframes beypet-slide-left {
+  0% { transform: translateX(-100px) scale(0.5); opacity: 0; }
+  60% { transform: translateX(10px) scale(1.1); opacity: 1; }
+  100% { transform: translateX(0) scale(1); }
+}
+@keyframes beypet-slide-right {
+  0% { transform: translateX(100px) scale(0.5); opacity: 0; }
+  60% { transform: translateX(-10px) scale(1.1); opacity: 1; }
+  100% { transform: translateX(0) scale(1); }
+}
+.beypet-battle-left { animation: beypet-slide-left 0.6s ease-out; }
+.beypet-battle-right { animation: beypet-slide-right 0.6s ease-out 0.2s both; }
+
+@keyframes beypet-vs-appear {
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.beypet-vs { animation: beypet-vs-appear 0.5s ease-out 0.5s both; }
+
+/* Win confetti */
+@keyframes beypet-confetti-pop {
+  0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; }
+  50% { opacity: 1; }
+  100% { transform: translate(var(--cx, 40px), var(--cy, -60px)) rotate(var(--cr, 360deg)) scale(0); opacity: 0; }
+}
+
+.beypet-confetti-container { position: relative; width: 0; height: 0; }
+
+.beypet-confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: beypet-confetti-pop 1.2s ease-out infinite;
+}
+.beypet-confetti-1 { background: var(--color-omega-gold); --cx: -50px; --cy: -70px; --cr: 400deg; animation-delay: 0s; }
+.beypet-confetti-2 { background: var(--color-omega-purple); --cx: 50px; --cy: -80px; --cr: -350deg; animation-delay: 0.1s; }
+.beypet-confetti-3 { background: var(--color-omega-blue); --cx: -70px; --cy: -40px; --cr: 300deg; animation-delay: 0.2s; }
+.beypet-confetti-4 { background: var(--color-omega-green); --cx: 60px; --cy: -50px; --cr: -280deg; animation-delay: 0.15s; }
+.beypet-confetti-5 { background: var(--color-omega-red); --cx: -30px; --cy: -90px; --cr: 450deg; animation-delay: 0.25s; }
+.beypet-confetti-6 { background: var(--color-omega-gold); --cx: 40px; --cy: -60px; --cr: -400deg; animation-delay: 0.3s; }
+.beypet-confetti-7 { background: var(--color-omega-purple); --cx: -60px; --cy: -55px; --cr: 380deg; animation-delay: 0.05s; }
+.beypet-confetti-8 { background: var(--color-omega-blue); --cx: 70px; --cy: -45px; --cr: -320deg; animation-delay: 0.35s; }
+
+/* Win animation — zoom + glow */
+@keyframes beypet-win-appear {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.beypet-win { animation: beypet-win-appear 0.5s ease-out; }
+
+/* Lose animation — shake */
+@keyframes beypet-lose-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+  20%, 40%, 60%, 80% { transform: translateX(6px); }
+}
+.beypet-lose { animation: beypet-lose-shake 0.6s ease-in-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .beypet-float, .beypet-breathe, .beypet-glow,
+  .beypet-particle, .beypet-confetti,
+  .beypet-battle-left, .beypet-battle-right, .beypet-vs,
+  .beypet-win, .beypet-lose, .beypet-feed-pulse { animation: none; }
+}
+
+/* ═══════════════════════════════════════════
+   ACHIEVEMENTS — Legendary glow + animated border
+   ═══════════════════════════════════════════ */
+
+@keyframes legendary-border {
+  0%, 100% {
+    border-color: rgba(255, 214, 10, 0.6);
+    box-shadow: 0 0 15px rgba(255, 214, 10, 0.2), inset 0 0 8px rgba(255, 214, 10, 0.05);
+  }
+  33% {
+    border-color: rgba(255, 195, 0, 0.7);
+    box-shadow: 0 0 25px rgba(255, 214, 10, 0.3), inset 0 0 12px rgba(255, 214, 10, 0.08);
+  }
+  66% {
+    border-color: rgba(212, 160, 23, 0.6);
+    box-shadow: 0 0 20px rgba(255, 214, 10, 0.25), inset 0 0 10px rgba(255, 214, 10, 0.06);
+  }
+}
+
+.legendary-achievement {
+  animation: legendary-border 3s ease-in-out infinite;
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 214, 10, 0.08) 0%,
+    rgba(255, 195, 0, 0.04) 30%,
+    rgba(123, 47, 247, 0.04) 60%,
+    rgba(255, 214, 10, 0.06) 100%
+  );
+}
+
+@keyframes epic-shimmer {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(123, 47, 247, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(123, 47, 247, 0.25);
+  }
+}
+
+.epic-achievement {
+  animation: epic-shimmer 2.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legendary-achievement, .epic-achievement { animation: none; }
 }

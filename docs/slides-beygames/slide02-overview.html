@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 14pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 24pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+  text-align: center;
+}
+.bar { margin: 0 0 12pt 0; display: flex; justify-content: center; }
+.grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10pt;
+  justify-content: center;
+}
+.mode-card {
+  width: 195pt;
+  background: #111827;
+  border-radius: 10pt;
+  padding: 10pt 10pt;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.mode-1 { border: 2px solid #06B6D4; }
+.mode-2 { border: 2px solid #8B5CF6; }
+.mode-3 { border: 2px solid #F59E0B; }
+.mode-4 { border: 2px solid #10B981; }
+.mode-5 { border: 2px solid #EF4444; }
+.mode-6 { border: 2px solid #EC4899; }
+.mode-name {
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 4pt 0 1pt 0;
+  text-align: center;
+}
+.c1 { color: #06B6D4; }
+.c2 { color: #8B5CF6; }
+.c3 { color: #F59E0B; }
+.c4 { color: #10B981; }
+.c5 { color: #EF4444; }
+.c6 { color: #EC4899; }
+.mode-desc {
+  font-size: 9pt;
+  color: #94A3B8;
+  margin: 0;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>6 NUEVOS MODOS DE JUEGO</h1>
+  <div class="bar">
+    <img src="assets/accent-purple.png" style="width: 450pt; height: 3pt;">
+  </div>
+  <div class="grid">
+    <div class="mode-card mode-1">
+      <img src="assets/beypet-icon.png" style="width: 44pt; height: 44pt;">
+      <p class="mode-name c1">BEYPET</p>
+      <p class="mode-desc">Tu mascota digital</p>
+    </div>
+    <div class="mode-card mode-2">
+      <img src="assets/swords-icon.png" style="width: 44pt; height: 44pt;">
+      <p class="mode-name c2">DECK BATTLE 3v3</p>
+      <p class="mode-desc">Estrategia de equipo</p>
+    </div>
+    <div class="mode-card mode-3">
+      <img src="assets/gacha-icon.png" style="width: 44pt; height: 44pt;">
+      <p class="mode-name c3">BEYGACHA</p>
+      <p class="mode-desc">Combo random</p>
+    </div>
+    <div class="mode-card mode-4">
+      <img src="assets/gear-icon.png" style="width: 44pt; height: 44pt;">
+      <p class="mode-name c4">SIMULADOR</p>
+      <p class="mode-desc">Proba combos</p>
+    </div>
+    <div class="mode-card mode-5">
+      <img src="assets/coliseum-icon.png" style="width: 44pt; height: 44pt;">
+      <p class="mode-name c5">COLISEO</p>
+      <p class="mode-desc">Battle Royale 8 jugadores</p>
+    </div>
+    <div class="mode-card mode-6">
+      <img src="assets/card-icon.png" style="width: 44pt; height: 44pt;">
+      <p class="mode-name c6">CARTAS DE BLADER</p>
+      <p class="mode-desc">Tu identidad unica</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-main.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 28pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 16pt 0;
+}
+.table-container {
+  background: #1A1D33;
+  border: 1px solid #2D3065;
+  border-radius: 8pt;
+  overflow: hidden;
+}
+.table-row {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #2D3065;
+  padding: 10pt 14pt;
+}
+.table-row-last {
+  display: flex;
+  flex-direction: row;
+  padding: 10pt 14pt;
+}
+.table-header {
+  background: #2D1B69;
+  padding: 10pt 14pt;
+}
+.col-item { width: 170pt; }
+.col-ars { width: 140pt; text-align: center; }
+.col-oc { width: 150pt; text-align: center; }
+.col-stars { width: 170pt; text-align: center; }
+.header-text {
+  color: #8B5CF6;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0;
+}
+.item-text {
+  color: #FFFFFF;
+  font-size: 10pt;
+  margin: 0;
+}
+.ars-text {
+  color: #F59E0B;
+  font-size: 10pt;
+  margin: 0;
+}
+.oc-text {
+  color: #8B5CF6;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0;
+}
+.star-text {
+  color: #10B981;
+  font-size: 10pt;
+  margin: 0;
+}
+.dash-text {
+  color: #94A3B8;
+  font-size: 10pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Gastar: Precios y Equivalencias</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <div class="table-container">
+    <div class="table-row table-header">
+      <div class="col-item"><p class="header-text">Item</p></div>
+      <div class="col-ars"><p class="header-text">Precio ARS</p></div>
+      <div class="col-oc"><p class="header-text">Omega Coins</p></div>
+      <div class="col-stars"><p class="header-text">Descuento Estrellas</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-item"><p class="item-text">Beyblade estandar</p></div>
+      <div class="col-ars"><p class="ars-text">$25.000</p></div>
+      <div class="col-oc"><p class="oc-text">2.000 OC</p></div>
+      <div class="col-stars"><p class="star-text">Hasta $2.500 off</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-item"><p class="item-text">Inscripcion torneo</p></div>
+      <div class="col-ars"><p class="ars-text">$5.000</p></div>
+      <div class="col-oc"><p class="oc-text">400 OC</p></div>
+      <div class="col-stars"><p class="star-text">50 estrellas = gratis</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-item"><p class="item-text">Badge premium</p></div>
+      <div class="col-ars"><p class="dash-text">--</p></div>
+      <div class="col-oc"><p class="oc-text">200 OC</p></div>
+      <div class="col-stars"><p class="star-text">200 estrellas</p></div>
+    </div>
+    <div class="table-row-last">
+      <div class="col-item"><p class="item-text">Titulo custom</p></div>
+      <div class="col-ars"><p class="dash-text">--</p></div>
+      <div class="col-oc"><p class="oc-text">150 OC</p></div>
+      <div class="col-stars"><p class="star-text">150 estrellas</p></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

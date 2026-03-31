@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 20pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 20pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.bar { margin: 0 0 12pt 0; }
+.mockup-frame {
+  background: #111827;
+  border: 2px solid #1E293B;
+  border-radius: 14pt;
+  padding: 14pt 18pt;
+  display: flex;
+  flex-direction: row;
+  gap: 20pt;
+}
+.left-panel {
+  width: 310pt;
+  display: flex;
+  flex-direction: column;
+}
+.right-panel {
+  width: 270pt;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.selector-label {
+  color: #94A3B8;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.selector {
+  background: #0F172A;
+  border: 1px solid #10B981;
+  border-radius: 6pt;
+  padding: 6pt 10pt;
+  margin: 0 0 8pt 0;
+}
+.selector-text {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.result-card {
+  background: #0F172A;
+  border: 2px solid #10B981;
+  border-radius: 8pt;
+  padding: 10pt 14pt;
+  margin: 6pt 0 0 0;
+}
+.tier-label {
+  color: #10B981;
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+.winrate-text {
+  color: #FFFFFF;
+  font-size: 11pt;
+  margin: 4pt 0 0 0;
+  text-align: center;
+}
+.suggestion {
+  background: #0F172A;
+  border: 1px solid #F59E0B;
+  border-radius: 6pt;
+  padding: 8pt 12pt;
+  margin: 8pt 0 0 0;
+}
+.suggestion-label {
+  color: #F59E0B;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.suggestion-text {
+  color: #FFFFFF;
+  font-size: 10pt;
+  margin: 0;
+}
+.mockup-label {
+  color: #475569;
+  font-size: 9pt;
+  margin: 8pt 0 0 0;
+  text-align: center;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>SIMULADOR — Pantalla de Prueba</h1>
+  <img src="assets/accent-green.png" class="bar" style="width: 650pt; height: 3pt;">
+  <div class="mockup-frame">
+    <div class="left-panel">
+      <p class="selector-label">BLADE</p>
+      <div class="selector">
+        <p class="selector-text">Shark Edge</p>
+      </div>
+      <p class="selector-label">RATCHET</p>
+      <div class="selector">
+        <p class="selector-text">4-55</p>
+      </div>
+      <p class="selector-label">BIT</p>
+      <div class="selector">
+        <p class="selector-text">Low Orbit (LO)</p>
+      </div>
+      <div class="result-card">
+        <p class="tier-label">COMBO A-TIER</p>
+        <p class="winrate-text">Win Rate comunidad: 62%</p>
+      </div>
+      <div class="suggestion">
+        <p class="suggestion-label">SUGERENCIA</p>
+        <p class="suggestion-text">Para +15% ataque, cambia el bit a Flat (F)</p>
+      </div>
+    </div>
+    <div class="right-panel">
+      <img src="assets/radar-chart.png" style="width: 220pt; height: 220pt;">
+      <p class="tier-label" style="margin: 4pt 0 0 0;">ATK / DEF / STA / PESO / BURST</p>
+    </div>
+  </div>
+  <p class="mockup-label">Mockup conceptual — datos reales basados en batallas de la comunidad</p>
+</div>
+</body>
+</html>

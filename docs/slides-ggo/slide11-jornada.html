@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 25pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #EF4444;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+}
+.bar { margin: 0 0 14pt 0; }
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: 7pt;
+  margin: 0 0 14pt 0;
+}
+.rule {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12pt;
+}
+.rule-icon {
+  width: 30pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rule-content {
+  background: #111827;
+  border: 1px solid #1E293B;
+  border-radius: 8pt;
+  padding: 9pt 16pt;
+  width: 598pt;
+}
+.rule-text {
+  color: #FFFFFF;
+  font-size: 11pt;
+  margin: 0;
+}
+.red { color: #EF4444; font-weight: bold; }
+.gold { color: #F59E0B; font-weight: bold; }
+.cyan { color: #06B6D4; font-weight: bold; }
+.green { color: #10B981; font-weight: bold; }
+.purple { color: #8B5CF6; font-weight: bold; }
+.footer-box {
+  background: #111827;
+  border: 2px solid #EF4444;
+  border-radius: 8pt;
+  padding: 12pt 20pt;
+  text-align: center;
+}
+.footer-text {
+  color: #FFFFFF;
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Reglas del Juego</h1>
+  <img src="assets/accent-purple.png" class="bar" style="width: 650pt; height: 3pt;">
+  <div class="rules">
+    <div class="rule">
+      <div class="rule-icon"><img src="assets/shield-icon.png" style="width: 26pt; height: 26pt;"></div>
+      <div class="rule-content">
+        <p class="rule-text">Estrellas y OC son <span class="red">sistemas separados</span> — NUNCA se convierten entre si</p>
+      </div>
+    </div>
+    <div class="rule">
+      <div class="rule-icon"><img src="assets/shield-icon.png" style="width: 26pt; height: 26pt;"></div>
+      <div class="rule-content">
+        <p class="rule-text">Las OC <span class="red">no se pueden transferir</span> entre jugadores (anti-trampa)</p>
+      </div>
+    </div>
+    <div class="rule">
+      <div class="rule-icon"><img src="assets/shield-icon.png" style="width: 26pt; height: 26pt;"></div>
+      <div class="rule-content">
+        <p class="rule-text">Los retos son <span class="cyan">oficiales</span>: se registran en la app con ambas apuestas</p>
+      </div>
+    </div>
+    <div class="rule">
+      <div class="rule-icon"><img src="assets/shield-icon.png" style="width: 26pt; height: 26pt;"></div>
+      <div class="rule-content">
+        <p class="rule-text">Si apostas, apostas — <span class="red">no hay devolucion</span> (ni de estrellas ni de OC)</p>
+      </div>
+    </div>
+    <div class="rule">
+      <div class="rule-icon"><img src="assets/star-icon.png" style="width: 26pt; height: 26pt;"></div>
+      <div class="rule-content">
+        <p class="rule-text">El <span class="gold">ranking de estrellas</span> define los seeds del torneo</p>
+      </div>
+    </div>
+    <div class="rule">
+      <div class="rule-icon"><img src="assets/coin-icon.png" style="width: 26pt; height: 26pt;"></div>
+      <div class="rule-content">
+        <p class="rule-text">Las OC se <span class="green">acumulan sin limite</span> — guarda todas las que quieras</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-box">
+    <p class="footer-text">"Juga limpio, competi fuerte"</p>
+  </div>
+</div>
+</body>
+</html>

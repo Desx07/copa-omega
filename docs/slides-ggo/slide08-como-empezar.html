@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 25pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #8B5CF6;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+}
+.bar { margin: 0 0 14pt 0; }
+.intro {
+  color: #FFFFFF;
+  font-size: 13pt;
+  margin: 0 0 14pt 0;
+}
+.gold { color: #F59E0B; font-weight: bold; }
+.products {
+  display: flex;
+  flex-direction: row;
+  gap: 14pt;
+  margin: 0 0 14pt 0;
+}
+.product-card {
+  background: #111827;
+  border-radius: 10pt;
+  padding: 14pt;
+  text-align: center;
+  width: 148pt;
+}
+.prod-standard { border: 2px solid #06B6D4; }
+.prod-special { border: 2px solid #8B5CF6; }
+.prod-xtreme { border: 2px solid #F59E0B; }
+.prod-mix { border: 2px solid #10B981; }
+.prod-icon { margin: 0 0 6pt 0; }
+.prod-name {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+  text-align: center;
+}
+.prod-price {
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 0 0 2pt 0;
+  text-align: center;
+}
+.price-cyan { color: #06B6D4; }
+.price-purple { color: #8B5CF6; }
+.price-gold { color: #F59E0B; }
+.price-green { color: #10B981; }
+.prod-desc {
+  color: #94A3B8;
+  font-size: 9pt;
+  margin: 4pt 0 0 0;
+  text-align: center;
+}
+.mix-note {
+  background: #111827;
+  border: 1px solid #10B981;
+  border-radius: 8pt;
+  padding: 8pt 16pt;
+  margin: 0 0 10pt 0;
+}
+.mix-text {
+  color: #10B981;
+  font-size: 11pt;
+  margin: 0;
+  text-align: center;
+}
+.footer-text {
+  color: #F59E0B;
+  font-size: 14pt;
+  font-weight: bold;
+  font-style: italic;
+  margin: 0;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>La Store — Solo con Omega Coins</h1>
+  <img src="assets/accent-purple.png" class="bar" style="width: 650pt; height: 3pt;">
+  <p class="intro">Con tus Omega Coins compras beyblades <span class="gold">REALES</span> (las estrellas NO se usan aca)</p>
+  <div class="products">
+    <div class="product-card prod-standard">
+      <img src="assets/store-icon.png" class="prod-icon" style="width: 36pt; height: 36pt;">
+      <p class="prod-name">Beyblade Estandar</p>
+      <p class="prod-price price-cyan">2.000 OC</p>
+      <p class="prod-desc">Beys individuales</p>
+    </div>
+    <div class="product-card prod-special">
+      <img src="assets/store-icon.png" class="prod-icon" style="width: 36pt; height: 36pt;">
+      <p class="prod-name">Sets Especiales</p>
+      <p class="prod-price price-purple">3.500 OC</p>
+      <p class="prod-desc">Packs y ediciones</p>
+    </div>
+    <div class="product-card prod-xtreme">
+      <img src="assets/store-icon.png" class="prod-icon" style="width: 36pt; height: 36pt;">
+      <p class="prod-name">Estadio Xtreme</p>
+      <p class="prod-price price-gold">10.000 OC</p>
+      <p class="prod-desc">El premio maximo</p>
+    </div>
+    <div class="product-card prod-mix">
+      <img src="assets/coin-icon.png" class="prod-icon" style="width: 36pt; height: 36pt;">
+      <p class="prod-name">Pago Mix</p>
+      <p class="prod-price price-green">OC + $</p>
+      <p class="prod-desc">Parte plata + parte OC</p>
+    </div>
+  </div>
+  <div class="mix-note">
+    <p class="mix-text">Tambien podes pagar mix: parte plata + parte Omega Coins</p>
+  </div>
+  <p class="footer-text">"Ganalo en la arena, gastalo en la store"</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 18pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #8B5CF6;
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+  text-align: center;
+}
+.bar { margin: 0 0 10pt 0; display: flex; justify-content: center; }
+.mockup-frame {
+  background: #111827;
+  border: 2px solid #1E293B;
+  border-radius: 14pt;
+  padding: 14pt 18pt;
+}
+.header-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 30pt;
+  margin: 0 0 12pt 0;
+}
+.player-name-a {
+  color: #8B5CF6;
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 0;
+}
+.player-name-b {
+  color: #EF4444;
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 0;
+}
+.score {
+  color: #F59E0B;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0;
+}
+.decks-row {
+  display: flex;
+  flex-direction: row;
+  gap: 14pt;
+  align-items: flex-start;
+}
+.deck-col {
+  width: 240pt;
+  display: flex;
+  flex-direction: column;
+  gap: 8pt;
+}
+.center-col {
+  width: 120pt;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6pt;
+  margin: 10pt 0 0 0;
+}
+.bey-card-a {
+  background: #0F172A;
+  border: 2px solid #8B5CF6;
+  border-radius: 8pt;
+  padding: 8pt 12pt;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8pt;
+}
+.bey-card-b {
+  background: #0F172A;
+  border: 2px solid #EF4444;
+  border-radius: 8pt;
+  padding: 8pt 12pt;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8pt;
+}
+.bey-num {
+  color: #94A3B8;
+  font-size: 9pt;
+  margin: 0;
+}
+.bey-name-text {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.round-label {
+  color: #94A3B8;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+.round-result {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6pt;
+}
+.status-text {
+  color: #F59E0B;
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 14pt 0 0 0;
+  text-align: center;
+}
+.mockup-label {
+  color: #475569;
+  font-size: 9pt;
+  margin: 6pt 0 0 0;
+  text-align: center;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>DECK BATTLE — Match en Curso</h1>
+  <div class="bar">
+    <img src="assets/accent-purple.png" style="width: 400pt; height: 3pt;">
+  </div>
+  <div class="mockup-frame">
+    <div class="header-row">
+      <p class="player-name-a">DESX</p>
+      <p class="score">1 — 1</p>
+      <p class="player-name-b">WOLF</p>
+    </div>
+    <div class="decks-row">
+      <div class="deck-col">
+        <div class="bey-card-a">
+          <p class="bey-num">R1</p>
+          <p class="bey-name-text">Shark Edge 4-55LO</p>
+          <img src="assets/check-icon.png" style="width: 14pt; height: 14pt;">
+        </div>
+        <div class="bey-card-a">
+          <p class="bey-num">R2</p>
+          <p class="bey-name-text">Dran Sword 3-60F</p>
+          <img src="assets/x-icon.png" style="width: 14pt; height: 14pt;">
+        </div>
+        <div class="bey-card-a">
+          <p class="bey-num">R3</p>
+          <p class="bey-name-text">Phoenix Wing 9-70HN</p>
+          <img src="assets/question-icon.png" style="width: 14pt; height: 14pt;">
+        </div>
+      </div>
+      <div class="center-col">
+        <p class="round-label">RONDA 1</p>
+        <div class="round-result">
+          <img src="assets/check-icon.png" style="width: 16pt; height: 16pt;">
+          <img src="assets/x-icon.png" style="width: 16pt; height: 16pt;">
+        </div>
+        <p class="round-label">RONDA 2</p>
+        <div class="round-result">
+          <img src="assets/x-icon.png" style="width: 16pt; height: 16pt;">
+          <img src="assets/check-icon.png" style="width: 16pt; height: 16pt;">
+        </div>
+        <p class="round-label">RONDA 3</p>
+        <div class="round-result">
+          <img src="assets/question-icon.png" style="width: 16pt; height: 16pt;">
+          <img src="assets/question-icon.png" style="width: 16pt; height: 16pt;">
+        </div>
+      </div>
+      <div class="deck-col">
+        <div class="bey-card-b">
+          <p class="bey-num">R1</p>
+          <p class="bey-name-text">Cobalt Drake 5-60B</p>
+          <img src="assets/x-icon.png" style="width: 14pt; height: 14pt;">
+        </div>
+        <div class="bey-card-b">
+          <p class="bey-num">R2</p>
+          <p class="bey-name-text">Tyranno Beat 4-80D</p>
+          <img src="assets/check-icon.png" style="width: 14pt; height: 14pt;">
+        </div>
+        <div class="bey-card-b">
+          <p class="bey-num">R3</p>
+          <p class="bey-name-text">Hells Scythe 3-55F</p>
+          <img src="assets/question-icon.png" style="width: 14pt; height: 14pt;">
+        </div>
+      </div>
+    </div>
+    <p class="status-text">RONDA FINAL DECISIVA!</p>
+  </div>
+  <p class="mockup-label">Mockup conceptual — interfaz dentro de la app Copa Omega Star</p>
+</div>
+</body>
+</html>

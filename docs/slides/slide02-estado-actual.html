@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-main.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 30pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 18pt 0;
+}
+.columns {
+  display: flex;
+  flex-direction: row;
+  gap: 20pt;
+}
+.col-left {
+  width: 300pt;
+}
+.col-right {
+  width: 300pt;
+}
+.card {
+  background: #1A1D33;
+  border: 1px solid #2D3065;
+  border-radius: 8pt;
+  padding: 15pt;
+  margin: 0;
+}
+.card-right {
+  background: #1A1D33;
+  border: 1px solid #7C5A0B;
+  border-radius: 8pt;
+  padding: 15pt;
+  margin: 0;
+}
+h2 {
+  color: #8B5CF6;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 10pt 0;
+}
+h3 {
+  color: #F59E0B;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 10pt 0;
+}
+ul {
+  margin: 0;
+  padding: 0 0 0 16pt;
+  color: #FFFFFF;
+  font-size: 11pt;
+  line-height: 1.8;
+}
+ul li {
+  color: #FFFFFF;
+}
+.muted-list li {
+  color: #EF4444;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Estado Actual</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <div class="columns">
+    <div class="col-left">
+      <div class="card">
+        <h2>Lo que ya existe</h2>
+        <ul>
+          <li>Sistema de Estrellas (25 iniciales, apuesta 1-5)</li>
+          <li>Store con 48 productos ($25k-$120k ARS)</li>
+          <li>Torneos semanales con inscripcion $5k</li>
+          <li>Retos entre jugadores</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="card-right">
+        <h3>La oportunidad</h3>
+        <ul class="muted-list">
+          <li>Las estrellas no se conectan con la store</li>
+          <li>No hay moneda premium</li>
+          <li>Sin descuentos por competir</li>
+          <li>Sin incentivo economico para jugar mas</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

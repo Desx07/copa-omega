@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 20pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 20pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.bar { margin: 0 0 10pt 0; }
+.main-row {
+  display: flex;
+  flex-direction: row;
+  gap: 16pt;
+  align-items: flex-start;
+}
+.arena-col {
+  width: 260pt;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.rules-col {
+  width: 374pt;
+  display: flex;
+  flex-direction: column;
+}
+.card {
+  background: #111827;
+  border: 2px solid #EF4444;
+  border-radius: 10pt;
+  padding: 12pt 14pt;
+  margin: 0 0 10pt 0;
+}
+h2 {
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 6pt 0;
+}
+.red { color: #EF4444; }
+.gold { color: #F59E0B; }
+ul {
+  margin: 0;
+  padding: 0 0 0 14pt;
+  color: #FFFFFF;
+  font-size: 10pt;
+  line-height: 2.0;
+}
+.hl-red { color: #EF4444; font-weight: bold; }
+.hl-gold { color: #F59E0B; font-weight: bold; }
+.prize-card {
+  background: #111827;
+  border: 2px solid #F59E0B;
+  border-radius: 10pt;
+  padding: 12pt 14pt;
+}
+.prize-row {
+  display: flex;
+  flex-direction: row;
+  gap: 10pt;
+  margin: 0 0 4pt 0;
+  align-items: center;
+}
+.prize-label {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.prize-amount {
+  color: #F59E0B;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>COLISEO — Battle Royale</h1>
+  <img src="assets/accent-red.png" class="bar" style="width: 650pt; height: 3pt;">
+  <div class="main-row">
+    <div class="arena-col">
+      <img src="assets/arena-8.png" style="width: 240pt; height: 240pt;">
+    </div>
+    <div class="rules-col">
+      <div class="card">
+        <h2 class="red">Como Funciona</h2>
+        <ul>
+          <li>Todos lanzan al estadio <span class="hl-red">a la vez</span></li>
+          <li>Ultimo beyblade girando <span class="hl-red">gana</span></li>
+          <li>Entry fee: <span class="hl-gold">50 OC</span> cada uno</li>
+          <li>Pozo total: <span class="hl-gold">400 OC</span></li>
+          <li>Se registra como <span class="hl-red">evento especial</span></li>
+        </ul>
+      </div>
+      <div class="prize-card">
+        <h2 class="gold">Premios</h2>
+        <div class="prize-row">
+          <img src="assets/trophy-icon.png" style="width: 18pt; height: 18pt;">
+          <p class="prize-label">1er puesto:</p>
+          <p class="prize-amount">300 OC</p>
+        </div>
+        <div class="prize-row">
+          <img src="assets/star-icon.png" style="width: 18pt; height: 18pt;">
+          <p class="prize-label">2do puesto:</p>
+          <p class="prize-amount">100 OC</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

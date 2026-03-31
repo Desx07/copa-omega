@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-main.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 28pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 16pt 0;
+}
+.table-container {
+  background: #1A1D33;
+  border: 1px solid #2D3065;
+  border-radius: 8pt;
+  padding: 0;
+  overflow: hidden;
+}
+.table-row {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #2D3065;
+  padding: 9pt 18pt;
+}
+.table-row-last {
+  display: flex;
+  flex-direction: row;
+  padding: 9pt 18pt;
+}
+.table-header {
+  background: #2D1B69;
+  padding: 10pt 18pt;
+}
+.col-action {
+  width: 380pt;
+}
+.col-stars {
+  width: 230pt;
+  text-align: right;
+}
+.header-text {
+  color: #8B5CF6;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.action-text {
+  color: #FFFFFF;
+  font-size: 11pt;
+  margin: 0;
+}
+.star-value {
+  color: #F59E0B;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.cap-row {
+  background: #1E1040;
+}
+.cap-text {
+  color: #EF4444;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Ganar Estrellas</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <div class="table-container">
+    <div class="table-row table-header">
+      <div class="col-action"><p class="header-text">Accion</p></div>
+      <div class="col-stars"><p class="header-text">Estrellas</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-action"><p class="action-text">Ganar batalla</p></div>
+      <div class="col-stars"><p class="star-value">+apuesta del rival</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-action"><p class="action-text">Ganar torneo</p></div>
+      <div class="col-stars"><p class="star-value">+50 bonus</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-action"><p class="action-text">Misiones semanales</p></div>
+      <div class="col-stars"><p class="star-value">+10 a +30</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-action"><p class="action-text">QR Check-in en evento</p></div>
+      <div class="col-stars"><p class="star-value">+5</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-action"><p class="action-text">Login streak diario</p></div>
+      <div class="col-stars"><p class="star-value">+1/dia (max +7/sem)</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-action"><p class="action-text">Referir un nuevo jugador</p></div>
+      <div class="col-stars"><p class="star-value">+25</p></div>
+    </div>
+    <div class="table-row">
+      <div class="col-action"><p class="action-text">Combo votado por la comunidad</p></div>
+      <div class="col-stars"><p class="star-value">+5</p></div>
+    </div>
+    <div class="table-row-last cap-row">
+      <div class="col-action"><p class="cap-text">CAP SEMANAL</p></div>
+      <div class="col-stars"><p class="cap-text">100 maximo</p></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

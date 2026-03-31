@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-main.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 22pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 10pt 0;
+}
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 7pt;
+}
+.card {
+  background: #1A1D33;
+  border: 1px solid #2D3065;
+  border-radius: 8pt;
+  padding: 9pt 18pt;
+}
+h2 {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0 0 6pt 0;
+}
+.green-title { color: #10B981; }
+.purple-title { color: #8B5CF6; }
+.gold-title { color: #F59E0B; }
+.calc {
+  color: #FFFFFF;
+  font-size: 10pt;
+  margin: 0 0 3pt 0;
+}
+.result {
+  color: #10B981;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.result-gold {
+  color: #F59E0B;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.total-card {
+  background: #1E1040;
+  border: 2px solid #8B5CF6;
+  border-radius: 8pt;
+  padding: 10pt 18pt;
+  margin: 6pt 0 0 0;
+}
+.total-title {
+  color: #FFFFFF;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 6pt 0;
+}
+.total-value {
+  color: #10B981;
+  font-size: 20pt;
+  font-weight: bold;
+  margin: 0;
+}
+.total-sub {
+  color: #94A3B8;
+  font-size: 10pt;
+  margin: 4pt 0 0 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Modelo de Ganancia</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <div class="cards">
+    <div class="card">
+      <h2 class="green-title">Venta Directa ($ARS)</h2>
+      <p class="calc">$25.000 precio - $16.000 costo = $9.000 ganancia</p>
+      <p class="result">Margen: 36%</p>
+    </div>
+    <div class="card">
+      <h2 class="purple-title">Con Omega Coins</h2>
+      <p class="calc">Jugador paga $20.000 por 2.000 OC &rarr; canjea beyblade de $25.000</p>
+      <p class="calc">Ariel gana $4.000 + engagement del jugador</p>
+      <p class="result">Margen: 20% + fidelizacion</p>
+    </div>
+    <div class="card">
+      <h2 class="gold-title">Inscripciones Torneo</h2>
+      <p class="calc">$5.000 x 15 jugadores = $75.000 por torneo</p>
+      <p class="result-gold">$75.000 revenue por evento</p>
+    </div>
+  </div>
+  <div class="total-card">
+    <p class="total-title">Estimacion Mensual</p>
+    <p class="total-value">$500.000+ ARS / mes</p>
+    <p class="total-sub">4 torneos x $75k + ventas de productos + Omega Coins</p>
+  </div>
+</div>
+</body>
+</html>

@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import LivePredictions from "./_components/live-predictions";
 
 interface LivePlayer {
   id: string;
@@ -354,6 +355,13 @@ export default function LiveBattlePage() {
             </div>
           </div>
         </div>
+
+        {/* Live Predictions -- panel de apuestas con OC */}
+        {(isLive || (isCompleted && resolved)) && (
+          <div className="px-4 mt-6">
+            <LivePredictions />
+          </div>
+        )}
 
         {/* Back to dashboard */}
         <div className="px-4 mt-6">

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 22pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 20pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.bar { margin: 0 0 14pt 0; }
+.visual {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8pt;
+  margin: 0 0 14pt 0;
+}
+.deck-side {
+  display: flex;
+  flex-direction: column;
+  gap: 6pt;
+  align-items: center;
+}
+.slot {
+  background: #111827;
+  border: 2px solid #8B5CF6;
+  border-radius: 8pt;
+  padding: 6pt 16pt;
+  width: 140pt;
+}
+.slot-right {
+  background: #111827;
+  border: 2px solid #EF4444;
+  border-radius: 8pt;
+  padding: 6pt 16pt;
+  width: 140pt;
+}
+.slot-label {
+  color: #94A3B8;
+  font-size: 8pt;
+  margin: 0;
+  text-align: center;
+}
+.slot-name {
+  color: #FFFFFF;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 2pt 0 0 0;
+  text-align: center;
+}
+.player-label {
+  color: #8B5CF6;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+  text-align: center;
+}
+.player-label-r {
+  color: #EF4444;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+  text-align: center;
+}
+.rules-card {
+  background: #111827;
+  border: 2px solid #8B5CF6;
+  border-radius: 10pt;
+  padding: 12pt 16pt;
+}
+h2 {
+  color: #8B5CF6;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 6pt 0;
+}
+ul {
+  margin: 0;
+  padding: 0 0 0 14pt;
+  color: #FFFFFF;
+  font-size: 10pt;
+  line-height: 2.0;
+}
+.hl-purple { color: #8B5CF6; font-weight: bold; }
+.hl-gold { color: #F59E0B; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>DECK BATTLE — Como Funciona</h1>
+  <img src="assets/accent-purple.png" class="bar" style="width: 650pt; height: 3pt;">
+  <div class="visual">
+    <div class="deck-side">
+      <p class="player-label">JUGADOR A</p>
+      <div class="slot">
+        <p class="slot-label">BEY #1</p>
+        <p class="slot-name">Shark Edge</p>
+      </div>
+      <div class="slot">
+        <p class="slot-label">BEY #2</p>
+        <p class="slot-name">Dran Sword</p>
+      </div>
+      <div class="slot">
+        <p class="slot-label">BEY #3</p>
+        <p class="slot-name">Phoenix Wing</p>
+      </div>
+    </div>
+    <img src="assets/vs-badge.png" style="width: 50pt; height: 50pt;">
+    <div class="deck-side">
+      <p class="player-label-r">JUGADOR B</p>
+      <div class="slot-right">
+        <p class="slot-label">BEY #1</p>
+        <p class="slot-name">Cobalt Drake</p>
+      </div>
+      <div class="slot-right">
+        <p class="slot-label">BEY #2</p>
+        <p class="slot-name">Tyranno Beat</p>
+      </div>
+      <div class="slot-right">
+        <p class="slot-label">BEY #3</p>
+        <p class="slot-name">Hells Scythe</p>
+      </div>
+    </div>
+  </div>
+  <div class="rules-card">
+    <h2>Reglas</h2>
+    <ul>
+      <li>Registra <span class="hl-purple">3 beyblades</span> como tu deck</li>
+      <li>Desafia a otro blader a <span class="hl-purple">3v3</span></li>
+      <li>Best of 3: tu bey 1 vs su bey 1, etc</li>
+      <li>Aposta <span class="hl-gold">Omega Coins</span> por el match completo</li>
+      <li>Estrategia: pones tu mejor bey primero o lo guardas?</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

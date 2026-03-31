@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 20pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #EF4444;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+}
+.bar { margin: 0 0 12pt 0; }
+.battle-zone {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 14pt;
+  margin: 0 0 10pt 0;
+}
+.player-card {
+  background: #111827;
+  border: 2px solid #06B6D4;
+  border-radius: 10pt;
+  padding: 8pt 16pt;
+  text-align: center;
+  width: 170pt;
+}
+.player-name {
+  color: #FFFFFF;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 4pt 0 0 0;
+  text-align: center;
+}
+.bet-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 8pt;
+  margin: 6pt 0 0 0;
+}
+.bet-star {
+  color: #F59E0B;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.bet-coin {
+  color: #8B5CF6;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.vs-img { margin: 0; }
+.explain {
+  color: #94A3B8;
+  font-size: 10pt;
+  text-align: center;
+  margin: 0 0 10pt 0;
+}
+.result-columns {
+  display: flex;
+  flex-direction: row;
+  gap: 14pt;
+  margin: 0 0 10pt 0;
+}
+.result-card {
+  background: #111827;
+  border-radius: 8pt;
+  padding: 10pt 14pt;
+  width: 312pt;
+  text-align: center;
+}
+.result-win { border: 2px solid #10B981; }
+.result-lose { border: 2px solid #EF4444; }
+.result-title {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0 0 6pt 0;
+  text-align: center;
+}
+.title-win { color: #10B981; }
+.title-lose { color: #EF4444; }
+.result-line {
+  color: #FFFFFF;
+  font-size: 10pt;
+  margin: 2pt 0;
+  text-align: center;
+}
+.gold { color: #F59E0B; font-weight: bold; }
+.purple { color: #8B5CF6; font-weight: bold; }
+.green { color: #10B981; font-weight: bold; }
+.red { color: #EF4444; font-weight: bold; }
+.footer-text {
+  color: #06B6D4;
+  font-size: 11pt;
+  font-weight: bold;
+  font-style: italic;
+  margin: 0;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Los Retos — Doble apuesta</h1>
+  <img src="assets/accent-purple.png" class="bar" style="width: 650pt; height: 3pt;">
+  <div class="battle-zone">
+    <div class="player-card">
+      <img src="assets/user-icon.png" style="width: 26pt; height: 26pt;">
+      <p class="player-name">BLADER A</p>
+      <div class="bet-row">
+        <p class="bet-star">3 EST</p>
+        <p class="bet-coin">+ 100 OC</p>
+      </div>
+    </div>
+    <img src="assets/vs-badge.png" class="vs-img" style="width: 44pt; height: 44pt;">
+    <div class="player-card">
+      <img src="assets/user-icon.png" style="width: 26pt; height: 26pt;">
+      <p class="player-name">BLADER B</p>
+      <div class="bet-row">
+        <p class="bet-star">3 EST</p>
+        <p class="bet-coin">+ 100 OC</p>
+      </div>
+    </div>
+  </div>
+  <p class="explain">Apuestan estrellas (ranking) Y Omega Coins (plata) al mismo tiempo</p>
+  <div class="result-columns">
+    <div class="result-card result-win">
+      <p class="result-title title-win">GANADOR</p>
+      <p class="result-line"><span class="gold">+3 estrellas</span> (sube en ranking)</p>
+      <p class="result-line"><span class="purple">+100 OC</span> (gana plata)</p>
+    </div>
+    <div class="result-card result-lose">
+      <p class="result-title title-lose">PERDEDOR</p>
+      <p class="result-line"><span class="red">-3 estrellas</span> (baja en ranking)</p>
+      <p class="result-line"><span class="red">-100 OC</span> (pierde plata)</p>
+    </div>
+  </div>
+  <p class="footer-text">"Apuestas separadas: tu ranking y tu billetera en juego"</p>
+</div>
+</body>
+</html>

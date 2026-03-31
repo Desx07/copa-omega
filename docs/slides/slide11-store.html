@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-main.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 25pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 650pt; height: 2pt;
+  margin: 0 0 16pt 0;
+}
+.content {
+  display: flex;
+  flex-direction: row;
+  gap: 25pt;
+}
+.mockup {
+  width: 270pt;
+  background: #1A1D33;
+  border: 2px solid #2D3065;
+  border-radius: 10pt;
+  padding: 0;
+  overflow: hidden;
+}
+.mockup-header {
+  background: #2D1B69;
+  padding: 10pt 15pt;
+}
+.product-name {
+  color: #FFFFFF;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0;
+}
+.mockup-body {
+  padding: 12pt 15pt;
+}
+.price-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8pt;
+  margin: 0 0 8pt 0;
+}
+.price-label {
+  color: #94A3B8;
+  font-size: 9pt;
+  margin: 0;
+  width: 70pt;
+}
+.price-value-ars {
+  color: #F59E0B;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0;
+}
+.price-value-oc {
+  color: #8B5CF6;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0;
+}
+.discount-badge {
+  background: #10B981;
+  border-radius: 4pt;
+  padding: 6pt 10pt;
+  margin: 8pt 0;
+}
+.discount-text {
+  color: #FFFFFF;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0;
+}
+.separator {
+  background: #2D3065;
+  height: 1pt;
+  margin: 8pt 0;
+}
+.mixed-title {
+  color: #94A3B8;
+  font-size: 9pt;
+  margin: 0 0 6pt 0;
+}
+.mix-row {
+  display: flex;
+  flex-direction: row;
+  gap: 6pt;
+  margin: 0 0 4pt 0;
+}
+.mix-chip {
+  background: #2D1B69;
+  border-radius: 4pt;
+  padding: 4pt 8pt;
+}
+.mix-text {
+  color: #FFFFFF;
+  font-size: 8pt;
+  margin: 0;
+}
+.features {
+  width: 340pt;
+}
+.feature-card {
+  background: #1A1D33;
+  border: 1px solid #2D3065;
+  border-radius: 8pt;
+  padding: 10pt 14pt;
+  margin: 0 0 10pt 0;
+}
+h3 {
+  color: #8B5CF6;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.feat-text {
+  color: #94A3B8;
+  font-size: 9pt;
+  margin: 0;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Integracion en la Store</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 650pt; height: 2pt;">
+  <div class="content">
+    <div class="mockup">
+      <div class="mockup-header">
+        <p class="product-name">Beyblade X - Dran Sword</p>
+      </div>
+      <div class="mockup-body">
+        <div class="price-row">
+          <p class="price-label">Precio ARS:</p>
+          <p class="price-value-ars">$25.000</p>
+        </div>
+        <div class="price-row">
+          <p class="price-label">Omega Coins:</p>
+          <p class="price-value-oc">2.000 OC</p>
+        </div>
+        <div class="discount-badge">
+          <p class="discount-text">Ahorra $2.500 con tus 500 estrellas</p>
+        </div>
+        <div class="separator"></div>
+        <p class="mixed-title">Pago mixto disponible:</p>
+        <div class="mix-row">
+          <div class="mix-chip"><p class="mix-text">$15.000 cash</p></div>
+          <div class="mix-chip"><p class="mix-text">500 OC</p></div>
+          <div class="mix-chip"><p class="mix-text">200 estrellas</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="features">
+      <div class="feature-card">
+        <h3>Balance visible en header</h3>
+        <p class="feat-text">El jugador ve sus estrellas y Omega Coins en todo momento en la barra de navegacion.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Pago mixto flexible</h3>
+        <p class="feat-text">Combinar $ARS + Omega Coins + Estrellas en una sola compra. El jugador elige cuanto poner de cada uno.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Descuento automatico</h3>
+        <p class="feat-text">El sistema sugiere automaticamente usar estrellas para obtener descuento. Maximo 10% del precio.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Historial de transacciones</h3>
+        <p class="feat-text">Cada jugador puede ver su historial completo de compras, canjes y movimientos.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

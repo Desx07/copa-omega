@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D0F1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-title.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 30pt 50pt;
+  width: 620pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.bar {
+  width: 620pt; height: 2pt;
+  margin: 0 0 20pt 0;
+}
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12pt;
+}
+.step {
+  display: flex;
+  flex-direction: row;
+  gap: 14pt;
+  align-items: center;
+}
+.step-num {
+  width: 36pt;
+  height: 36pt;
+  background: #2D1B69;
+  border: 2px solid #8B5CF6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.num {
+  color: #8B5CF6;
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+.step-content {
+  width: 550pt;
+}
+.step-title {
+  color: #FFFFFF;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 2pt 0;
+}
+.step-desc {
+  color: #94A3B8;
+  font-size: 10pt;
+  margin: 0;
+}
+.highlight {
+  color: #F59E0B;
+}
+.quote-box {
+  background: #1E1040;
+  border: 1px solid #8B5CF6;
+  border-radius: 8pt;
+  padding: 16pt 20pt;
+  margin: 20pt 0 0 0;
+  text-align: center;
+}
+.quote {
+  color: #F59E0B;
+  font-size: 15pt;
+  font-weight: bold;
+  margin: 0;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Proximos Pasos</h1>
+  <img src="assets/accent-bar.png" class="bar" style="width: 620pt; height: 2pt;">
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">
+        <p class="num">1</p>
+      </div>
+      <div class="step-content">
+        <p class="step-title">Conectar estrellas con la Store <span style="color: #F59E0B;">(esta semana)</span></p>
+        <p class="step-desc">Implementar el canje de estrellas como descuento en productos existentes.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">
+        <p class="num">2</p>
+      </div>
+      <div class="step-content">
+        <p class="step-title">Crear sistema de Omega Coins</p>
+        <p class="step-desc">Nueva moneda premium, pagina de compra, integracion con el backend.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">
+        <p class="num">3</p>
+      </div>
+      <div class="step-content">
+        <p class="step-title">Implementar pago mixto</p>
+        <p class="step-desc">Checkout flexible: $ARS + Omega Coins + Estrellas en una sola transaccion.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">
+        <p class="num">4</p>
+      </div>
+      <div class="step-content">
+        <p class="step-title">Lanzar al publico</p>
+        <p class="step-desc">Comunicar a la comunidad, onboarding de jugadores, primer torneo con economia activa.</p>
+      </div>
+    </div>
+  </div>
+  <div class="quote-box">
+    <p class="quote">"El objetivo: que cada batalla tenga un valor real"</p>
+  </div>
+</div>
+</body>
+</html>

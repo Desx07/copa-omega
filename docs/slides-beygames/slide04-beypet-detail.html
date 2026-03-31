@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 22pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 20pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.bar { margin: 0 0 14pt 0; }
+.columns {
+  display: flex;
+  flex-direction: row;
+  gap: 16pt;
+}
+.col { width: 317pt; }
+.card {
+  background: #111827;
+  border: 2px solid #06B6D4;
+  border-radius: 10pt;
+  padding: 12pt 14pt;
+}
+.card-right {
+  background: #111827;
+  border: 2px solid #8B5CF6;
+  border-radius: 10pt;
+  padding: 12pt 14pt;
+}
+.card-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8pt;
+  margin: 0 0 8pt 0;
+}
+h2 {
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0;
+}
+.cyan { color: #06B6D4; }
+.purple { color: #8B5CF6; }
+ul {
+  margin: 0;
+  padding: 0 0 0 14pt;
+  color: #FFFFFF;
+  font-size: 10pt;
+  line-height: 2.0;
+}
+.hl-cyan { color: #06B6D4; font-weight: bold; }
+.hl-purple { color: #8B5CF6; font-weight: bold; }
+.hl-gold { color: #F59E0B; font-weight: bold; }
+.footer-box {
+  background: #111827;
+  border: 1px solid #F59E0B;
+  border-radius: 8pt;
+  padding: 8pt 14pt;
+  margin: 12pt 0 0 0;
+  text-align: center;
+}
+.footer-text {
+  color: #F59E0B;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>BEYPET — Detalles</h1>
+  <img src="assets/accent-cyan.png" class="bar" style="width: 650pt; height: 3pt;">
+  <div class="columns">
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          <img src="assets/beypet-icon.png" style="width: 24pt; height: 24pt;">
+          <h2 class="cyan">Tu BeySpirit</h2>
+        </div>
+        <ul>
+          <li>Basado en tu <span class="hl-cyan">beyblade principal</span></li>
+          <li>3 niveles: <span class="hl-gold">Rookie</span> → <span class="hl-gold">Champion</span> → <span class="hl-gold">Ultimate</span></li>
+          <li>Evoluciona mientras mas competas</li>
+          <li>Si no peleas en <span class="hl-cyan">7 dias</span> pierde nivel</li>
+          <li>Login diario = alimentarlo</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card-right">
+        <div class="card-header">
+          <img src="assets/swords-icon.png" style="width: 24pt; height: 24pt;">
+          <h2 class="purple">Batallas de BeyPet</h2>
+        </div>
+        <ul>
+          <li>Pelea tu mascota <span class="hl-purple">vs otra</span></li>
+          <li>Aposta <span class="hl-gold">Omega Coins</span></li>
+          <li>Stats: ATK / DEF / STA basados en tu bey</li>
+          <li>La <span class="hl-cyan">energia</span> importa (alimentar = poder)</li>
+          <li>Ganar = <span class="hl-gold">+XP</span> + OC</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-box">
+    <p class="footer-text">Tu mascota refleja tu actividad real como blader</p>
+  </div>
+</div>
+</body>
+</html>

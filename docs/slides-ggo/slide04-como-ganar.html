@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 25pt 35pt;
+  width: 650pt;
+}
+h1 {
+  color: #8B5CF6;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+}
+.bar { margin: 0 0 16pt 0; }
+.main-row {
+  display: flex;
+  flex-direction: row;
+  gap: 20pt;
+  align-items: flex-start;
+}
+.icon-col {
+  width: 70pt;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10pt 0 0 0;
+}
+.text-col {
+  width: 560pt;
+}
+ul {
+  margin: 0 0 10pt 0;
+  padding: 0 0 0 18pt;
+  color: #FFFFFF;
+  font-size: 12pt;
+  line-height: 2.2;
+}
+.highlight { color: #8B5CF6; font-weight: bold; }
+.gold { color: #F59E0B; font-weight: bold; }
+.green { color: #10B981; font-weight: bold; }
+.example-box {
+  background: #111827;
+  border: 1px solid #8B5CF6;
+  border-radius: 8pt;
+  padding: 10pt 16pt;
+  margin: 6pt 0 0 0;
+}
+.example-title {
+  color: #8B5CF6;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+}
+.example-text {
+  color: #FFFFFF;
+  font-size: 11pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Omega Coins — Tu Billetera</h1>
+  <img src="assets/accent-purple.png" class="bar" style="width: 650pt; height: 3pt;">
+  <div class="main-row">
+    <div class="icon-col">
+      <img src="assets/coin-icon.png" style="width: 60pt; height: 60pt;">
+    </div>
+    <div class="text-col">
+      <ul>
+        <li>Son la <span class="highlight">moneda</span> de Bladers Santa Fe</li>
+        <li>Compras beyblades <span class="gold">REALES</span> en la store</li>
+        <li>Pagas la <span class="highlight">inscripcion al torneo</span></li>
+        <li>Se ganan como <span class="green">premio</span> en torneos y retos</li>
+        <li>Se ganan por misiones, check-in QR, referidos</li>
+        <li>Se pueden comprar con <span class="gold">pesos ($ARS)</span></li>
+      </ul>
+      <div class="example-box">
+        <p class="example-title">Ejemplo:</p>
+        <p class="example-text">Ganas un torneo y te llevas 400 OC de premio. Con esas OC + las que ya tenias, te compras un beyblade de 2.000 OC en la store.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

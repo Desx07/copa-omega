@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0A0E1A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background-image: url('assets/bg-dark.png');
+  background-size: 720pt 405pt;
+}
+.container {
+  margin: 22pt 35pt;
+  width: 650pt;
+}
+.header-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10pt;
+  margin: 0 0 3pt 0;
+}
+h1 {
+  color: #FFFFFF;
+  font-size: 22pt;
+  font-weight: bold;
+  margin: 0;
+}
+.live-badge {
+  background: #EF4444;
+  border-radius: 6pt;
+  padding: 3pt 10pt;
+}
+.live-text {
+  color: #FFFFFF;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+.bar { margin: 4pt 0 14pt 0; }
+.intro {
+  color: #94A3B8;
+  font-size: 13pt;
+  margin: 0 0 14pt 0;
+}
+.columns {
+  display: flex;
+  flex-direction: row;
+  gap: 16pt;
+}
+.col { width: 317pt; }
+.card {
+  background: #111827;
+  border: 2px solid #EF4444;
+  border-radius: 10pt;
+  padding: 12pt 14pt;
+}
+.card-gold {
+  background: #111827;
+  border: 2px solid #F59E0B;
+  border-radius: 10pt;
+  padding: 12pt 14pt;
+}
+h2 {
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 6pt 0;
+}
+.red { color: #EF4444; }
+.gold { color: #F59E0B; }
+ul {
+  margin: 0;
+  padding: 0 0 0 14pt;
+  color: #FFFFFF;
+  font-size: 10pt;
+  line-height: 2.0;
+}
+.hl-red { color: #EF4444; font-weight: bold; }
+.hl-gold { color: #F59E0B; font-weight: bold; }
+.hl-green { color: #10B981; font-weight: bold; }
+.mockup-frame {
+  background: #0F172A;
+  border: 2px solid #1E293B;
+  border-radius: 10pt;
+  padding: 10pt 14pt;
+  margin: 14pt 0 0 0;
+}
+.match-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12pt;
+}
+.bettor-a {
+  color: #8B5CF6;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.odds-a {
+  color: #F59E0B;
+  font-size: 10pt;
+  margin: 0;
+}
+.vs-text {
+  color: #EF4444;
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 0;
+}
+.bettor-b {
+  color: #06B6D4;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.odds-b {
+  color: #F59E0B;
+  font-size: 10pt;
+  margin: 0;
+}
+.pool-text {
+  color: #94A3B8;
+  font-size: 9pt;
+  margin: 4pt 0 0 0;
+  text-align: center;
+}
+.tagline {
+  color: #06B6D4;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 10pt 0 0 0;
+  text-align: center;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header-row">
+    <img src="assets/live-icon.png" style="width: 30pt; height: 30pt;">
+    <h1>PREDICCIONES EN VIVO</h1>
+    <div class="live-badge">
+      <p class="live-text">EN VIVO</p>
+    </div>
+  </div>
+  <img src="assets/accent-red.png" class="bar" style="width: 650pt; height: 3pt;">
+  <p class="intro">Aposta durante las batallas en tiempo real</p>
+  <div class="columns">
+    <div class="col">
+      <div class="card">
+        <h2 class="red">Como Funciona</h2>
+        <ul>
+          <li>Match en vivo = <span class="hl-red">apuestas abiertas</span></li>
+          <li>Los espectadores apuestan <span class="hl-gold">OC</span></li>
+          <li>Cuotas <span class="hl-red">dinamicas</span> segun apuestas</li>
+          <li>Si acertas, ganas <span class="hl-green">proporcional al pozo</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card-gold">
+        <h2 class="gold">Beneficios</h2>
+        <ul>
+          <li>Todos participan, no solo los que pelean</li>
+          <li>Mas emocion en cada batalla</li>
+          <li>Incentiva asistir a los torneos</li>
+          <li>Economia activa toda la jornada</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="mockup-frame">
+    <div class="match-row">
+      <p class="bettor-a">DESX</p>
+      <p class="odds-a">x1.8</p>
+      <p class="vs-text">VS</p>
+      <p class="odds-b">x2.3</p>
+      <p class="bettor-b">WOLF</p>
+    </div>
+    <p class="pool-text">Pozo actual: 180 OC | 12 apuestas activas</p>
+  </div>
+  <p class="tagline">"Converti cada torneo en una experiencia completa"</p>
+</div>
+</body>
+</html>
