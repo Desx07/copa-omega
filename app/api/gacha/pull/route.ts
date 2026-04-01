@@ -15,45 +15,28 @@ export async function POST() {
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Verificar que el jugador tiene suficientes Omega Coins
-    const { data: player, error: playerError } = await supabase
-      .from("players")
-      .select("id, omega_coins")
-      .eq("id", user.id)
-      .single();
-
-    if (playerError || !player) {
-      return Response.json(
-        { error: "Jugador no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    if (player.omega_coins < GACHA_COST) {
-      return Response.json(
-        {
-          error: `No tenes suficientes Omega Coins. Necesitas ${GACHA_COST} OC, tenes ${player.omega_coins} OC.`,
-          needed: GACHA_COST,
-          current: player.omega_coins,
-        },
-        { status: 400 }
-      );
-    }
-
     // Generar el combo random
     const result = pullGacha();
 
-    // Descontar Omega Coins
-    const { error: updateError } = await supabase
-      .from("players")
-      .update({ omega_coins: player.omega_coins - GACHA_COST })
-      .eq("id", user.id);
+    // Descontar Omega Coins atomicamente (evita race conditions)
+    const { data: remainingCoins, error: deductError } = await supabase
+      .rpc("deduct_omega_coins", { p_player_id: user.id, p_amount: GACHA_COST });
 
-    if (updateError) {
-      console.error("Error descontando OC:", updateError);
+    if (deductError) {
+      console.error("Error descontando OC:", deductError);
       return Response.json(
         { error: "Error al procesar el pago" },
         { status: 500 }
+      );
+    }
+
+    if (remainingCoins === -1) {
+      return Response.json(
+        {
+          error: `No tenes suficientes Omega Coins. Necesitas ${GACHA_COST} OC.`,
+          needed: GACHA_COST,
+        },
+        { status: 400 }
       );
     }
 
@@ -72,11 +55,8 @@ export async function POST() {
 
     if (insertError) {
       console.error("Error guardando pull:", insertError);
-      // Revertir las Omega Coins si falla el insert
-      await supabase
-        .from("players")
-        .update({ omega_coins: player.omega_coins })
-        .eq("id", user.id);
+      // Revertir las Omega Coins atomicamente si falla el insert
+      await supabase.rpc("add_omega_coins", { p_player_id: user.id, p_amount: GACHA_COST });
 
       return Response.json(
         { error: "Error al guardar el pull" },
@@ -97,7 +77,7 @@ export async function POST() {
         overallTier: result.overallTier,
         pulled_at: pull.pulled_at,
       },
-      remainingCoins: player.omega_coins - GACHA_COST,
+      remainingCoins: remainingCoins,
     });
   } catch (err) {
     console.error("POST /api/gacha/pull error:", err);

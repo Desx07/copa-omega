@@ -192,19 +192,13 @@ export async function POST(request: Request) {
     // Dar recompensas con admin client (bypass RLS)
     const adminSupabase = createAdminClient();
 
-    // Dar OC
+    // Dar OC atomicamente (evita race conditions)
     if (rewardOc > 0) {
-      const { data: currentPlayer } = await adminSupabase
-        .from("players")
-        .select("omega_coins")
-        .eq("id", user.id)
-        .single();
+      const { error: ocError } = await adminSupabase
+        .rpc("add_omega_coins", { p_player_id: user.id, p_amount: rewardOc });
 
-      if (currentPlayer) {
-        await adminSupabase
-          .from("players")
-          .update({ omega_coins: (currentPlayer.omega_coins ?? 0) + rewardOc })
-          .eq("id", user.id);
+      if (ocError) {
+        console.error("Error adding OC reward:", ocError);
       }
     }
 
