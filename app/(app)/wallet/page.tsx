@@ -354,6 +354,7 @@ export default function WalletPage() {
                     "Insuficiente"
                   )}
                 </button>
+                </div>
               </div>
             </div>
           </div>
