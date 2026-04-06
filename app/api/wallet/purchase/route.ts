@@ -96,7 +96,7 @@ export async function POST(request: Request) {
         player_id: user.id,
         type: catalogItem.type,
         discount_percent: catalogItem.discount_percent,
-        cost: catalogItem.cost,
+        is_used: false,
       })
       .select()
       .single();

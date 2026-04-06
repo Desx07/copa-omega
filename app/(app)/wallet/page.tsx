@@ -54,10 +54,10 @@ interface Transaction {
 // ---------------------------------------------------------------------------
 
 const VOUCHER_CATALOG = [
-  { type: "voucher_5", discount: 5, cost: 50, label: "5% Descuento" },
-  { type: "voucher_10", discount: 10, cost: 100, label: "10% Descuento" },
-  { type: "voucher_15", discount: 15, cost: 200, label: "15% Descuento" },
-  { type: "voucher_20", discount: 20, cost: 350, label: "20% Descuento" },
+  { type: "voucher_5", discount: 5, cost: 50, label: "5% Descuento", image: "/vouchers/voucher_5.png" },
+  { type: "voucher_10", discount: 10, cost: 100, label: "10% Descuento", image: "/vouchers/voucher_10.png" },
+  { type: "voucher_15", discount: 15, cost: 200, label: "15% Descuento", image: "/vouchers/voucher_15.png" },
+  { type: "voucher_20", discount: 20, cost: 350, label: "20% Descuento", image: "/vouchers/voucher_20.png" },
 ];
 
 const GOLDEN_TICKET_COST = 500;
@@ -265,14 +265,13 @@ export default function WalletPage() {
                     key={item.type}
                     className="group omega-card overflow-hidden transition-all hover:shadow-lg"
                   >
-                    {/* Gradient header */}
-                    <div className="bg-gradient-to-r from-omega-purple/20 to-omega-blue/10 px-3 py-3 text-center border-b border-omega-border/20">
-                      <p className="text-2xl font-black text-omega-purple">
-                        {item.discount}%
-                      </p>
-                      <p className="text-[10px] text-omega-muted uppercase tracking-wider font-bold">
-                        Descuento
-                      </p>
+                    {/* Voucher image */}
+                    <div className="border-b border-omega-border/20">
+                      <img
+                        src={item.image}
+                        alt={item.label}
+                        className="w-full h-auto"
+                      />
                     </div>
                     <div className="px-3 py-3 space-y-2">
                       <div className="flex items-center justify-center gap-1.5">
@@ -324,24 +323,19 @@ export default function WalletPage() {
                 <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-omega-gold/8 rounded-full blur-[30px] animate-float-d2" />
               </div>
 
-              <div className="relative px-5 py-5 flex items-center gap-4">
-                <div className="shrink-0 flex items-center justify-center size-16 rounded-2xl bg-omega-gold/20 ring-2 ring-omega-gold/40">
-                  <Ticket className="size-8 text-omega-gold star-glow" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-lg font-black text-omega-gold text-glow-gold">
-                    Golden Ticket
-                  </p>
-                  <p className="text-xs text-omega-muted mt-0.5">
-                    Inscripcion gratuita a un torneo
-                  </p>
-                  <div className="flex items-center gap-1.5 mt-2">
+              <div className="relative flex flex-col gap-3">
+                <img
+                  src="/vouchers/golden_ticket.png"
+                  alt="Golden Ticket"
+                  className="w-full h-auto rounded-t-xl"
+                />
+                <div className="px-5 pb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
                     <Coins className="size-3.5 text-omega-gold" />
                     <span className="text-sm font-black text-omega-gold">
                       {GOLDEN_TICKET_COST}
                     </span>
                   </div>
-                </div>
                 <button
                   onClick={() => handlePurchase("golden_ticket")}
                   disabled={balance < GOLDEN_TICKET_COST || !!purchasing}
