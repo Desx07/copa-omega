@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     // Verificar voucher
     const { data: voucher } = await supabase
-      .from("wallet_vouchers")
+      .from("player_vouchers")
       .select("id, is_used, player_id, discount_percent")
       .eq("id", voucher_id)
       .eq("player_id", user.id)
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
     // Marcar como usado
     const { error } = await supabase
-      .from("wallet_vouchers")
+      .from("player_vouchers")
       .update({
         is_used: true,
         used_at: new Date().toISOString(),

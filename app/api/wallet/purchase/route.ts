@@ -49,8 +49,8 @@ export async function POST(request: Request) {
 
       // Crear golden ticket
       const { data: ticket, error: ticketError } = await supabase
-        .from("wallet_golden_tickets")
-        .insert({ player_id: user.id })
+        .from("player_vouchers")
+        .insert({ player_id: user.id, type: "golden_ticket", discount_percent: null, is_used: false })
         .select()
         .single();
 
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
 
     // Crear voucher
     const { data: voucher, error: voucherError } = await supabase
-      .from("wallet_vouchers")
+      .from("player_vouchers")
       .insert({
         player_id: user.id,
         type: catalogItem.type,

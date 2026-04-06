@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     // Verificar ticket
     const { data: ticket } = await supabase
-      .from("wallet_golden_tickets")
+      .from("player_vouchers")
       .select("id, is_used, player_id")
       .eq("id", ticket_id)
       .eq("player_id", user.id)
@@ -35,11 +35,11 @@ export async function POST(request: Request) {
 
     // Marcar como usado
     const { error } = await supabase
-      .from("wallet_golden_tickets")
+      .from("player_vouchers")
       .update({
         is_used: true,
         used_at: new Date().toISOString(),
-        tournament_id: tournament_id || null,
+        used_on_tournament_id: tournament_id || null,
       })
       .eq("id", ticket_id);
 

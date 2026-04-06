@@ -19,19 +19,21 @@ export async function GET() {
 
     const balance = player?.omega_coins ?? 0;
 
-    // Vouchers del jugador
+    // Vouchers del jugador (descuentos)
     const { data: vouchers } = await supabase
-      .from("wallet_vouchers")
-      .select("id, type, discount_percent, cost, is_used, used_at, created_at")
+      .from("player_vouchers")
+      .select("id, type, discount_percent, is_used, used_at, purchased_at")
       .eq("player_id", user.id)
-      .order("created_at", { ascending: false });
+      .neq("type", "golden_ticket")
+      .order("purchased_at", { ascending: false });
 
     // Golden tickets
     const { data: tickets } = await supabase
-      .from("wallet_golden_tickets")
-      .select("id, is_used, used_at, tournament_id, created_at")
+      .from("player_vouchers")
+      .select("id, type, is_used, used_at, used_on_tournament_id, purchased_at")
       .eq("player_id", user.id)
-      .order("created_at", { ascending: false });
+      .eq("type", "golden_ticket")
+      .order("purchased_at", { ascending: false });
 
     // Transacciones recientes
     const { data: transactions } = await supabase
