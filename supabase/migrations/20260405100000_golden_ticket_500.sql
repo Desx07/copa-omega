@@ -1,4 +1,5 @@
 -- Update golden ticket price from 300 to 500
+DROP FUNCTION IF EXISTS purchase_voucher(uuid, text);
 CREATE OR REPLACE FUNCTION purchase_voucher(p_player_id uuid, p_voucher_type text)
 RETURNS uuid AS $$
 DECLARE
