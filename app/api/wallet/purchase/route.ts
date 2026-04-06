@@ -8,7 +8,7 @@ const VOUCHER_CATALOG = [
   { type: "voucher_20", discount_percent: 20, cost: 350, label: "20% descuento" },
 ];
 
-const GOLDEN_TICKET_COST = 300;
+const GOLDEN_TICKET_COST = 500;
 
 // POST — comprar voucher o golden ticket
 export async function POST(request: Request) {

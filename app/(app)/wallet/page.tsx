@@ -60,7 +60,7 @@ const VOUCHER_CATALOG = [
   { type: "voucher_20", discount: 20, cost: 350, label: "20% Descuento" },
 ];
 
-const GOLDEN_TICKET_COST = 300;
+const GOLDEN_TICKET_COST = 500;
 
 // ---------------------------------------------------------------------------
 // Animated counter hook
