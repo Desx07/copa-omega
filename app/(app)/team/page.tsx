@@ -151,9 +151,9 @@ export default function TeamPage() {
     fetchData();
   }, [fetchData]);
 
-  // Search players
+  // Search players — autocomplete con debounce, busca por alias Y full_name
   useEffect(() => {
-    if (searchQuery.length < 2) {
+    if (searchQuery.length < 1) {
       setSearchResults([]);
       return;
     }
@@ -164,7 +164,7 @@ export default function TeamPage() {
       const { data } = await supabase
         .from("players")
         .select("id, alias, avatar_url, stars")
-        .ilike("alias", `%${searchQuery}%`)
+        .or(`alias.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`)
         .neq("id", userId ?? "")
         .limit(10);
 
@@ -172,7 +172,7 @@ export default function TeamPage() {
       const memberIds = new Set(myTeam?.team_members?.map((m) => m.player_id) ?? []);
       setSearchResults((data ?? []).filter((p) => !memberIds.has(p.id)));
       setSearching(false);
-    }, 300);
+    }, 250);
 
     return () => clearTimeout(timeout);
   }, [searchQuery, userId, myTeam]);
@@ -430,38 +430,48 @@ export default function TeamPage() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar por alias..."
-                    className="omega-input pl-9"
+                    placeholder="Buscar por alias o nombre..."
+                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-omega-surface border border-omega-border/30 rounded-xl text-omega-text placeholder:text-omega-muted/60 focus:outline-none focus:ring-2 focus:ring-omega-purple/40 transition-all"
                     autoFocus
+                    autoComplete="off"
                     data-testid="invite-search-input"
                   />
+                  {searching && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-omega-muted animate-spin" />
+                  )}
                 </div>
-                {searching && <Loader2 className="size-4 text-omega-purple animate-spin mx-auto" />}
-                {searchResults.map((p) => (
-                  <div key={p.id} className="flex items-center gap-3 py-2">
-                    <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border/30 shrink-0">
-                      {p.avatar_url ? (
-                        <img src={p.avatar_url} alt={p.alias} className="size-full object-cover" />
-                      ) : (
-                        <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
-                          {p.alias.charAt(0).toUpperCase()}
+                {searchResults.length > 0 && (
+                  <div className="space-y-1">
+                    {searchResults.map((p) => (
+                      <div key={p.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-omega-surface hover:bg-omega-purple/10 transition-colors">
+                        <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border/30 shrink-0">
+                          {p.avatar_url ? (
+                            <img src={p.avatar_url} alt={p.alias} className="size-full object-cover" />
+                          ) : (
+                            <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                              {p.alias.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-omega-text truncate">{p.alias}</p>
-                      <p className="text-[10px] text-omega-muted">{p.stars} estrellas</p>
-                    </div>
-                    <button
-                      onClick={() => handleInvite(p.id)}
-                      disabled={inviting === p.id}
-                      className="omega-btn omega-btn-green px-3 py-1.5 text-[10px]"
-                      data-testid={`invite-${p.id}`}
-                    >
-                      {inviting === p.id ? <Loader2 className="size-3 animate-spin" /> : "Invitar"}
-                    </button>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-omega-text truncate">{p.alias}</p>
+                          <p className="text-[10px] text-omega-muted">{p.stars} estrellas</p>
+                        </div>
+                        <button
+                          onClick={() => handleInvite(p.id)}
+                          disabled={inviting === p.id}
+                          className="omega-btn omega-btn-green px-3 py-1.5 text-[10px]"
+                          data-testid={`invite-${p.id}`}
+                        >
+                          {inviting === p.id ? <Loader2 className="size-3 animate-spin" /> : "Invitar"}
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                {searchQuery.trim().length >= 1 && !searching && searchResults.length === 0 && (
+                  <p className="text-xs text-omega-muted/70 text-center py-3">Sin resultados</p>
+                )}
               </div>
             )}
           </div>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { UserPlus, Loader2, Search, Trash2, UserRoundPlus } from "lucide-react";
+import { UserPlus, Loader2, Search, Trash2, UserRoundPlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -17,8 +17,11 @@ export default function ManualRegister({ tournamentId, existingPlayerIds, partic
   const router = useRouter();
   const supabase = createClient();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<{ id: string; alias: string; avatar_url: string | null; stars: number }[]>([]);
+  const [results, setResults] = useState<{ id: string; alias: string; avatar_url: string | null; stars: number; full_name: string | null }[]>([]);
   const [searching, setSearching] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [adding, setAdding] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
 
@@ -27,17 +30,64 @@ export default function ManualRegister({ tournamentId, existingPlayerIds, partic
   const [quickName, setQuickName] = useState("");
   const [creating, setCreating] = useState(false);
 
-  async function handleSearch() {
-    if (!query.trim()) return;
-    setSearching(true);
-    const { data } = await supabase
-      .from("players")
-      .select("id, alias, avatar_url, stars")
-      .or(`alias.ilike.%${query.trim()}%,full_name.ilike.%${query.trim()}%`)
-      .eq("is_hidden", false)
-      .limit(10);
-    setResults(data ?? []);
-    setSearching(false);
+  // Debounced autocomplete search
+  useEffect(() => {
+    if (query.trim().length < 1) {
+      setResults([]);
+      setIsOpen(false);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      setSearching(true);
+      const { data } = await supabase
+        .from("players")
+        .select("id, alias, avatar_url, stars, full_name")
+        .or(`alias.ilike.%${query.trim()}%,full_name.ilike.%${query.trim()}%`)
+        .eq("is_hidden", false)
+        .limit(10);
+      setResults(data ?? []);
+      setIsOpen(true);
+      setHighlightIndex(0);
+      setSearching(false);
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  // Click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!isOpen || results.length === 0) return;
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (results[highlightIndex] && !existingPlayerIds.includes(results[highlightIndex].id)) {
+          handleAdd(results[highlightIndex].id);
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        setIsOpen(false);
+        break;
+    }
   }
 
   async function handleAdd(playerId: string) {
@@ -125,50 +175,90 @@ export default function ManualRegister({ tournamentId, existingPlayerIds, partic
           <UserPlus className="size-4 text-omega-green" />
           Agregar jugador existente
         </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Buscar por alias o nombre..."
-            className="omega-input flex-1"
-          />
-          <button onClick={handleSearch} disabled={searching || !query.trim()} className="omega-btn omega-btn-primary px-4 py-2">
-            {searching ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
-          </button>
-        </div>
-        {results.length > 0 && (
-          <div className="space-y-1">
-            {results.map((player) => {
-              const alreadyIn = existingPlayerIds.includes(player.id);
-              return (
-                <div key={player.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-omega-surface">
-                  <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
-                    {player.avatar_url ? (
-                      <img src={player.avatar_url} alt="" className="size-full object-cover" />
+        <div ref={containerRef} className="relative">
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-omega-muted pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => { if (results.length > 0) setIsOpen(true); }}
+              onKeyDown={handleKeyDown}
+              placeholder="Buscar por alias o nombre..."
+              className="w-full pl-9 pr-8 py-2.5 text-sm bg-omega-surface border border-omega-border/30 rounded-xl text-omega-text placeholder:text-omega-muted/60 focus:outline-none focus:ring-2 focus:ring-omega-purple/40 transition-all"
+              role="combobox"
+              aria-expanded={isOpen}
+              autoComplete="off"
+              data-testid="tournament-player-search"
+            />
+            {searching && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-omega-muted animate-spin" />
+            )}
+            {query && !searching && (
+              <button
+                type="button"
+                onClick={() => { setQuery(""); setResults([]); setIsOpen(false); }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 size-5 rounded flex items-center justify-center text-omega-muted hover:text-omega-text transition-colors"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+
+          {isOpen && results.length > 0 && (
+            <div className="absolute z-50 left-0 right-0 top-full mt-1 max-h-[280px] overflow-y-auto rounded-xl border border-omega-border/30 bg-omega-card shadow-xl shadow-black/30">
+              {results.map((player, idx) => {
+                const alreadyIn = existingPlayerIds.includes(player.id);
+                return (
+                  <div
+                    key={player.id}
+                    onMouseEnter={() => setHighlightIndex(idx)}
+                    className={`flex items-center gap-3 px-3 py-2.5 transition-colors ${
+                      idx === highlightIndex ? "bg-omega-purple/15" : "hover:bg-omega-surface/80"
+                    } ${idx > 0 ? "border-t border-omega-border/10" : ""}`}
+                  >
+                    <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
+                      {player.avatar_url ? (
+                        <img src={player.avatar_url} alt="" className="size-full object-cover" />
+                      ) : (
+                        <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
+                          {player.alias.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-omega-text truncate">{player.alias}</p>
+                      {player.full_name && (
+                        <p className="text-[11px] text-omega-muted truncate">{player.full_name}</p>
+                      )}
+                    </div>
+                    <span className="text-xs text-omega-muted shrink-0">{player.stars} est.</span>
+                    {alreadyIn ? (
+                      <span className="text-xs text-omega-green font-bold shrink-0">Ya inscripto</span>
                     ) : (
-                      <div className="size-full flex items-center justify-center text-xs font-black text-omega-purple">
-                        {player.alias.charAt(0).toUpperCase()}
-                      </div>
+                      <button
+                        onClick={() => handleAdd(player.id)}
+                        disabled={adding === player.id}
+                        className="omega-btn omega-btn-green px-3 py-1.5 text-xs shrink-0"
+                      >
+                        {adding === player.id ? <Loader2 className="size-3 animate-spin" /> : "Agregar"}
+                      </button>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-omega-text truncate">{player.alias}</p>
-                    <p className="text-xs text-omega-muted">★ {player.stars}</p>
-                  </div>
-                  {alreadyIn ? (
-                    <span className="text-xs text-omega-green font-bold">Ya inscripto</span>
-                  ) : (
-                    <button onClick={() => handleAdd(player.id)} disabled={adding === player.id} className="omega-btn omega-btn-green px-3 py-1.5 text-xs">
-                      {adding === player.id ? <Loader2 className="size-3 animate-spin" /> : "Agregar"}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+
+          {isOpen && results.length === 0 && query.trim().length >= 1 && !searching && (
+            <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-xl border border-omega-border/30 bg-omega-card shadow-xl shadow-black/30 px-4 py-5 text-center">
+              <p className="text-xs text-omega-muted/70">Sin resultados</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quick create player (no account needed) */}

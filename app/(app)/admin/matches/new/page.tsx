@@ -6,10 +6,13 @@ import Link from "next/link";
 import { Star, Swords, ArrowLeft, Loader2, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import PlayerSearch, { type PlayerSearchResult } from "@/app/_components/player-search";
 
 interface Player {
   id: string;
   alias: string;
+  full_name: string | null;
+  avatar_url: string | null;
   stars: number;
   is_eliminated: boolean;
 }
@@ -17,8 +20,8 @@ interface Player {
 export default function NewMatchPage() {
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
-  const [player1Id, setPlayer1Id] = useState("");
-  const [player2Id, setPlayer2Id] = useState("");
+  const [selectedPlayer1, setSelectedPlayer1] = useState<PlayerSearchResult | null>(null);
+  const [selectedPlayer2, setSelectedPlayer2] = useState<PlayerSearchResult | null>(null);
   const [starsBet, setStarsBet] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
@@ -51,7 +54,7 @@ export default function NewMatchPage() {
       // Obtener jugadores activos
       const { data, error } = await supabase
         .from("players")
-        .select("id, alias, stars, is_eliminated")
+        .select("id, alias, full_name, avatar_url, stars, is_eliminated")
         .eq("is_eliminated", false)
         .order("alias", { ascending: true });
 
@@ -66,6 +69,9 @@ export default function NewMatchPage() {
 
     fetchPlayers();
   }, [router]);
+
+  const player1Id = selectedPlayer1?.id ?? "";
+  const player2Id = selectedPlayer2?.id ?? "";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -169,52 +175,28 @@ export default function NewMatchPage() {
       <div className="px-4">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Player 1 */}
-          <div className="space-y-2">
-            <label htmlFor="player1" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
-              Jugador 1
-            </label>
-            <select
-              id="player1"
-              required
-              value={player1Id}
-              onChange={(e) => setPlayer1Id(e.target.value)}
-              className="omega-input py-3"
-            >
-              <option value="" className="bg-omega-card text-omega-muted">
-                Seleccionar jugador...
-              </option>
-              {players.map((player) => (
-                <option key={player.id} value={player.id} className="bg-omega-card">
-                  {player.alias} ({player.stars} estrellas)
-                </option>
-              ))}
-            </select>
-          </div>
+          <PlayerSearch
+            players={players}
+            onSelect={(p) => setSelectedPlayer1(p ?? null)}
+            placeholder="Buscar jugador 1..."
+            label="Jugador 1"
+            selectedPlayer={selectedPlayer1}
+            excludeIds={player2Id ? [player2Id] : []}
+            clearable
+            testId="player1-search"
+          />
 
           {/* Player 2 */}
-          <div className="space-y-2">
-            <label htmlFor="player2" className="text-xs font-bold text-omega-muted uppercase tracking-wider">
-              Jugador 2
-            </label>
-            <select
-              id="player2"
-              required
-              value={player2Id}
-              onChange={(e) => setPlayer2Id(e.target.value)}
-              className="omega-input py-3"
-            >
-              <option value="" className="bg-omega-card text-omega-muted">
-                Seleccionar jugador...
-              </option>
-              {players
-                .filter((p) => p.id !== player1Id)
-                .map((player) => (
-                  <option key={player.id} value={player.id} className="bg-omega-card">
-                    {player.alias} ({player.stars} estrellas)
-                  </option>
-                ))}
-            </select>
-          </div>
+          <PlayerSearch
+            players={players}
+            onSelect={(p) => setSelectedPlayer2(p ?? null)}
+            placeholder="Buscar jugador 2..."
+            label="Jugador 2"
+            selectedPlayer={selectedPlayer2}
+            excludeIds={player1Id ? [player1Id] : []}
+            clearable
+            testId="player2-search"
+          />
 
           {/* Stars bet */}
           <div className="space-y-2">
@@ -241,19 +223,19 @@ export default function NewMatchPage() {
           </div>
 
           {/* Preview */}
-          {player1Id && player2Id && (
+          {selectedPlayer1 && selectedPlayer2 && (
             <div className="rounded-2xl bg-gradient-to-br from-omega-purple/10 to-omega-blue/10 border border-omega-purple/20 p-4 shadow-sm">
               <p className="text-xs text-omega-muted mb-3 text-center">Vista previa</p>
               <div className="flex items-center gap-3 justify-center">
                 <span className="text-sm font-bold text-omega-text">
-                  {players.find((p) => p.id === player1Id)?.alias}
+                  {selectedPlayer1.alias}
                 </span>
                 <span className="omega-badge omega-badge-gold">
                   <Star className="size-3 text-omega-gold fill-omega-gold mr-0.5" />
                   {parseInt(starsBet) || "?"}
                 </span>
                 <span className="text-sm font-bold text-omega-text">
-                  {players.find((p) => p.id === player2Id)?.alias}
+                  {selectedPlayer2.alias}
                 </span>
               </div>
             </div>
@@ -262,7 +244,7 @@ export default function NewMatchPage() {
           {/* Submit */}
           <button
             type="submit"
-            disabled={loading || !player1Id || !player2Id}
+            disabled={loading || !selectedPlayer1 || !selectedPlayer2}
             className="omega-btn omega-btn-primary w-full py-3 text-sm"
           >
             {loading ? (

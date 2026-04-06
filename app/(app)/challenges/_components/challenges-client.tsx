@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   Swords,
@@ -553,25 +553,52 @@ function SearchAndChallenge({
   const supabase = createClient();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<
-    { id: string; alias: string; avatar_url: string | null; stars: number }[]
+    { id: string; alias: string; avatar_url: string | null; stars: number; full_name: string | null }[]
   >([]);
   const [searching, setSearching] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  async function handleSearch() {
-    if (!query.trim()) return;
-    setSearching(true);
-    const { data } = await supabase
-      .from("players")
-      .select("id, alias, avatar_url, stars")
-      .or(
-        `alias.ilike.%${query.trim()}%,full_name.ilike.%${query.trim()}%`
-      )
-      .eq("is_hidden", false)
-      .eq("is_admin", false)
-      .limit(8);
-    setResults(data ?? []);
-    setSearching(false);
-  }
+  // Debounced search con autocomplete
+  useEffect(() => {
+    if (query.trim().length < 1) {
+      setResults([]);
+      setIsOpen(false);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      setSearching(true);
+      const { data } = await supabase
+        .from("players")
+        .select("id, alias, avatar_url, stars, full_name")
+        .or(
+          `alias.ilike.%${query.trim()}%,full_name.ilike.%${query.trim()}%`
+        )
+        .eq("is_hidden", false)
+        .eq("is_admin", false)
+        .limit(8);
+      setResults(data ?? []);
+      setIsOpen(true);
+      setHighlightIndex(0);
+      setSearching(false);
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  // Click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   function hasPendingWith(targetId: string): boolean {
     return pendingChallenges.some(
@@ -589,35 +616,63 @@ function SearchAndChallenge({
     return true;
   }
 
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!isOpen || results.length === 0) return;
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
+        break;
+      case "Escape":
+        e.preventDefault();
+        setIsOpen(false);
+        break;
+    }
+  }
+
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
+    <div ref={containerRef} className="space-y-2 relative">
+      <div className="relative">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-omega-muted pointer-events-none"
+          aria-hidden="true"
+        />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          onFocus={() => {
+            if (results.length > 0) setIsOpen(true);
+          }}
+          onKeyDown={handleKeyDown}
           placeholder="Buscar blader por alias o nombre..."
-          className="omega-input flex-1"
+          className="w-full pl-9 pr-8 py-2.5 text-sm bg-omega-surface border border-omega-border/30 rounded-xl text-omega-text placeholder:text-omega-muted/60 focus:outline-none focus:ring-2 focus:ring-omega-purple/40 transition-all"
+          role="combobox"
+          aria-expanded={isOpen}
+          autoComplete="off"
+          data-testid="challenge-search-input"
         />
-        <button
-          onClick={handleSearch}
-          disabled={searching || !query.trim()}
-          className="omega-btn omega-btn-primary px-4 py-2"
-        >
-          {searching ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Search className="size-4" />
-          )}
-        </button>
+        {searching && (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-omega-muted animate-spin" />
+        )}
       </div>
-      {results.length > 0 && (
-        <div className="space-y-1">
-          {results.map((player) => (
+
+      {isOpen && results.length > 0 && (
+        <div
+          ref={listRef}
+          className="absolute z-50 left-0 right-0 top-full mt-1 max-h-[300px] overflow-y-auto rounded-xl border border-omega-border/30 bg-omega-card shadow-xl shadow-black/30"
+        >
+          {results.map((player, idx) => (
             <div
               key={player.id}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg bg-omega-surface"
+              onMouseEnter={() => setHighlightIndex(idx)}
+              className={`flex items-center gap-3 px-3 py-2.5 transition-colors ${
+                idx === highlightIndex ? "bg-omega-purple/15" : "hover:bg-omega-surface/80"
+              } ${idx > 0 ? "border-t border-omega-border/10" : ""}`}
             >
               <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-border shrink-0">
                 {player.avatar_url ? (
@@ -636,19 +691,35 @@ function SearchAndChallenge({
                 <p className="text-sm font-bold text-omega-text truncate">
                   {player.alias}
                 </p>
-                <p className="text-xs text-omega-muted">
+                {player.full_name && (
+                  <p className="text-[11px] text-omega-muted truncate">{player.full_name}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs text-omega-muted">
                   <Star className="size-3 text-omega-gold fill-omega-gold inline -mt-0.5 mr-0.5" />
                   {player.stars}
-                </p>
+                </span>
+                <ChallengeButton
+                  targetId={player.id}
+                  targetAlias={player.alias}
+                  onBeforeOpen={() => handleChallengeClick(player.id)}
+                  onSuccess={() => {
+                    onChallengeCreated();
+                    setQuery("");
+                    setResults([]);
+                    setIsOpen(false);
+                  }}
+                />
               </div>
-              <ChallengeButton
-                targetId={player.id}
-                targetAlias={player.alias}
-                onBeforeOpen={() => handleChallengeClick(player.id)}
-                onSuccess={onChallengeCreated}
-              />
             </div>
           ))}
+        </div>
+      )}
+
+      {isOpen && results.length === 0 && query.trim().length >= 1 && !searching && (
+        <div className="absolute z-50 left-0 right-0 top-full mt-1 rounded-xl border border-omega-border/30 bg-omega-card shadow-xl shadow-black/30 px-4 py-5 text-center">
+          <p className="text-xs text-omega-muted/70">Sin resultados</p>
         </div>
       )}
     </div>
