@@ -17,10 +17,26 @@ export async function POST(request: Request) {
       return Response.json({ error: "Falta voucher_id" }, { status: 400 });
     }
 
+    // Usar RPC atomico si hay order_id
+    if (order_id) {
+      const { data, error } = await supabase.rpc("apply_voucher", {
+        p_player_id: user.id,
+        p_voucher_id: voucher_id,
+        p_order_id: order_id,
+      });
+
+      if (error) {
+        return Response.json({ error: error.message }, { status: 400 });
+      }
+
+      return Response.json({ success: true, data });
+    }
+
+    // Sin order_id: marcar manualmente
     // Verificar voucher
     const { data: voucher } = await supabase
       .from("player_vouchers")
-      .select("id, is_used, player_id, discount_percent")
+      .select("id, is_used, player_id, discount_percent, type")
       .eq("id", voucher_id)
       .eq("player_id", user.id)
       .single();
@@ -31,6 +47,10 @@ export async function POST(request: Request) {
 
     if (voucher.is_used) {
       return Response.json({ error: "Este voucher ya fue usado" }, { status: 400 });
+    }
+
+    if (voucher.type === "golden_ticket") {
+      return Response.json({ error: "Los golden tickets no se aplican a ordenes. Usa /api/wallet/use-ticket" }, { status: 400 });
     }
 
     // Marcar como usado
@@ -45,14 +65,6 @@ export async function POST(request: Request) {
     if (error) {
       return Response.json({ error: error.message }, { status: 500 });
     }
-
-    // Registrar transaccion
-    await supabase.from("wallet_transactions").insert({
-      player_id: user.id,
-      type: "used",
-      amount: 0,
-      description: `Voucher ${voucher.discount_percent}% usado${order_id ? ` en pedido` : ""}`,
-    });
 
     return Response.json({ success: true, discount_percent: voucher.discount_percent });
   } catch (err) {

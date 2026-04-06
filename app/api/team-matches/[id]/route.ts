@@ -29,7 +29,7 @@ export async function PATCH(
       .from("team_matches")
       .select(`
         id, team1_id, team2_id, stars_bet, status,
-        team_match_fights (id, position, winner_player_id, status)
+        team_match_fights (id, position, winner_id, status)
       `)
       .eq("id", id)
       .single();
@@ -54,13 +54,12 @@ export async function PATCH(
     const body = await request.json();
     const winnerTeamId = body.winner_team_id as string | undefined;
 
-    // Contar victorias — necesitamos saber que jugadores pertenecen a que equipo
-    // Usamos la info que viene del request
-    const team1Wins = body.team1_score as number | undefined;
-    const team2Wins = body.team2_score as number | undefined;
+    // Contar victorias
+    const team1Wins = body.team1_wins as number | undefined;
+    const team2Wins = body.team2_wins as number | undefined;
 
     if (team1Wins === undefined || team2Wins === undefined) {
-      return Response.json({ error: "Faltan team1_score y team2_score" }, { status: 400 });
+      return Response.json({ error: "Faltan team1_wins y team2_wins" }, { status: 400 });
     }
 
     const finalWinner = winnerTeamId || (team1Wins > team2Wins ? match.team1_id : match.team2_id);
@@ -71,8 +70,8 @@ export async function PATCH(
       .update({
         status: "completed",
         winner_team_id: finalWinner,
-        team1_score: team1Wins,
-        team2_score: team2Wins,
+        team1_wins: team1Wins,
+        team2_wins: team2Wins,
         completed_at: new Date().toISOString(),
       })
       .eq("id", id);

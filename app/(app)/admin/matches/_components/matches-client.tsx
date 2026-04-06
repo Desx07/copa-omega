@@ -29,7 +29,7 @@ export type MatchData = {
   player2_id?: string;
   player1: { alias: string } | null;
   player2: { alias: string } | null;
-  winner: { alias: string } | null;
+  winner: { id: string; alias: string } | null;
 };
 
 type SectionKey = "pending" | "in_progress" | "completed";
@@ -342,12 +342,12 @@ function MatchCard({
         <div className="flex-1 text-center">
           <p
             className={`text-sm font-bold ${
-              isCompleted && match.winner?.alias === match.player1?.alias
+              isCompleted && match.winner?.id === match.player1_id
                 ? "text-omega-gold"
                 : "text-omega-text"
             }`}
           >
-            {isCompleted && match.winner?.alias === match.player1?.alias && (
+            {isCompleted && match.winner?.id === match.player1_id && (
               <Crown className="size-3.5 text-omega-gold inline mr-1 -mt-0.5" />
             )}
             {match.player1?.alias ?? "???"}
@@ -361,13 +361,13 @@ function MatchCard({
         <div className="flex-1 text-center">
           <p
             className={`text-sm font-bold ${
-              isCompleted && match.winner?.alias === match.player2?.alias
+              isCompleted && match.winner?.id === match.player2_id
                 ? "text-omega-gold"
                 : "text-omega-text"
             }`}
           >
             {match.player2?.alias ?? "???"}
-            {isCompleted && match.winner?.alias === match.player2?.alias && (
+            {isCompleted && match.winner?.id === match.player2_id && (
               <Crown className="size-3.5 text-omega-gold inline ml-1 -mt-0.5" />
             )}
           </p>

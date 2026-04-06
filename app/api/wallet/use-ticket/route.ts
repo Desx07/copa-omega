@@ -17,12 +17,28 @@ export async function POST(request: Request) {
       return Response.json({ error: "Falta ticket_id" }, { status: 400 });
     }
 
+    // Usar RPC atomico si hay tournament_id
+    if (tournament_id) {
+      const { data, error } = await supabase.rpc("use_golden_ticket", {
+        p_player_id: user.id,
+        p_tournament_id: tournament_id,
+      });
+
+      if (error) {
+        return Response.json({ error: error.message }, { status: 400 });
+      }
+
+      return Response.json({ success: true, data });
+    }
+
+    // Sin tournament_id: marcar manualmente
     // Verificar ticket
     const { data: ticket } = await supabase
       .from("player_vouchers")
-      .select("id, is_used, player_id")
+      .select("id, is_used, player_id, type")
       .eq("id", ticket_id)
       .eq("player_id", user.id)
+      .eq("type", "golden_ticket")
       .single();
 
     if (!ticket) {
@@ -39,21 +55,12 @@ export async function POST(request: Request) {
       .update({
         is_used: true,
         used_at: new Date().toISOString(),
-        used_on_tournament_id: tournament_id || null,
       })
       .eq("id", ticket_id);
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 });
     }
-
-    // Registrar transaccion
-    await supabase.from("wallet_transactions").insert({
-      player_id: user.id,
-      type: "used",
-      amount: 0,
-      description: `Golden Ticket usado${tournament_id ? " para torneo" : ""}`,
-    });
 
     return Response.json({ success: true });
   } catch (err) {

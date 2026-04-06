@@ -25,7 +25,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { fight_id, player1_id, player2_id, player1_score, player2_score, winner_player_id, status } = body;
+    const { fight_id, player1_id, player2_id, player1_score, player2_score, winner_id, status } = body;
 
     if (!fight_id) {
       return Response.json({ error: "Falta fight_id" }, { status: 400 });
@@ -48,7 +48,7 @@ export async function PATCH(
     if (player2_id !== undefined) updates.player2_id = player2_id;
     if (player1_score !== undefined) updates.player1_score = player1_score;
     if (player2_score !== undefined) updates.player2_score = player2_score;
-    if (winner_player_id !== undefined) updates.winner_player_id = winner_player_id;
+    if (winner_id !== undefined) updates.winner_id = winner_id;
     if (status !== undefined) updates.status = status;
 
     const { error } = await supabase

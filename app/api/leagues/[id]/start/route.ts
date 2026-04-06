@@ -24,26 +24,13 @@ export async function POST(
       return Response.json({ error: "Solo administradores" }, { status: 403 });
     }
 
-    // Obtener season activa
-    const { data: activeSeason } = await supabase
-      .from("seasons")
-      .select("id")
-      .eq("status", "active")
-      .maybeSingle();
-
-    if (!activeSeason) {
-      return Response.json({ error: "No hay temporada activa" }, { status: 400 });
-    }
-
-    // Obtener equipos en esta liga
-    // Las ligas de equipo se basan en team_league_memberships
-    const { data: memberships } = await supabase
-      .from("team_league_memberships")
+    // Obtener equipos inscriptos en esta liga de equipo
+    const { data: leagueTeams } = await supabase
+      .from("team_league_teams")
       .select("team_id")
-      .eq("league_id", leagueId)
-      .eq("season_id", activeSeason.id);
+      .eq("team_league_id", leagueId);
 
-    const teamIds = (memberships ?? []).map((m) => m.team_id);
+    const teamIds = (leagueTeams ?? []).map((m) => m.team_id);
 
     if (teamIds.length < 2) {
       return Response.json({ error: "Se necesitan al menos 2 equipos para generar partidas" }, { status: 400 });
@@ -56,8 +43,7 @@ export async function POST(
     for (let i = 0; i < teamIds.length; i++) {
       for (let j = i + 1; j < teamIds.length; j++) {
         matchInserts.push({
-          league_id: leagueId,
-          season_id: activeSeason.id,
+          team_league_id: leagueId,
           team1_id: teamIds[i],
           team2_id: teamIds[j],
           round,
@@ -68,7 +54,7 @@ export async function POST(
     }
 
     const { data: matches, error: insertError } = await supabase
-      .from("league_matches")
+      .from("team_league_matches")
       .insert(matchInserts)
       .select();
 

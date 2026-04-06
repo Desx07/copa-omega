@@ -161,10 +161,13 @@ export default function TeamPage() {
     const timeout = setTimeout(async () => {
       setSearching(true);
       const supabase = createClient();
+      // Sanitizar query para evitar inyeccion en el filtro .or()
+      const sanitized = searchQuery.replace(/[%_\\(),."']/g, "");
+      if (!sanitized) { setSearching(false); return; }
       const { data } = await supabase
         .from("players")
         .select("id, alias, avatar_url, stars")
-        .or(`alias.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%`)
+        .or(`alias.ilike.%${sanitized}%,full_name.ilike.%${sanitized}%`)
         .neq("id", userId ?? "")
         .limit(10);
 

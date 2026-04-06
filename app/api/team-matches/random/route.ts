@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       byeTeamId = toPair.pop()!;
     }
 
-    // Crear partidas
+    // Crear partidas (las peleas se crean cuando se asignan jugadores)
     const matchInserts = [];
     for (let i = 0; i < toPair.length; i += 2) {
       matchInserts.push({
@@ -85,15 +85,6 @@ export async function POST(request: Request) {
 
     if (insertError) {
       return Response.json({ error: insertError.message }, { status: 500 });
-    }
-
-    // Crear peleas para cada partida
-    for (const match of matches ?? []) {
-      const fights = [1, 2, 3].map((pos) => ({
-        team_match_id: match.id,
-        position: pos,
-      }));
-      await supabase.from("team_match_fights").insert(fights);
     }
 
     const byeTeam = byeTeamId

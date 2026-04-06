@@ -14,12 +14,12 @@ export async function GET() {
       .from("team_matches")
       .select(`
         id, status, stars_bet, created_at, completed_at, winner_team_id,
-        team1_score, team2_score,
+        team1_wins, team2_wins,
         team1:teams!team1_id (id, name, logo_url, stars),
         team2:teams!team2_id (id, name, logo_url, stars),
         winner:teams!winner_team_id (id, name),
         team_match_fights (
-          id, position, player1_id, player2_id, winner_player_id,
+          id, position, player1_id, player2_id, winner_id,
           player1_score, player2_score, status,
           player1:players!player1_id (id, alias, avatar_url),
           player2:players!player2_id (id, alias, avatar_url)
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // Crear team match
+    // Crear team match (las peleas se crean cuando se asignan jugadores)
     const { data: match, error: insertError } = await supabase
       .from("team_matches")
       .insert({
@@ -107,14 +107,6 @@ export async function POST(request: Request) {
     if (insertError) {
       return Response.json({ error: insertError.message }, { status: 500 });
     }
-
-    // Crear 3 peleas (los jugadores se asignan luego)
-    const fights = [1, 2, 3].map((pos) => ({
-      team_match_id: match.id,
-      position: pos,
-    }));
-
-    await supabase.from("team_match_fights").insert(fights);
 
     return Response.json(match, { status: 201 });
   } catch (err) {

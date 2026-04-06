@@ -29,7 +29,7 @@ interface Fight {
   player2_id: string | null;
   player1_score: number | null;
   player2_score: number | null;
-  winner_player_id: string | null;
+  winner_id: string | null;
   status: string;
   player1: Player | null;
   player2: Player | null;
@@ -46,8 +46,8 @@ interface TeamMatch {
   id: string;
   status: string;
   stars_bet: number;
-  team1_score: number | null;
-  team2_score: number | null;
+  team1_wins: number | null;
+  team2_wins: number | null;
   winner_team_id: string | null;
   team1: TeamInMatch | null;
   team2: TeamInMatch | null;
@@ -78,12 +78,12 @@ export default function TeamMatchView({
   const isCompleted = match.status === "completed";
 
   // Count wins per team from fights
-  const team1FightWins = localFights.filter((f) => f.status === "completed" && f.winner_player_id && team1MemberIds().includes(f.winner_player_id)).length;
-  const team2FightWins = localFights.filter((f) => f.status === "completed" && f.winner_player_id && team2MemberIds()).length;
+  const team1FightWins = localFights.filter((f) => f.status === "completed" && f.winner_id && team1MemberIds().includes(f.winner_id)).length;
+  const team2FightWins = localFights.filter((f) => f.status === "completed" && f.winner_id && team2MemberIds().includes(f.winner_id)).length;
 
   // Simplified - use scores from match
-  const t1Score = match.team1_score ?? 0;
-  const t2Score = match.team2_score ?? 0;
+  const t1Score = match.team1_wins ?? 0;
+  const t2Score = match.team2_wins ?? 0;
 
   function team1MemberIds(): string[] {
     return localFights.filter((f) => f.player1_id).map((f) => f.player1_id!);
@@ -101,7 +101,7 @@ export default function TeamMatchView({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fight_id: fight.id,
-          winner_player_id: winnerId,
+          winner_id: winnerId,
           player1_score: winnerId === fight.player1_id ? 1 : 0,
           player2_score: winnerId === fight.player2_id ? 1 : 0,
           status: winnerId ? "completed" : fight.status,
@@ -120,7 +120,7 @@ export default function TeamMatchView({
           f.id === fight.id
             ? {
                 ...f,
-                winner_player_id: winnerId,
+                winner_id: winnerId,
                 player1_score: winnerId === f.player1_id ? 1 : 0,
                 player2_score: winnerId === f.player2_id ? 1 : 0,
                 status: winnerId ? "completed" : f.status,
@@ -152,14 +152,20 @@ export default function TeamMatchView({
       else if ((f.player2_score ?? 0) > (f.player1_score ?? 0)) t2w++;
     }
 
+    // No se puede resolver en empate — se necesita la 3ra pelea
+    if (t1w === t2w) {
+      toast.error("Se necesita la 3ra pelea para desempatar");
+      return;
+    }
+
     setResolving(true);
     try {
       const res = await fetch(`/api/team-matches/${match.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          team1_score: t1w,
-          team2_score: t2w,
+          team1_wins: t1w,
+          team2_wins: t2w,
           winner_team_id: t1w > t2w ? team1?.id : team2?.id,
         }),
       });
@@ -250,8 +256,8 @@ export default function TeamMatchView({
       <div className="space-y-3">
         {localFights.map((fight) => {
           const fightCompleted = fight.status === "completed";
-          const p1Won = fight.winner_player_id === fight.player1_id;
-          const p2Won = fight.winner_player_id === fight.player2_id;
+          const p1Won = fight.winner_id === fight.player1_id;
+          const p2Won = fight.winner_id === fight.player2_id;
 
           // Check if this fight is unnecessary (2-0 already decided)
           const decidedBefore = (() => {

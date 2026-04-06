@@ -15,6 +15,7 @@ import {
   Crown,
 } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -70,36 +71,104 @@ export default function LeaguePage() {
         }
       } catch { /* ignore */ }
 
-      // Fetch teams for standings (use teams API as fallback)
+      // Fetch standings from team_league_teams (liga activa)
       try {
-        const res = await fetch("/api/teams");
-        if (res.ok) {
-          const data = await res.json();
-          // Build standings from teams data
-          const standings: TeamStanding[] = data.map((t: {
-            id: string;
-            name: string;
-            logo_url: string | null;
-            wins: number;
-            losses: number;
-          }) => ({
-            team_id: t.id,
-            team_name: t.name,
-            team_logo: t.logo_url,
-            played: t.wins + t.losses,
-            won: t.wins,
-            drawn: 0,
-            lost: t.losses,
-            points: t.wins * 3, // 3 pts por victoria
-          }));
+        const supabase = createClient();
 
-          // Sort by points desc, then wins desc
-          standings.sort((a: TeamStanding, b: TeamStanding) => {
-            if (b.points !== a.points) return b.points - a.points;
-            return b.won - a.won;
-          });
+        // Buscar liga activa (in_progress o registration)
+        const { data: activeLeague } = await supabase
+          .from("team_leagues")
+          .select("id")
+          .in("status", ["in_progress", "registration"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-          setTeams(standings);
+        if (activeLeague) {
+          // Obtener standings de la liga
+          const { data: leagueTeams } = await supabase
+            .from("team_league_teams")
+            .select("team_id, points, played, won, drawn, lost, fights_won, fights_lost, team:teams!team_id(id, name, logo_url)")
+            .eq("team_league_id", activeLeague.id)
+            .order("points", { ascending: false });
+
+          if (leagueTeams && leagueTeams.length > 0) {
+            const standings: TeamStanding[] = leagueTeams.map((lt) => {
+              const team = lt.team as unknown as { id: string; name: string; logo_url: string | null };
+              return {
+                team_id: lt.team_id,
+                team_name: team?.name ?? "???",
+                team_logo: team?.logo_url ?? null,
+                played: lt.played,
+                won: lt.won,
+                drawn: lt.drawn,
+                lost: lt.lost,
+                points: lt.points,
+              };
+            });
+
+            // Sort by points desc, then won desc (for tiebreaker)
+            standings.sort((a, b) => {
+              if (b.points !== a.points) return b.points - a.points;
+              return b.won - a.won;
+            });
+
+            setTeams(standings);
+          }
+
+          // Fetch league matches
+          const { data: leagueMatches } = await supabase
+            .from("team_league_matches")
+            .select(`
+              id, round, status,
+              team1:teams!team1_id(id, name, logo_url),
+              team2:teams!team2_id(id, name, logo_url),
+              team_match:team_matches!team_match_id(team1_wins, team2_wins, winner_team_id)
+            `)
+            .eq("team_league_id", activeLeague.id)
+            .order("round", { ascending: true });
+
+          if (leagueMatches) {
+            const mappedMatches: LeagueMatch[] = leagueMatches.map((m) => {
+              const tm = m.team_match as unknown as { team1_wins: number | null; team2_wins: number | null; winner_team_id: string | null } | null;
+              return {
+                id: m.id,
+                round: m.round,
+                status: m.status,
+                team1: m.team1 as unknown as { id: string; name: string; logo_url: string | null } | null,
+                team2: m.team2 as unknown as { id: string; name: string; logo_url: string | null } | null,
+                team1_score: tm?.team1_wins ?? null,
+                team2_score: tm?.team2_wins ?? null,
+                winner_team_id: tm?.winner_team_id ?? null,
+              };
+            });
+            setMatches(mappedMatches);
+          }
+        } else {
+          // Fallback: usar datos globales de equipos si no hay liga activa
+          const res = await fetch("/api/teams");
+          if (res.ok) {
+            const data = await res.json();
+            const standings: TeamStanding[] = data.map((t: {
+              id: string; name: string; logo_url: string | null; wins: number; losses: number;
+            }) => ({
+              team_id: t.id,
+              team_name: t.name,
+              team_logo: t.logo_url,
+              played: t.wins + t.losses,
+              won: t.wins,
+              drawn: 0,
+              lost: t.losses,
+              points: t.wins * 3,
+            }));
+
+            standings.sort((a, b) => {
+              if (b.points !== a.points) return b.points - a.points;
+              return b.won - a.won;
+            });
+
+            setTeams(standings);
+          }
         }
       } catch {
         toast.error("Error cargando datos de liga");

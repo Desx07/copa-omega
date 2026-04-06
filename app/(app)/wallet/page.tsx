@@ -27,18 +27,18 @@ interface Voucher {
   id: string;
   type: string;
   discount_percent: number;
-  cost: number;
+  cost_omega_coins: number;
   is_used: boolean;
   used_at: string | null;
-  created_at: string;
+  purchased_at: string;
 }
 
 interface GoldenTicket {
   id: string;
   is_used: boolean;
   used_at: string | null;
-  tournament_id: string | null;
-  created_at: string;
+  used_on_tournament_id: string | null;
+  purchased_at: string;
 }
 
 interface Transaction {
@@ -54,10 +54,10 @@ interface Transaction {
 // ---------------------------------------------------------------------------
 
 const VOUCHER_CATALOG = [
-  { type: "voucher_5", discount: 5, cost: 50, label: "5% Descuento", image: "/vouchers/voucher_5.png" },
-  { type: "voucher_10", discount: 10, cost: 100, label: "10% Descuento", image: "/vouchers/voucher_10.png" },
-  { type: "voucher_15", discount: 15, cost: 200, label: "15% Descuento", image: "/vouchers/voucher_15.png" },
-  { type: "voucher_20", discount: 20, cost: 350, label: "20% Descuento", image: "/vouchers/voucher_20.png" },
+  { type: "discount_5", discount: 5, cost: 50, label: "5% Descuento", image: "/vouchers/voucher_5.png" },
+  { type: "discount_10", discount: 10, cost: 100, label: "10% Descuento", image: "/vouchers/voucher_10.png" },
+  { type: "discount_15", discount: 15, cost: 200, label: "15% Descuento", image: "/vouchers/voucher_15.png" },
+  { type: "discount_20", discount: 20, cost: 350, label: "20% Descuento", image: "/vouchers/voucher_20.png" },
 ];
 
 const GOLDEN_TICKET_COST = 500;
@@ -383,7 +383,7 @@ export default function WalletPage() {
                       Golden Ticket
                     </p>
                     <p className="text-[10px] text-omega-muted">
-                      {new Date(ticket.created_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
+                      {new Date(ticket.purchased_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
                       {ticket.is_used && ticket.used_at && (
                         <> - Usado el {new Date(ticket.used_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}</>
                       )}
@@ -432,7 +432,7 @@ export default function WalletPage() {
                       {v.discount_percent}% Descuento
                     </p>
                     <p className="text-[10px] text-omega-muted">
-                      {new Date(v.created_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
+                      {new Date(v.purchased_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
                     </p>
                   </div>
                   {v.is_used ? (
