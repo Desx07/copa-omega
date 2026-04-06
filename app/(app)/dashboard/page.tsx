@@ -22,6 +22,7 @@ import {
   Plus,
   TrendingUp,
   Shuffle,
+  Coins,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -43,6 +44,8 @@ import TournamentCountdown from "@/app/_components/tournament-countdown";
 import DashboardCarousel from "@/app/_components/dashboard-carousel";
 import WeeklyMissions from "@/app/_components/weekly-missions";
 import OnlineUsers from "@/app/_components/online-users";
+import { DashboardTeamsButtons, DashboardTeamsSorteoButton } from "@/app/_components/dashboard-teams-buttons";
+import { TeamsToggle } from "@/app/_components/teams-toggle";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -368,6 +371,28 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* ═══ WALLET BUTTON ═══ */}
+      <div className="px-4">
+        <Link
+          href="/wallet"
+          className="group relative overflow-hidden rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.98]"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,214,10,0.15) 0%, rgba(255,195,0,0.05) 50%, rgba(123,47,247,0.08) 100%)",
+            border: "1px solid rgba(255,214,10,0.3)",
+            boxShadow: "0 4px 15px rgba(255,214,10,0.1)",
+          }}
+        >
+          <div className="size-12 rounded-2xl bg-omega-gold/20 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors ring-2 ring-omega-gold/30">
+            <Coins className="size-6 text-omega-gold" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-black text-omega-gold">Wallet</p>
+            <p className="text-[10px] text-omega-muted">Omega Coins, vouchers y tickets</p>
+          </div>
+          <span className="text-xs text-omega-muted group-hover:text-omega-gold transition-colors">&rarr;</span>
+        </Link>
+      </div>
+
       {/* ═══ ENGAGEMENT QUICK LINKS — compact row ═══ */}
       <div className="grid grid-cols-2 gap-2 px-4">
         <Link href="/predictions" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
@@ -398,6 +423,8 @@ export default async function DashboardPage() {
           <p className="text-xs font-bold text-omega-text">Xciclopedia</p>
           <p className="text-[10px] text-omega-muted leading-tight">Guía de piezas</p>
         </Link>
+        {/* Team buttons (client-side, conditionally rendered when teams enabled) */}
+        <DashboardTeamsButtons isAdmin={!!player.is_admin} isJudge={!!player.is_judge} />
       </div>
 
       {/* ═══ ONBOARDING CHECKLIST ═══ */}
@@ -492,6 +519,8 @@ export default async function DashboardPage() {
               </div>
               <p className="text-xs font-bold text-white">Sorteo de Parejas</p>
             </Link>
+            {/* Sorteo Equipos — only when teams feature is enabled */}
+            <DashboardTeamsSorteoButton isAdmin={!!player.is_admin} isJudge={!!player.is_judge} />
             <Link href="/admin/matches/new" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <Plus className="size-5 text-white" />
@@ -577,6 +606,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
           <StoreToggle />
+          <TeamsToggle />
         </div>
       )}
 

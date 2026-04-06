@@ -646,3 +646,32 @@ body {
   .animate-announce { animation: none; opacity: 1; }
   .animate-vs-pulse { animation: none; }
 }
+
+/* ═══════════════════════════════════════════
+   WALLET — Coin animations & golden effects
+   ═══════════════════════════════════════════ */
+
+@keyframes coin-spin {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+.animate-coin-spin { animation: coin-spin 3s linear infinite; }
+
+@keyframes gold-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,214,10,0) 0%,
+    rgba(255,214,10,0.15) 50%,
+    rgba(255,214,10,0) 100%
+  );
+  background-size: 200% 100%;
+  animation: gold-shimmer 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-coin-spin, .gold-shimmer { animation: none; }
+}
