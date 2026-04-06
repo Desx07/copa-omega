@@ -131,8 +131,10 @@ export async function PATCH(
       // Award XP to both players (fire-and-forget)
       try {
         const adminXp = createAdminClient();
-        await awardXp(adminXp, winner_id, 20, "win_match", "Victoria en batalla de estrellas");
-        if (loserId) await awardXp(adminXp, loserId, 5, "lose_match", "Derrota en batalla de estrellas");
+        const starsBet = matchData.stars_bet ?? 0;
+        const xpLabel = starsBet > 0 ? "batalla de estrellas" : "amistoso";
+        await awardXp(adminXp, winner_id, 20, "win_match", `Victoria en ${xpLabel}`);
+        if (loserId) await awardXp(adminXp, loserId, 5, "lose_match", `Derrota en ${xpLabel}`);
       } catch (xpErr) {
         console.error("Error awarding match XP:", xpErr);
       }
@@ -150,19 +152,25 @@ export async function PATCH(
           const starsBet = matchData.stars_bet ?? 0;
 
           if (winnerPlayer) {
+            const winMsg = starsBet > 0
+              ? `Le ganaste a ${loserPlayer?.alias}. +${starsBet} estrellas`
+              : `Le ganaste a ${loserPlayer?.alias} en un amistoso`;
             sendPushToPlayer(
               winnerPlayer.id,
               "Victoria",
-              `Le ganaste a ${loserPlayer?.alias}. +${starsBet} estrellas`,
+              winMsg,
               "/dashboard"
             ).catch((e) => console.error("[push] error:", e));
           }
 
           if (loserPlayer) {
+            const loseMsg = starsBet > 0
+              ? `${winnerPlayer?.alias} se llevó ${starsBet} estrellas. Revancha?`
+              : `${winnerPlayer?.alias} ganó el amistoso. Revancha?`;
             sendPushToPlayer(
               loserPlayer.id,
               "Derrota",
-              `${winnerPlayer?.alias} se llevó ${starsBet} estrellas. Revancha?`,
+              loseMsg,
               "/dashboard"
             ).catch((e) => console.error("[push] error:", e));
           }

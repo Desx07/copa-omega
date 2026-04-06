@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Star, Swords, Trophy, Plus, ArrowLeft } from "lucide-react";
+import { Star, Swords, Trophy, Plus, ArrowLeft, Shuffle } from "lucide-react";
 import MatchesClient from "./_components/matches-client";
 import type { MatchData } from "./_components/matches-client";
 
@@ -64,6 +64,14 @@ export default async function AdminMatchesPage() {
                 className="omega-btn omega-btn-secondary px-3 py-1.5 text-xs"
               >
                 Jugadores
+              </Link>
+              <Link
+                href="/admin/matches/random"
+                className="omega-btn omega-btn-purple px-3 py-2.5 text-sm"
+                title="Sorteo aleatorio de partidas"
+              >
+                <Shuffle className="size-4" />
+                Sorteo
               </Link>
               <Link
                 href="/admin/matches/new"

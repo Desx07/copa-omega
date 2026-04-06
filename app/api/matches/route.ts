@@ -66,10 +66,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate stars_bet range
-    if (typeof stars_bet !== "number" || stars_bet < 1 || stars_bet > 5) {
+    // Validate stars_bet range (0 = amistoso, 1-5 = con estrellas)
+    if (typeof stars_bet !== "number" || stars_bet < 0 || stars_bet > 5) {
       return Response.json(
-        { error: "stars_bet debe ser entre 1 y 5" },
+        { error: "stars_bet debe ser entre 0 y 5" },
         { status: 400 }
       );
     }
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify both players are active and have enough stars
+    // Verify both players are active
     const { data: players, error: playersError } = await supabase
       .from("players")
       .select("id, alias, stars, is_eliminated")
@@ -109,18 +109,21 @@ export async function POST(request: Request) {
       );
     }
 
-    if ((p1?.stars ?? 0) < stars_bet) {
-      return Response.json(
-        { error: `${p1?.alias} no tiene suficientes estrellas (tiene ${p1?.stars})` },
-        { status: 400 }
-      );
-    }
+    // Solo verificar estrellas suficientes cuando se apuestan estrellas
+    if (stars_bet > 0) {
+      if ((p1?.stars ?? 0) < stars_bet) {
+        return Response.json(
+          { error: `${p1?.alias} no tiene suficientes estrellas (tiene ${p1?.stars})` },
+          { status: 400 }
+        );
+      }
 
-    if ((p2?.stars ?? 0) < stars_bet) {
-      return Response.json(
-        { error: `${p2?.alias} no tiene suficientes estrellas (tiene ${p2?.stars})` },
-        { status: 400 }
-      );
+      if ((p2?.stars ?? 0) < stars_bet) {
+        return Response.json(
+          { error: `${p2?.alias} no tiene suficientes estrellas (tiene ${p2?.stars})` },
+          { status: 400 }
+        );
+      }
     }
 
     // Create match

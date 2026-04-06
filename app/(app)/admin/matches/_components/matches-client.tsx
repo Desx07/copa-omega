@@ -244,6 +244,9 @@ function MatchCard({
 }) {
   const router = useRouter();
   const [rematchLoading, setRematchLoading] = useState(false);
+  const [showRematchDialog, setShowRematchDialog] = useState(false);
+  const [rematchStars, setRematchStars] = useState(match.stars_bet);
+
   const isPending = match.status === "pending";
   const isCompleted = match.status === "completed";
   const isCancelled = match.status === "cancelled";
@@ -260,8 +263,20 @@ function MatchCard({
   const canRematch =
     isAdmin && isCompleted && !!match.player1_id && !!match.player2_id;
 
-  async function handleRematch(e: React.MouseEvent) {
-    // Evitar que el click propague al Link padre en modo admin
+  function openRematchDialog(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setRematchStars(match.stars_bet);
+    setShowRematchDialog(true);
+  }
+
+  function closeRematchDialog(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowRematchDialog(false);
+  }
+
+  async function handleRematchConfirm(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (!match.player1_id || !match.player2_id) return;
@@ -274,12 +289,13 @@ function MatchCard({
         body: JSON.stringify({
           player1_id: match.player1_id,
           player2_id: match.player2_id,
-          stars_bet: match.stars_bet,
+          stars_bet: rematchStars,
         }),
       });
 
       if (res.ok) {
         toast.success("Revancha creada!");
+        setShowRematchDialog(false);
         router.refresh();
       } else {
         const data = (await res.json()) as { error?: string };
@@ -358,6 +374,66 @@ function MatchCard({
         </div>
       </div>
 
+      {/* Rematch dialog (inline) */}
+      {showRematchDialog && (
+        <div
+          className="mt-3 pt-3 border-t border-omega-border/30"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        >
+          <p className="text-[11px] font-bold text-omega-muted uppercase tracking-wider mb-2">
+            Estrellas para la revancha
+          </p>
+          <div className="flex items-center gap-1.5 mb-3">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setRematchStars(n);
+                }}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-0.5 ${
+                  rematchStars === n
+                    ? "bg-omega-gold/20 text-omega-gold border border-omega-gold/40"
+                    : "bg-omega-surface border border-omega-border/30 text-omega-muted hover:border-omega-gold/30"
+                }`}
+                data-testid={`rematch-stars-${n}`}
+              >
+                <Star
+                  className={`size-2.5 ${
+                    rematchStars === n
+                      ? "text-omega-gold fill-omega-gold"
+                      : "text-omega-muted"
+                  }`}
+                />
+                {n}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={closeRematchDialog}
+              className="omega-btn omega-btn-secondary !px-3 !py-1.5 text-[10px] !rounded-md flex-1 justify-center"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleRematchConfirm}
+              disabled={rematchLoading}
+              className="omega-btn omega-btn-green !px-3 !py-1.5 text-[10px] !rounded-md flex-1 gap-1 justify-center"
+              data-testid="rematch-confirm-btn"
+            >
+              {rematchLoading ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <RotateCcw className="size-3" />
+              )}
+              Crear revancha
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-omega-border/30">
         <p className="text-[11px] text-omega-muted">
@@ -369,12 +445,12 @@ function MatchCard({
           })}
         </p>
         <div className="flex items-center gap-2">
-          {canRematch && (
+          {canRematch && !showRematchDialog && (
             <button
-              onClick={handleRematch}
+              onClick={openRematchDialog}
               disabled={rematchLoading}
               className="omega-btn omega-btn-secondary !px-2 !py-1 text-[10px] !rounded-md gap-1"
-              title="Crear revancha con los mismos jugadores y estrellas"
+              title="Crear revancha"
               data-testid="rematch-btn"
             >
               {rematchLoading ? (
