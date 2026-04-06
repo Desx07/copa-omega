@@ -21,6 +21,7 @@ import {
   Gavel,
   Plus,
   TrendingUp,
+  Shuffle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -485,6 +486,12 @@ export default async function DashboardPage() {
             <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Zona Juez</h2>
           </div>
           <div className="grid grid-cols-2 gap-2">
+            <Link href="/admin/matches/random" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-4 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Shuffle className="size-5 text-white" />
+              </div>
+              <p className="text-xs font-bold text-white">Sorteo de Parejas</p>
+            </Link>
             <Link href="/admin/matches/new" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <Plus className="size-5 text-white" />

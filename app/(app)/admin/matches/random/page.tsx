@@ -13,6 +13,7 @@ import {
   Users,
   Swords,
   Crown,
+  Search,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -24,6 +25,8 @@ import { toast } from "sonner";
 interface Player {
   id: string;
   alias: string;
+  full_name: string | null;
+  avatar_url: string | null;
   stars: number;
   is_eliminated: boolean;
 }
@@ -35,8 +38,8 @@ interface MatchPair {
 
 interface CreatedMatch {
   id: string;
-  player1: { id: string; alias: string; stars: number } | null;
-  player2: { id: string; alias: string; stars: number } | null;
+  player1: { id: string; alias: string; stars: number; avatar_url?: string | null } | null;
+  player2: { id: string; alias: string; stars: number; avatar_url?: string | null } | null;
   stars_bet: number;
 }
 
@@ -66,15 +69,20 @@ export default function RandomMatchPage() {
   const [loadingPlayers, setLoadingPlayers] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Preview state
   const [previewPairs, setPreviewPairs] = useState<MatchPair[]>([]);
   const [byePlayer, setByePlayer] = useState<Player | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
+  // Announcement state
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
+  const [visibleCards, setVisibleCards] = useState(0);
+
   // Result state
   const [createdMatches, setCreatedMatches] = useState<CreatedMatch[]>([]);
-  const [resultBye, setResultBye] = useState<{ id: string; alias: string } | null>(null);
+  const [resultBye, setResultBye] = useState<{ id: string; alias: string; avatar_url?: string | null } | null>(null);
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -102,7 +110,7 @@ export default function RandomMatchPage() {
 
       const { data, error } = await supabase
         .from("players")
-        .select("id, alias, stars, is_eliminated")
+        .select("id, alias, full_name, avatar_url, stars, is_eliminated")
         .eq("is_eliminated", false)
         .order("alias", { ascending: true });
 
@@ -231,6 +239,15 @@ export default function RandomMatchPage() {
 
       setCreatedMatches(data.matches);
       setResultBye(data.bye_player);
+
+      // Trigger staggered announcement
+      setShowAnnouncement(true);
+      setVisibleCards(0);
+      const totalCards = data.matches.length + (data.bye_player ? 1 : 0);
+      for (let i = 1; i <= totalCards; i++) {
+        setTimeout(() => setVisibleCards(i), i * 500);
+      }
+
       toast.success(`${data.matches.length} partidas creadas`);
     } catch {
       toast.error("Error de conexion");
@@ -238,6 +255,19 @@ export default function RandomMatchPage() {
       setConfirming(false);
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Filtered players (search)
+  // ---------------------------------------------------------------------------
+
+  const normalizedSearch = searchQuery.toLowerCase().trim();
+  const filteredPlayers = normalizedSearch
+    ? players.filter(
+        (p) =>
+          p.alias.toLowerCase().includes(normalizedSearch) ||
+          (p.full_name?.toLowerCase().includes(normalizedSearch) ?? false)
+      )
+    : players;
 
   // ---------------------------------------------------------------------------
   // Derived values
@@ -269,6 +299,9 @@ export default function RandomMatchPage() {
   // ---------------------------------------------------------------------------
 
   if (createdMatches.length > 0) {
+    // Lookup avatar from local player list for created matches
+    const playerMap = new Map(players.map((p) => [p.id, p]));
+
     return (
       <div className="max-w-lg mx-auto pb-8">
         {/* Hero */}
@@ -292,6 +325,118 @@ export default function RandomMatchPage() {
           </div>
         </div>
 
+        {/* Announcement cards — staggered VS banners */}
+        {showAnnouncement && (
+          <div className="px-4 space-y-3 mb-6">
+            {createdMatches.map((match, idx) => {
+              if (idx >= visibleCards) return null;
+              const p1 = match.player1;
+              const p2 = match.player2;
+              const p1Avatar = p1 ? playerMap.get(p1.id)?.avatar_url : null;
+              const p2Avatar = p2 ? playerMap.get(p2.id)?.avatar_url : null;
+
+              return (
+                <div
+                  key={match.id}
+                  className="animate-announce rounded-2xl overflow-hidden border border-omega-purple/30 bg-gradient-to-r from-omega-card via-omega-surface to-omega-card shadow-lg shadow-omega-purple/10"
+                  style={{ animationDelay: `${idx * 0.1}s` }}
+                >
+                  {/* Top bar */}
+                  <div className="flex items-center justify-between px-4 py-2 bg-omega-dark/60 border-b border-omega-border/20">
+                    <span className="text-[10px] font-black text-omega-purple uppercase tracking-widest">
+                      Partida {idx + 1}
+                    </span>
+                    {match.stars_bet > 0 ? (
+                      <div className="flex items-center gap-1">
+                        <Star className="size-3 text-omega-gold fill-omega-gold" />
+                        <span className="text-xs font-black text-omega-gold">
+                          {match.stars_bet}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="omega-badge omega-badge-green text-[9px]">
+                        Amistoso
+                      </span>
+                    )}
+                  </div>
+
+                  {/* VS layout */}
+                  <div className="flex items-center px-4 py-4">
+                    {/* Player 1 */}
+                    <div className="flex-1 flex flex-col items-center gap-2">
+                      <div className="size-14 rounded-full border-2 border-omega-purple/50 overflow-hidden bg-omega-dark shadow-md">
+                        {p1Avatar ? (
+                          <img src={p1Avatar} alt={p1?.alias} className="size-full object-cover" />
+                        ) : (
+                          <div className="size-full flex items-center justify-center text-lg font-black text-omega-purple">
+                            {p1?.alias?.charAt(0).toUpperCase() ?? "?"}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-sm font-black text-omega-text text-center truncate max-w-[100px]">
+                        {p1?.alias ?? "???"}
+                      </p>
+                    </div>
+
+                    {/* VS */}
+                    <div className="shrink-0 px-3">
+                      <span className="text-2xl font-black neon-red animate-vs-pulse inline-block">
+                        VS
+                      </span>
+                    </div>
+
+                    {/* Player 2 */}
+                    <div className="flex-1 flex flex-col items-center gap-2">
+                      <div className="size-14 rounded-full border-2 border-omega-blue/50 overflow-hidden bg-omega-dark shadow-md">
+                        {p2Avatar ? (
+                          <img src={p2Avatar} alt={p2?.alias} className="size-full object-cover" />
+                        ) : (
+                          <div className="size-full flex items-center justify-center text-lg font-black text-omega-blue">
+                            {p2?.alias?.charAt(0).toUpperCase() ?? "?"}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-sm font-black text-omega-text text-center truncate max-w-[100px]">
+                        {p2?.alias ?? "???"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* BYE announcement */}
+            {resultBye && visibleCards > createdMatches.length && (
+              <div
+                className="animate-announce rounded-2xl overflow-hidden border border-omega-blue/30 bg-gradient-to-r from-omega-card via-omega-surface to-omega-card shadow-lg shadow-omega-blue/10"
+                style={{ animationDelay: `${createdMatches.length * 0.1}s` }}
+              >
+                <div className="flex items-center gap-4 px-5 py-4">
+                  <div className="size-12 rounded-full border-2 border-omega-blue/50 overflow-hidden bg-omega-dark shadow-md">
+                    {resultBye.avatar_url ? (
+                      <img src={resultBye.avatar_url} alt={resultBye.alias} className="size-full object-cover" />
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-lg font-black text-omega-blue">
+                        {resultBye.alias.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-black text-omega-blue">
+                      {resultBye.alias}
+                    </p>
+                    <p className="text-xs text-omega-muted">
+                      Descansa esta ronda
+                    </p>
+                  </div>
+                  <Crown className="size-5 text-omega-blue" />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Match links list */}
         <div className="px-4 space-y-3">
           {createdMatches.map((match, idx) => (
             <Link
@@ -358,6 +503,8 @@ export default function RandomMatchPage() {
                 setPreviewPairs([]);
                 setByePlayer(null);
                 setSelectedIds(new Set());
+                setShowAnnouncement(false);
+                setVisibleCards(0);
               }}
               className="omega-btn omega-btn-primary flex-1 py-3 text-sm"
             >
@@ -495,8 +642,24 @@ export default function RandomMatchPage() {
             </div>
           </div>
 
+          {/* Search filter */}
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-omega-muted pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por nombre o alias..."
+              className="w-full pl-9 pr-3 py-2.5 text-sm bg-omega-surface border border-omega-border/30 rounded-xl text-omega-text placeholder:text-omega-muted/60 focus:outline-none focus:ring-2 focus:ring-omega-purple/40 transition-all"
+              data-testid="player-search-input"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-2 max-h-[340px] overflow-y-auto pr-1">
-            {players.map((player) => {
+            {filteredPlayers.map((player) => {
               const isSelected = selectedIds.has(player.id);
               const notEnoughStars = withStars && player.stars < starsBet;
 
@@ -525,6 +688,17 @@ export default function RandomMatchPage() {
                     }`}
                   >
                     {isSelected && <Check className="size-3 text-white" />}
+                  </div>
+
+                  {/* Avatar */}
+                  <div className="size-7 rounded-full overflow-hidden bg-omega-dark border border-omega-border/30 shrink-0">
+                    {player.avatar_url ? (
+                      <img src={player.avatar_url} alt={player.alias} className="size-full object-cover" />
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-[10px] font-black text-omega-purple">
+                        {player.alias.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                   </div>
 
                   <div className="min-w-0 flex-1">
@@ -642,7 +816,16 @@ export default function RandomMatchPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-3 justify-center">
-                    <div className="flex-1 text-center">
+                    <div className="flex-1 flex flex-col items-center gap-1.5">
+                      <div className="size-10 rounded-full overflow-hidden bg-omega-dark border border-omega-purple/30">
+                        {pair.player1.avatar_url ? (
+                          <img src={pair.player1.avatar_url} alt={pair.player1.alias} className="size-full object-cover" />
+                        ) : (
+                          <div className="size-full flex items-center justify-center text-sm font-black text-omega-purple">
+                            {pair.player1.alias.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
                       <p className="text-sm font-bold text-omega-text">
                         {pair.player1.alias}
                       </p>
@@ -653,7 +836,16 @@ export default function RandomMatchPage() {
                     <span className="text-xs font-bold text-omega-muted">
                       VS
                     </span>
-                    <div className="flex-1 text-center">
+                    <div className="flex-1 flex flex-col items-center gap-1.5">
+                      <div className="size-10 rounded-full overflow-hidden bg-omega-dark border border-omega-blue/30">
+                        {pair.player2.avatar_url ? (
+                          <img src={pair.player2.avatar_url} alt={pair.player2.alias} className="size-full object-cover" />
+                        ) : (
+                          <div className="size-full flex items-center justify-center text-sm font-black text-omega-blue">
+                            {pair.player2.alias.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
                       <p className="text-sm font-bold text-omega-text">
                         {pair.player2.alias}
                       </p>
@@ -667,7 +859,16 @@ export default function RandomMatchPage() {
 
               {byePlayer && (
                 <div className="rounded-xl border-l-4 border-l-omega-blue bg-omega-card px-4 py-3 shadow-sm">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="size-8 rounded-full overflow-hidden bg-omega-dark border border-omega-blue/30 shrink-0">
+                      {byePlayer.avatar_url ? (
+                        <img src={byePlayer.avatar_url} alt={byePlayer.alias} className="size-full object-cover" />
+                      ) : (
+                        <div className="size-full flex items-center justify-center text-xs font-black text-omega-blue">
+                          {byePlayer.alias.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
                     <Crown className="size-4 text-omega-blue" />
                     <span className="text-sm text-omega-muted">BYE:</span>
                     <span className="text-sm font-bold text-omega-blue">

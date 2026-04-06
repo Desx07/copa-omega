@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     // Verificar que todos los jugadores existen y no estan eliminados
     const { data: players, error: playersError } = await supabase
       .from("players")
-      .select("id, alias, stars, is_eliminated")
+      .select("id, alias, avatar_url, stars, is_eliminated")
       .in("id", player_ids);
 
     if (playersError) {
@@ -130,11 +130,11 @@ export async function POST(request: Request) {
     }
 
     // Buscar alias del jugador BYE
-    let byePlayer: { id: string; alias: string } | null = null;
+    let byePlayer: { id: string; alias: string; avatar_url?: string | null } | null = null;
     if (byePlayerId) {
       const found = players.find((p) => p.id === byePlayerId);
       if (found) {
-        byePlayer = { id: found.id, alias: found.alias };
+        byePlayer = { id: found.id, alias: found.alias, avatar_url: found.avatar_url };
       }
     }
 
