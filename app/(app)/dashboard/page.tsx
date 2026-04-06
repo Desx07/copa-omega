@@ -517,7 +517,7 @@ export default async function DashboardPage() {
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <Shuffle className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-white">Sorteo de Parejas</p>
+              <p className="text-xs font-bold text-white">Sorteo</p>
             </Link>
             {/* Sorteo Equipos — only when teams feature is enabled */}
             <DashboardTeamsSorteoButton isAdmin={!!player.is_admin} isJudge={!!player.is_judge} />
