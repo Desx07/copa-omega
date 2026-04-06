@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Loader2,
@@ -84,7 +85,7 @@ function useAnimatedCounter(target: number, duration = 1200) {
     }
 
     requestAnimationFrame(animate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- value se excluye intencionalmente para evitar loops infinitos: el efecto anima DESDE el valor actual HACIA el target, si value estuviera en deps se re-dispararía en cada frame
   }, [target, duration]);
 
   return value;
@@ -95,6 +96,7 @@ function useAnimatedCounter(target: number, duration = 1200) {
 // ---------------------------------------------------------------------------
 
 export default function WalletPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -149,7 +151,10 @@ export default function WalletPage() {
     }
   }
 
+  const [usingTicket, setUsingTicket] = useState<string | null>(null);
+
   async function handleUseTicket(ticketId: string) {
+    setUsingTicket(ticketId);
     try {
       const res = await fetch("/api/wallet/use-ticket", {
         method: "POST",
@@ -165,8 +170,11 @@ export default function WalletPage() {
 
       toast.success("Golden Ticket usado");
       await fetchWallet();
+      router.push("/tournaments");
     } catch {
       toast.error("Error de conexion");
+    } finally {
+      setUsingTicket(null);
     }
   }
 
@@ -392,14 +400,18 @@ export default function WalletPage() {
                   {ticket.is_used ? (
                     <span className="omega-badge omega-badge-green text-[9px]">Usado</span>
                   ) : (
-                    <Link
-                      href="/tournaments"
+                    <button
                       onClick={() => handleUseTicket(ticket.id)}
+                      disabled={usingTicket === ticket.id}
                       className="omega-btn omega-btn-gold px-3 py-1.5 text-[10px] gap-1"
                     >
-                      <Trophy className="size-3" />
+                      {usingTicket === ticket.id ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Trophy className="size-3" />
+                      )}
                       Usar
-                    </Link>
+                    </button>
                   )}
                 </div>
               ))}

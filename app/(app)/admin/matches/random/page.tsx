@@ -84,47 +84,55 @@ export default function RandomMatchPage() {
   const [createdMatches, setCreatedMatches] = useState<CreatedMatch[]>([]);
   const [resultBye, setResultBye] = useState<{ id: string; alias: string; avatar_url?: string | null } | null>(null);
 
-  useEffect(() => {
-    async function fetchPlayers() {
-      const supabase = createClient();
+  // Error state
+  const [fetchError, setFetchError] = useState(false);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  const fetchPlayers = useCallback(async () => {
+    setLoadingPlayers(true);
+    setFetchError(false);
 
-      if (!user) {
-        router.push("/auth/login");
-        return;
-      }
+    const supabase = createClient();
 
-      const { data: profile } = await supabase
-        .from("players")
-        .select("is_admin, is_judge")
-        .eq("id", user.id)
-        .single();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (!profile?.is_admin && !profile?.is_judge) {
-        router.push("/dashboard");
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("players")
-        .select("id, alias, full_name, avatar_url, stars, is_eliminated")
-        .eq("is_eliminated", false)
-        .order("alias", { ascending: true });
-
-      if (error) {
-        toast.error("Error al cargar jugadores");
-        return;
-      }
-
-      setPlayers(data ?? []);
-      setLoadingPlayers(false);
+    if (!user) {
+      router.push("/auth/login");
+      return;
     }
 
-    fetchPlayers();
+    const { data: profile } = await supabase
+      .from("players")
+      .select("is_admin, is_judge")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.is_admin && !profile?.is_judge) {
+      router.push("/dashboard");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("players")
+      .select("id, alias, full_name, avatar_url, stars, is_eliminated")
+      .eq("is_eliminated", false)
+      .order("alias", { ascending: true });
+
+    if (error) {
+      toast.error("Error al cargar jugadores");
+      setFetchError(true);
+      setLoadingPlayers(false);
+      return;
+    }
+
+    setPlayers(data ?? []);
+    setLoadingPlayers(false);
   }, [router]);
+
+  useEffect(() => {
+    fetchPlayers();
+  }, [fetchPlayers]);
 
   // ---------------------------------------------------------------------------
   // Selection handlers
@@ -210,7 +218,7 @@ export default function RandomMatchPage() {
       setShowPreview(true);
       setGenerating(false);
     }, 400);
-  }, [players, selectedIds, starsBet]);
+  }, [players, selectedIds, starsBet, withStars]);
 
   // ---------------------------------------------------------------------------
   // Confirm & Create (server-side)
@@ -290,6 +298,20 @@ export default function RandomMatchPage() {
     return (
       <div className="flex items-center justify-center py-32">
         <Loader2 className="size-8 text-omega-blue animate-spin" />
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-4">
+        <p className="text-sm text-omega-muted">Error al cargar jugadores</p>
+        <button
+          onClick={fetchPlayers}
+          className="omega-btn omega-btn-purple px-4 py-2 text-sm"
+        >
+          Reintentar
+        </button>
       </div>
     );
   }

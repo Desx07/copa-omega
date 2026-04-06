@@ -38,8 +38,8 @@ interface LeagueMatch {
   status: string;
   team1: { id: string; name: string; logo_url: string | null } | null;
   team2: { id: string; name: string; logo_url: string | null } | null;
-  team1_score: number | null;
-  team2_score: number | null;
+  team1_wins: number | null;
+  team2_wins: number | null;
   winner_team_id: string | null;
 }
 
@@ -137,8 +137,8 @@ export default function LeaguePage() {
                 status: m.status,
                 team1: m.team1 as unknown as { id: string; name: string; logo_url: string | null } | null,
                 team2: m.team2 as unknown as { id: string; name: string; logo_url: string | null } | null,
-                team1_score: tm?.team1_wins ?? null,
-                team2_score: tm?.team2_wins ?? null,
+                team1_wins: tm?.team1_wins ?? null,
+                team2_wins: tm?.team2_wins ?? null,
                 winner_team_id: tm?.winner_team_id ?? null,
               };
             });
@@ -372,7 +372,7 @@ export default function LeaguePage() {
                         <div className="shrink-0 px-2">
                           {m.status === "completed" ? (
                             <span className="text-xs font-black text-omega-gold">
-                              {m.team1_score} - {m.team2_score}
+                              {m.team1_wins} - {m.team2_wins}
                             </span>
                           ) : (
                             <span className="text-xs text-omega-muted">vs</span>
