@@ -10,7 +10,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
-  return await updateSession(request);
+  try {
+    return await updateSession(request);
+  } catch {
+    return NextResponse.next();
+  }
 }
 
 export const config = {
