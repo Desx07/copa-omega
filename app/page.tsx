@@ -19,9 +19,10 @@ import { createClient } from "@/lib/supabase/server";
 import { LandingCarousel } from "@/app/_components/landing-carousel";
 
 export default async function LandingPage() {
+  const supabase = await createClient();
+
   let user = null;
   try {
-    const supabase = await createClient();
     const { data } = await Promise.race([
       supabase.auth.getUser(),
       new Promise<{ data: { user: null } }>((resolve) =>
