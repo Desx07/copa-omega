@@ -26,12 +26,12 @@ export async function updateSession(request: NextRequest) {
   );
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    await supabase.auth.getUser();
-    clearTimeout(timeout);
+    await Promise.race([
+      supabase.auth.getUser(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
+    ]);
   } catch {
-    // If Supabase is unreachable, continue without auth
+    // If Supabase is slow/unreachable, continue without auth
   }
 
   return supabaseResponse;
