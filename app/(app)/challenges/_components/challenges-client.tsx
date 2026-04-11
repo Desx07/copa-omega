@@ -578,7 +578,6 @@ function SearchAndChallenge({
           `alias.ilike.%${query.trim()}%,full_name.ilike.%${query.trim()}%`
         )
         .eq("is_hidden", false)
-        .eq("is_admin", false)
         .limit(8);
       setResults(data ?? []);
       setIsOpen(true);
