@@ -143,7 +143,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Admins can be challenged (removed restriction)
+    // Admins cannot be challenged
+    if (challenged?.is_admin) {
+      return Response.json(
+        { error: "No se puede retar al administrador" },
+        { status: 400 }
+      );
+    }
 
     if ((challenger?.stars ?? 0) < stars_bet) {
       return Response.json(
