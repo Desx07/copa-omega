@@ -19,10 +19,19 @@ import { createClient } from "@/lib/supabase/server";
 import { LandingCarousel } from "@/app/_components/landing-carousel";
 
 export default async function LandingPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<{ data: { user: null } }>((resolve) =>
+        setTimeout(() => resolve({ data: { user: null } }), 4000)
+      ),
+    ]);
+    user = data?.user;
+  } catch {
+    // Supabase unavailable, show landing page
+  }
 
   if (user) {
     redirect("/dashboard");
