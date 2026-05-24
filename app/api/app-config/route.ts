@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isTournamentMode } from "@/lib/tournament-mode";
 
 // GET — obtener feature flags
 export async function GET() {
@@ -13,7 +14,7 @@ export async function GET() {
     const { data } = await supabase
       .from("app_settings")
       .select("key, value")
-      .in("key", ["teams_enabled"]);
+      .in("key", ["teams_enabled", "tournament_mode"]);
 
     const config: Record<string, string> = {};
     for (const row of data ?? []) {
@@ -50,9 +51,14 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { key, value } = body as { key: string; value: string };
 
-    const validKeys = ["teams_enabled"];
+    const validKeys = ["teams_enabled", "tournament_mode"];
     if (!validKeys.includes(key)) {
       return Response.json({ error: "Key invalida" }, { status: 400 });
+    }
+
+    // La modalidad de torneo solo acepta valores conocidos
+    if (key === "tournament_mode" && !isTournamentMode(value)) {
+      return Response.json({ error: "Modalidad invalida" }, { status: 400 });
     }
 
     // Upsert en app_settings

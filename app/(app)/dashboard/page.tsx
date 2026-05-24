@@ -46,6 +46,7 @@ import WeeklyMissions from "@/app/_components/weekly-missions";
 import OnlineUsers from "@/app/_components/online-users";
 import { DashboardTeamsButtons, DashboardTeamsSorteoButton } from "@/app/_components/dashboard-teams-buttons";
 import { TeamsToggle } from "@/app/_components/teams-toggle";
+import { TournamentModeToggle } from "@/app/_components/tournament-mode-toggle";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -605,6 +606,7 @@ export default async function DashboardPage() {
               <p className="text-xs font-bold text-white">Analytics</p>
             </Link>
           </div>
+          <TournamentModeToggle />
           <StoreToggle />
           <TeamsToggle />
         </div>
