@@ -66,11 +66,11 @@ export function DashboardTeamsSorteoButton({
   if (loading || !enabled || (!isAdmin && !isJudge)) return null;
 
   return (
-    <Link href="/admin/team-matches/random" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-4 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
-      <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-        <Shuffle className="size-5 text-white" />
+    <Link href="/admin/team-matches/random" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-purple/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-purple/20 col-span-2">
+      <div className="size-10 rounded-xl bg-omega-purple/20 mb-2 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
+        <Shuffle className="size-5 text-omega-purple" />
       </div>
-      <p className="text-xs font-bold text-white">Sorteo Equipos</p>
+      <p className="text-xs font-bold text-omega-text">Sorteo Equipos</p>
     </Link>
   );
 }
