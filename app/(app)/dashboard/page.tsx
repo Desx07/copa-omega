@@ -47,6 +47,9 @@ import OnlineUsers from "@/app/_components/online-users";
 import { DashboardTeamsButtons, DashboardTeamsSorteoButton } from "@/app/_components/dashboard-teams-buttons";
 import { TeamsToggle } from "@/app/_components/teams-toggle";
 import { TournamentModeToggle } from "@/app/_components/tournament-mode-toggle";
+import { AscensoCtaCard } from "@/app/_components/ascenso-cta-card";
+import { getModeConfig } from "@/lib/tournament-mode";
+import { RANKS, rankInfo, type RankLetter } from "@/lib/ascenso";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -103,13 +106,17 @@ export default async function DashboardPage() {
   if (!player) return null;
 
   // Secondary queries — run in parallel, lighter batch
-  const [activeSeasonResult, carouselSettingResult, beysResult, predictionsResult, challengesResult, carouselItemsResult] = await Promise.all([
+  const [activeSeasonResult, carouselSettingResult, beysResult, predictionsResult, challengesResult, carouselItemsResult, modeConfig, ascensoRowResult] = await Promise.all([
     supabase.from("seasons").select("*").eq("status", "active").maybeSingle(),
     supabase.from("app_settings").select("value").eq("key", "dashboard_carousel_enabled").maybeSingle(),
     supabase.from("beys").select("id", { count: "exact", head: true }).eq("player_id", user.id),
     supabase.from("predictions").select("id", { count: "exact", head: true }).eq("predictor_id", user.id),
     supabase.from("challenges").select("id", { count: "exact", head: true }).eq("challenger_id", user.id),
     supabase.from("carousel_items").select("id, type, url, thumbnail_url, title, sort_order").eq("is_active", true).eq("target", "dashboard").order("sort_order", { ascending: true }),
+    getModeConfig(supabase),
+    // Columnas de ascenso por separado: pueden NO existir todavía (migración
+    // pendiente). Si la query falla, data queda null y caemos al fallback F/0.
+    supabase.from("players").select("rank_letter, ticket_points").eq("id", user.id).maybeSingle(),
   ]);
 
   const carouselEnabled = carouselSettingResult.data?.value === "true";
@@ -163,6 +170,22 @@ export default async function DashboardPage() {
       }
     : null;
 
+  // ── Modalidades de torneo ──
+  // La modalidad activa maneja lo que se ve: si ascenso está activo aparece su
+  // CTA para todos; si además la copa está apagada, el hero deja las estrellas
+  // y muestra el rango de ascenso.
+  const ascensoActivo = modeConfig.active.ascenso;
+  const copaActiva = modeConfig.active.copa_omega;
+
+  // Rango y ticket con fallback silencioso (las columnas pueden no existir aún)
+  const ascensoRow = (ascensoRowResult.data ?? null) as { rank_letter?: string | null; ticket_points?: number | null } | null;
+  const rawRankLetter = ascensoRow?.rank_letter;
+  const ascensoRank: RankLetter = RANKS.some((r) => r.letter === rawRankLetter)
+    ? (rawRankLetter as RankLetter)
+    : "F";
+  const ascensoTicket = typeof ascensoRow?.ticket_points === "number" ? ascensoRow.ticket_points : 0;
+  const ascensoInfo = rankInfo(ascensoRank);
+
   return (
     <div className="max-w-lg mx-auto pb-10 space-y-5">
       {/* ═══ HYPE MODE — live tournament top bar ═══ */}
@@ -207,10 +230,27 @@ export default async function DashboardPage() {
               <p className="text-xs text-omega-muted/80 italic truncate">&ldquo;{player.tagline}&rdquo;</p>
             )}
           </div>
-          <div className="text-center shrink-0">
-            <Star className="size-6 text-omega-gold fill-omega-gold star-glow mx-auto" />
-            <span className="text-3xl font-black neon-gold block -mt-1">{player.stars}</span>
-          </div>
+          {!copaActiva && ascensoActivo ? (
+            // Copa apagada + ascenso activo: el rango reemplaza a las estrellas
+            <div className="text-center shrink-0">
+              <div
+                className={`size-11 mx-auto rounded-xl bg-gradient-to-br ${ascensoInfo.color} flex items-center justify-center ring-2 ring-white/15`}
+                style={{ boxShadow: `0 0 16px ${ascensoInfo.glow}` }}
+              >
+                <span className="text-2xl font-black text-white drop-shadow">{ascensoInfo.letter}</span>
+              </div>
+              <span className="text-[10px] font-bold text-omega-muted block mt-1">
+                {ascensoInfo.ticketTarget !== null
+                  ? `Ticket: ${ascensoTicket}/${ascensoInfo.ticketTarget}`
+                  : "Rango máximo"}
+              </span>
+            </div>
+          ) : (
+            <div className="text-center shrink-0">
+              <Star className="size-6 text-omega-gold fill-omega-gold star-glow mx-auto" />
+              <span className="text-3xl font-black neon-gold block -mt-1">{player.stars}</span>
+            </div>
+          )}
         </div>
 
         {/* Dynamic title + level + login streak badges */}
@@ -298,6 +338,13 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* ═══ TORNEO DE ASCENSO — CTA para todos cuando la modalidad está activa ═══ */}
+      {ascensoActivo && (
+        <div className="px-4">
+          <AscensoCtaCard rankLetter={ascensoRank} ticketPoints={ascensoTicket} />
+        </div>
+      )}
 
       {/* ═══ SEARCH BAR — find bladers ═══ */}
       <div className="px-4">
@@ -468,7 +515,8 @@ export default async function DashboardPage() {
             <Trophy className="size-5 text-white" />
           </div>
           <p className="font-bold text-white text-sm">Ranking</p>
-          <p className="text-xs text-white/70 mt-0.5">Tabla de estrellas y posiciones</p>
+          {/* Con copa apagada el ranking no gira en torno a estrellas */}
+          <p className="text-xs text-white/70 mt-0.5">{copaActiva ? "Tabla de estrellas y posiciones" : "Tabla de posiciones"}</p>
         </Link>
         <Link href="/profile" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-5 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
           <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">

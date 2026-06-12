@@ -10,9 +10,11 @@ import {
   Swords,
   Medal,
   ChevronDown,
+  ChevronsUp,
   CalendarDays,
 } from "lucide-react";
 import { OnlineDot } from "@/app/_components/online-dot";
+import { AscensoSection, type AscensoEntry } from "./ascenso-section";
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                      */
@@ -54,7 +56,51 @@ interface RankingTabsProps {
   standardRanking: TournamentEntry[];
   jrRanking: TournamentEntry[];
   matches: MatchEntry[];
+  /** Ranking de ascenso ya ordenado (S primero, ticket_points desc). */
+  ascensoRanking: AscensoEntry[];
+  /** Modalidad Copa Omega activa → se muestra el tab de estrellas. */
+  showEstrellas: boolean;
+  /** Modalidad Ascenso activa → se muestra el tab de ascenso. */
+  showAscenso: boolean;
+  /** Ascenso es la modalidad destacada (o la copa está apagada) → va primero. */
+  ascensoFirst: boolean;
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Definición de tabs (clases estáticas para que Tailwind las compile)        */
+/* -------------------------------------------------------------------------- */
+
+type TabId = "ascenso" | "estrellas" | "standard" | "jr";
+
+const TAB_DEFS: Record<
+  TabId,
+  { label: string; Icon: typeof Star; activeText: string; iconActive: string }
+> = {
+  ascenso: {
+    label: "Ascenso",
+    Icon: ChevronsUp,
+    activeText: "text-omega-green",
+    iconActive: "text-omega-green",
+  },
+  estrellas: {
+    label: "Estrellas",
+    Icon: Star,
+    activeText: "text-omega-gold",
+    iconActive: "text-omega-gold fill-omega-gold",
+  },
+  standard: {
+    label: "Estandar",
+    Icon: Trophy,
+    activeText: "text-omega-purple",
+    iconActive: "text-omega-purple",
+  },
+  jr: {
+    label: "JR",
+    Icon: Medal,
+    activeText: "text-omega-blue",
+    iconActive: "text-omega-blue",
+  },
+};
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -79,10 +125,22 @@ export function RankingTabs({
   standardRanking,
   jrRanking,
   matches,
+  ascensoRanking,
+  showEstrellas,
+  showAscenso,
+  ascensoFirst,
 }: RankingTabsProps) {
-  const [activeTab, setActiveTab] = useState<"estrellas" | "standard" | "jr">(
-    "estrellas"
-  );
+  // Orden de tabs según modalidades activas:
+  // - Ascenso primero si es la destacada (o si la copa está apagada)
+  // - Estrellas solo si Copa Omega está activa
+  // - Estandar y JR siempre visibles (torneos oficiales)
+  const tabOrder: TabId[] = [];
+  if (showAscenso && ascensoFirst) tabOrder.push("ascenso");
+  if (showEstrellas) tabOrder.push("estrellas");
+  if (showAscenso && !ascensoFirst) tabOrder.push("ascenso");
+  tabOrder.push("standard", "jr");
+
+  const [activeTab, setActiveTab] = useState<TabId>(tabOrder[0]);
   const [matchesOpen, setMatchesOpen] = useState(true);
 
   return (
@@ -90,49 +148,37 @@ export function RankingTabs({
       {/* ═══ TAB BAR ═══ */}
       <div className="px-4">
         <div className="flex rounded-xl bg-omega-dark/60 border border-white/[0.06] p-1">
-          <button
-            onClick={() => setActiveTab("estrellas")}
-            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-bold transition-all ${
-              activeTab === "estrellas"
-                ? "bg-omega-card text-omega-gold shadow-sm"
-                : "text-omega-muted hover:text-omega-text"
-            }`}
-          >
-            <Star
-              className={`size-3.5 ${activeTab === "estrellas" ? "text-omega-gold fill-omega-gold" : ""}`}
-            />
-            Estrellas
-          </button>
-          <button
-            onClick={() => setActiveTab("standard")}
-            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-bold transition-all ${
-              activeTab === "standard"
-                ? "bg-omega-card text-omega-purple shadow-sm"
-                : "text-omega-muted hover:text-omega-text"
-            }`}
-          >
-            <Trophy
-              className={`size-3.5 ${activeTab === "standard" ? "text-omega-purple" : ""}`}
-            />
-            Estandar
-          </button>
-          <button
-            onClick={() => setActiveTab("jr")}
-            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-bold transition-all ${
-              activeTab === "jr"
-                ? "bg-omega-card text-omega-blue shadow-sm"
-                : "text-omega-muted hover:text-omega-text"
-            }`}
-          >
-            <Medal
-              className={`size-3.5 ${activeTab === "jr" ? "text-omega-blue" : ""}`}
-            />
-            JR
-          </button>
+          {tabOrder.map((id) => {
+            const { label, Icon, activeText, iconActive } = TAB_DEFS[id];
+            const isActive = activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                data-testid={`ranking-tab-${id}`}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-bold transition-all ${
+                  isActive
+                    ? `bg-omega-card ${activeText} shadow-sm`
+                    : "text-omega-muted hover:text-omega-text"
+                }`}
+              >
+                <Icon className={`size-3.5 ${isActive ? iconActive : ""}`} />
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* ═══ TAB CONTENT: ESTRELLAS ═══ */}
+      {/* ═══ TAB CONTENT: ASCENSO ═══ */}
+      {showAscenso && (
+        <div className={activeTab === "ascenso" ? "space-y-5" : "hidden"}>
+          <AscensoSection ranking={ascensoRanking} />
+        </div>
+      )}
+
+      {/* ═══ TAB CONTENT: ESTRELLAS (solo si Copa Omega está activa) ═══ */}
+      {showEstrellas && (
       <div className={activeTab === "estrellas" ? "space-y-5" : "hidden"}>
         {/* Empty state */}
         {leaderboard.length === 0 && (
@@ -294,6 +340,7 @@ export function RankingTabs({
             );
           })()}
       </div>
+      )}
 
       {/* ═══ TAB CONTENT: ESTANDAR ═══ */}
       <div className={activeTab === "standard" ? "space-y-5" : "hidden"}>

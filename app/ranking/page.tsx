@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Star, Trophy, Swords, ArrowLeft, Medal } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getModeConfig } from "@/lib/tournament-mode";
+import { RANKS, type RankLetter } from "@/lib/ascenso";
 import { RankingTabs } from "./_components/ranking-tabs";
+import type { AscensoEntry } from "./_components/ascenso-section";
 import TournamentCountdown from "@/app/_components/tournament-countdown";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +14,7 @@ export default async function RankingPage() {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const [playersResult, matchesResult, standardPointsResult, jrPointsResult, nextTournamentResult, liveTournamentResult] = await Promise.all([
+  const [playersResult, matchesResult, standardPointsResult, jrPointsResult, nextTournamentResult, liveTournamentResult, modeConfig, ascensoResult] = await Promise.all([
     supabase
       .from("players")
       .select("id, alias, full_name, stars, wins, losses, is_eliminated, avatar_url")
@@ -54,6 +57,15 @@ export default async function RankingPage() {
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    // Config de modalidades activas (copa_omega / ascenso / liga). Nunca lanza.
+    getModeConfig(supabase),
+    // Jugadores para el ranking de ascenso. Tolerante: si las columnas
+    // rank_letter/ticket_points no existen todavía (migración pendiente),
+    // la query devuelve error y mostramos el estado vacío del modo ascenso.
+    supabase
+      .from("players")
+      .select("id, alias, avatar_url, rank_letter, ticket_points, is_eliminated")
+      .eq("is_hidden", false),
   ]);
 
   const players = playersResult.data;
@@ -88,6 +100,36 @@ export default async function RankingPage() {
 
   const standardRanking = aggregatePoints(rawStandardPoints);
   const jrRanking = aggregatePoints(rawJrPoints);
+
+  // ── Ranking de Ascenso ──
+  // Orden: rango (S primero, F último) y dentro de cada rango ticket_points desc.
+  // Si la query falló (columnas inexistentes) queda vacío → la UI muestra
+  // "El ranking de ascenso se activa cuando arranque el torneo".
+  const letrasRango = RANKS.map((r) => r.letter);
+  // Posición en la escalera: F=0 ... S=6 (mayor = mejor rango)
+  const posicionRango = (letter: RankLetter) => letrasRango.indexOf(letter);
+
+  const ascensoRanking: AscensoEntry[] =
+    modeConfig.active.ascenso && !ascensoResult.error
+      ? (ascensoResult.data ?? [])
+          .map((p): AscensoEntry => {
+            const letra = p.rank_letter as RankLetter;
+            return {
+              id: p.id as string,
+              alias: p.alias as string,
+              avatar_url: (p.avatar_url ?? null) as string | null,
+              // Letra desconocida o null → rango inicial F
+              rank_letter: letrasRango.includes(letra) ? letra : "F",
+              ticket_points: typeof p.ticket_points === "number" ? p.ticket_points : 0,
+              is_eliminated: Boolean(p.is_eliminated),
+            };
+          })
+          .sort((a, b) => {
+            const porRango = posicionRango(b.rank_letter) - posicionRango(a.rank_letter);
+            if (porRango !== 0) return porRango;
+            return b.ticket_points - a.ticket_points;
+          })
+      : [];
   // Para el stat counter del hero, usamos el total combinado
   const totalTournamentPlayers = new Set([
     ...standardRanking.map((e) => e.id),
@@ -215,6 +257,10 @@ export default async function RankingPage() {
         standardRanking={standardRanking}
         jrRanking={jrRanking}
         matches={serializedMatches}
+        ascensoRanking={ascensoRanking}
+        showEstrellas={modeConfig.active.copa_omega}
+        showAscenso={modeConfig.active.ascenso}
+        ascensoFirst={modeConfig.featured === "ascenso" || !modeConfig.active.copa_omega}
       />
     </div>
   );
