@@ -13,6 +13,12 @@ interface MatchPlayer {
   stars: number;
 }
 
+// Datos de ascenso de un jugador (solo para partidas de ese modo)
+interface AscensoStats {
+  rank_letter: string;
+  ticket_points: number;
+}
+
 interface Match {
   id: string;
   player1_id: string;
@@ -26,6 +32,10 @@ interface Match {
   notes: string | null;
   created_at: string;
   completed_at: string | null;
+  // Campos del modo ascenso (null/undefined en partidas de copa)
+  mode?: string | null;
+  match_kind?: string | null;
+  points_awarded?: number | null;
   player1: { alias: string };
   player2: { alias: string };
   winner: { alias: string } | null;
@@ -39,6 +49,8 @@ export default function MatchDetailPage() {
   const [match, setMatch] = useState<Match | null>(null);
   const [player1, setPlayer1] = useState<MatchPlayer | null>(null);
   const [player2, setPlayer2] = useState<MatchPlayer | null>(null);
+  // Datos de ascenso por jugador (id → stats); null si no aplica o no hay columnas
+  const [ascensoStats, setAscensoStats] = useState<Record<string, AscensoStats> | null>(null);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState(false);
   const [togglingLive, setTogglingLive] = useState(false);
@@ -105,6 +117,29 @@ export default function MatchDetailPage() {
 
     setPlayer1(p1 as MatchPlayer | null);
     setPlayer2(p2 as MatchPlayer | null);
+
+    // Para partidas de ascenso, traemos rango y ticket points de ambos.
+    // Si las columnas no existen todavía, lo ignoramos sin romper la página.
+    if (matchData.mode === "ascenso") {
+      const { data: rankData, error: rankError } = await supabase
+        .from("players")
+        .select("id, rank_letter, ticket_points")
+        .in("id", [matchData.player1_id, matchData.player2_id]);
+
+      if (!rankError && rankData) {
+        const stats: Record<string, AscensoStats> = {};
+        for (const row of rankData as Array<{ id: string; rank_letter: string | null; ticket_points: number | null }>) {
+          if (row.rank_letter != null) {
+            stats[row.id] = {
+              rank_letter: row.rank_letter,
+              ticket_points: row.ticket_points ?? 0,
+            };
+          }
+        }
+        setAscensoStats(stats);
+      }
+    }
+
     setLoading(false);
   }, [matchId, router]);
 
@@ -177,7 +212,11 @@ export default function MatchDetailPage() {
 
   async function handleDelete() {
     if (!match) return;
-    if (!confirm("¿Seguro que querés eliminar esta partida? Se revertirán las estrellas.")) return;
+    const confirmMsg =
+      match.mode === "ascenso"
+        ? "¿Seguro que querés eliminar esta partida de ascenso?"
+        : "¿Seguro que querés eliminar esta partida? Se revertirán las estrellas.";
+    if (!confirm(confirmMsg)) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/matches/${match.id}`, { method: "DELETE" });
@@ -211,6 +250,13 @@ export default function MatchDetailPage() {
   const isInProgress = match.status === "in_progress";
   const isCompleted = match.status === "completed";
   const canGoLive = isPending || isInProgress;
+
+  // Presentación según modo: ascenso (puntos de ticket / subida de rango)
+  // vs copa (estrellas apostadas). El PATCH es el mismo: el backend rutea.
+  const isAscenso = match.mode === "ascenso";
+  const isAscension = isAscenso && match.match_kind === "ascension";
+  const p1Ascenso = ascensoStats?.[player1.id];
+  const p2Ascenso = ascensoStats?.[player2.id];
 
   return (
     <div className="max-w-lg mx-auto pb-8">
@@ -281,6 +327,11 @@ export default function MatchDetailPage() {
               {match.status === "cancelled" && (
                 <span className="omega-badge omega-badge-red px-3 py-1">CANCELADA</span>
               )}
+              {isAscenso && (
+                <span className="omega-badge omega-badge-purple px-3 py-1">
+                  {isAscension ? "COMBATE DE ASCENSO" : "ASCENSO"}
+                </span>
+              )}
               {match.is_live && (
                 <span className="inline-flex items-center gap-1.5 bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full animate-pulse">
                   <span className="relative flex size-2">
@@ -338,19 +389,38 @@ export default function MatchDetailPage() {
                 )}
                 {player1.alias}
               </p>
-              <div className="flex items-center justify-center gap-1">
-                <Star className="size-3 text-omega-gold fill-omega-gold" />
-                <span className="text-xs font-bold text-omega-gold">{player1.stars}</span>
-              </div>
+              {isAscenso && p1Ascenso ? (
+                <div className="flex items-center justify-center gap-1.5">
+                  <span className="text-xs font-black text-omega-purple">
+                    Rango {p1Ascenso.rank_letter}
+                  </span>
+                  <span className="text-xs text-omega-muted">
+                    🎫 {p1Ascenso.ticket_points}
+                  </span>
+                </div>
+              ) : !isAscenso ? (
+                <div className="flex items-center justify-center gap-1">
+                  <Star className="size-3 text-omega-gold fill-omega-gold" />
+                  <span className="text-xs font-bold text-omega-gold">{player1.stars}</span>
+                </div>
+              ) : null}
             </div>
 
-            {/* VS */}
+            {/* VS — en ascenso muestra puntos en juego o subida de rango */}
             <div className="shrink-0 text-center space-y-1">
               <Swords className="size-6 text-omega-muted mx-auto" />
-              <span className="omega-badge omega-badge-gold">
-                <Star className="size-3 text-omega-gold fill-omega-gold mr-0.5" />
-                {match.stars_bet}
-              </span>
+              {isAscension ? (
+                <span className="omega-badge omega-badge-purple">ASCENSO</span>
+              ) : isAscenso ? (
+                <span className="omega-badge omega-badge-purple">
+                  {match.points_awarded ?? 0} pts
+                </span>
+              ) : (
+                <span className="omega-badge omega-badge-gold">
+                  <Star className="size-3 text-omega-gold fill-omega-gold mr-0.5" />
+                  {match.stars_bet}
+                </span>
+              )}
             </div>
 
             {/* Player 2 */}
@@ -376,10 +446,21 @@ export default function MatchDetailPage() {
                   <Crown className="size-3.5 text-omega-gold inline ml-1 -mt-0.5" />
                 )}
               </p>
-              <div className="flex items-center justify-center gap-1">
-                <Star className="size-3 text-omega-gold fill-omega-gold" />
-                <span className="text-xs font-bold text-omega-gold">{player2.stars}</span>
-              </div>
+              {isAscenso && p2Ascenso ? (
+                <div className="flex items-center justify-center gap-1.5">
+                  <span className="text-xs font-black text-omega-purple">
+                    Rango {p2Ascenso.rank_letter}
+                  </span>
+                  <span className="text-xs text-omega-muted">
+                    🎫 {p2Ascenso.ticket_points}
+                  </span>
+                </div>
+              ) : !isAscenso ? (
+                <div className="flex items-center justify-center gap-1">
+                  <Star className="size-3 text-omega-gold fill-omega-gold" />
+                  <span className="text-xs font-bold text-omega-gold">{player2.stars}</span>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -403,13 +484,29 @@ export default function MatchDetailPage() {
                   </span>
                 </div>
               )}
-              <p className="text-xs text-omega-muted">
-                Se transfirieron{" "}
-                <span className="text-omega-gold font-bold">
-                  {match.stars_bet} estrella{match.stars_bet > 1 ? "s" : ""}
-                </span>{" "}
-                al ganador
-              </p>
+              {isAscension ? (
+                <p className="text-xs text-omega-muted">
+                  Combate de ascenso —{" "}
+                  <span className="text-omega-purple font-bold">
+                    {match.winner.alias} sube de rango
+                  </span>
+                </p>
+              ) : isAscenso ? (
+                <p className="text-xs text-omega-muted">
+                  El ganador sumó{" "}
+                  <span className="text-omega-purple font-bold">
+                    {match.points_awarded ?? 0} puntos de ticket
+                  </span>
+                </p>
+              ) : (
+                <p className="text-xs text-omega-muted">
+                  Se transfirieron{" "}
+                  <span className="text-omega-gold font-bold">
+                    {match.stars_bet} estrella{match.stars_bet > 1 ? "s" : ""}
+                  </span>{" "}
+                  al ganador
+                </p>
+              )}
               {match.completed_at && (
                 <p className="text-[11px] text-omega-muted">
                   Resuelta el{" "}
@@ -431,6 +528,11 @@ export default function MatchDetailPage() {
               <p className="text-xs text-omega-muted">
                 Carga el resultado de esta batalla
               </p>
+              {isAscension && (
+                <p className="text-[11px] text-omega-purple font-bold">
+                  Combate de ascenso — el ganador sube de rango
+                </p>
+              )}
               <button
                 onClick={() => setShowScoreForm(true)}
                 className="omega-btn omega-btn-primary px-6 py-3 text-sm w-full"

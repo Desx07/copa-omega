@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { rankInfo, type RankLetter } from "@/lib/ascenso";
 
 // ── Tipos ──
-interface Player {
+export interface BattlePlayer {
   id: string;
   alias: string;
   avatar_url?: string;
-  rank: string;
-  stars: number;
-  wins: number;
-  losses: number;
+  rank: RankLetter;
+  ticketPoints?: number; // puntos de ticket acumulados
+  wins?: number;
+  losses?: number;
   beyImage?: string;
   beyName?: string;
   characterId?: string; // chr_00, chr_05, etc — personaje de Beyblade X
@@ -19,14 +20,14 @@ interface Player {
 }
 
 interface BattleCardProps {
-  player: Player;
-  opponent: Player;
+  player: BattlePlayer;
+  opponent: BattlePlayer;
   status: "loading" | "reveal" | "ready" | "in_progress" | "completed";
   winner?: string;
 }
 
 // ── Colores del rango (badge chico) ──
-const RANK_BADGE: Record<string, { bg: string; text: string }> = {
+const RANK_BADGE: Record<RankLetter, { bg: string; text: string }> = {
   F: { bg: "bg-gray-600", text: "text-gray-200" },
   E: { bg: "bg-green-700", text: "text-green-200" },
   D: { bg: "bg-blue-700", text: "text-blue-200" },
@@ -43,14 +44,13 @@ function PlayerCard({
   isWinner,
   isRevealed,
 }: {
-  player: Player;
+  player: BattlePlayer;
   side: "left" | "right";
   isWinner?: boolean;
   isRevealed: boolean;
 }) {
-  const badge = RANK_BADGE[player.rank] || RANK_BADGE.F;
+  const badge = RANK_BADGE[player.rank] ?? RANK_BADGE.F;
   const isLeft = side === "left";
-  const beyImg = player.beyImage || "dransword";
   const charId = player.characterId || (isLeft ? "00" : "05");
   const statusText = player.statusText || (isLeft ? "¡AL MÁXIMO!" : "PRÓXIMO COMBATE");
 
@@ -110,9 +110,15 @@ function PlayerCard({
         {/* Info inferior */}
         <div className="absolute bottom-2 left-0 right-0 px-3">
           <div className="flex items-center justify-between text-xs text-white/70">
-            <span>⭐ {player.stars}</span>
-            <span>{player.beyName || beyImg}</span>
-            <span>{player.wins}W {player.losses}L</span>
+            <span>
+              {player.ticketPoints !== undefined ? `🎫 ${player.ticketPoints.toLocaleString()}` : ""}
+            </span>
+            <span>{player.beyName ?? rankInfo(player.rank).name}</span>
+            <span>
+              {player.wins !== undefined && player.losses !== undefined
+                ? `${player.wins}W ${player.losses}L`
+                : ""}
+            </span>
           </div>
         </div>
 

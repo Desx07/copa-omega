@@ -25,6 +25,10 @@ export type MatchData = {
   created_at: string;
   completed_at: string | null;
   tournament_id: string | null;
+  // Campos del modo ascenso (null/undefined en partidas de copa)
+  mode?: string | null;
+  match_kind?: string | null;
+  points_awarded?: number | null;
   player1_id?: string;
   player2_id?: string;
   player1: { alias: string } | null;
@@ -260,8 +264,13 @@ function MatchCard({
         ? "border-l-omega-green"
         : "border-l-omega-red";
 
+  // Presentación según modo: ascenso muestra puntos/subida de rango, copa estrellas
+  const isAscenso = match.mode === "ascenso";
+  const isAscension = isAscenso && match.match_kind === "ascension";
+
+  // La revancha apuesta estrellas → solo aplica a partidas de copa
   const canRematch =
-    isAdmin && isCompleted && !!match.player1_id && !!match.player2_id;
+    isAdmin && isCompleted && !isAscenso && !!match.player1_id && !!match.player2_id;
 
   function openRematchDialog(e: React.MouseEvent) {
     e.preventDefault();
@@ -328,13 +337,21 @@ function MatchCard({
           <span className="omega-badge omega-badge-red">CANCELADA</span>
         )}
 
-        {/* Stars bet */}
-        <div className="flex items-center gap-1">
-          <Star className="size-3.5 text-omega-gold fill-omega-gold" />
-          <span className="text-sm font-black text-omega-gold">
-            {match.stars_bet}
+        {/* En juego: estrellas (copa) o puntos/ascenso (modo ascenso) */}
+        {isAscension ? (
+          <span className="omega-badge omega-badge-purple">ASCENSO</span>
+        ) : isAscenso ? (
+          <span className="text-sm font-black text-omega-purple">
+            {match.points_awarded ?? 0} pts
           </span>
-        </div>
+        ) : (
+          <div className="flex items-center gap-1">
+            <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+            <span className="text-sm font-black text-omega-gold">
+              {match.stars_bet}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Players */}

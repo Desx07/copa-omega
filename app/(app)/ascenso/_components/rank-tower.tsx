@@ -1,28 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { RANKS, type RankLetter } from "@/lib/ascenso";
 
 interface RankTowerProps {
-  currentRank: string;
+  currentRank: RankLetter;
   playerAlias: string;
-  stars: number;
+  ticketPoints: number; // puntos de ticket actuales del jugador
   onComplete: () => void; // Callback cuando termina la animación
 }
 
-const RANKS = [
-  { letter: "S", name: "Omega", color: "from-yellow-500 to-amber-600", textColor: "text-yellow-300", glowColor: "rgba(253,224,71,0.6)", stars: "56+" },
-  { letter: "A", name: "Diamante", color: "from-amber-700 to-amber-900", textColor: "text-amber-400", glowColor: "rgba(251,191,36,0.5)", stars: "41-55" },
-  { letter: "B", name: "Oro", color: "from-red-700 to-red-900", textColor: "text-red-400", glowColor: "rgba(248,113,113,0.5)", stars: "31-40" },
-  { letter: "C", name: "Plata", color: "from-purple-700 to-purple-900", textColor: "text-purple-400", glowColor: "rgba(192,132,252,0.5)", stars: "21-30" },
-  { letter: "D", name: "Bronce", color: "from-blue-700 to-blue-900", textColor: "text-blue-400", glowColor: "rgba(96,165,250,0.5)", stars: "11-20" },
-  { letter: "E", name: "Hierro", color: "from-green-800 to-green-950", textColor: "text-green-400", glowColor: "rgba(74,222,128,0.4)", stars: "1-10" },
-  { letter: "F", name: "Novato", color: "from-gray-700 to-gray-900", textColor: "text-gray-400", glowColor: "rgba(156,163,175,0.3)", stars: "0" },
-];
+// Color del texto de la letra por rango (el gradiente y el glow vienen de lib/ascenso)
+const RANK_TEXT_COLOR: Record<RankLetter, string> = {
+  S: "text-yellow-300",
+  A: "text-amber-400",
+  B: "text-red-400",
+  C: "text-purple-400",
+  D: "text-blue-400",
+  E: "text-green-400",
+  F: "text-gray-400",
+};
 
-export default function RankTower({ currentRank, playerAlias, stars, onComplete }: RankTowerProps) {
+// La torre se dibuja de arriba (S) hacia abajo (F)
+const TOWER_RANKS = [...RANKS].reverse();
+
+export default function RankTower({ currentRank, playerAlias, ticketPoints, onComplete }: RankTowerProps) {
   const [phase, setPhase] = useState<"enter" | "highlight" | "zoom" | "exit">("enter");
   const [highlightIndex, setHighlightIndex] = useState(-1);
-  const currentIndex = RANKS.findIndex(r => r.letter === currentRank);
+  const currentIndex = TOWER_RANKS.findIndex(r => r.letter === currentRank);
 
   useEffect(() => {
     // Fase 1: entrada (0.5s)
@@ -30,7 +35,7 @@ export default function RankTower({ currentRank, playerAlias, stars, onComplete 
 
     // Fase 2: barrer rangos de abajo hacia arriba hasta el actual
     const t2 = setTimeout(() => {
-      let idx = RANKS.length - 1;
+      let idx = TOWER_RANKS.length - 1;
       const interval = setInterval(() => {
         setHighlightIndex(idx);
         idx--;
@@ -85,10 +90,10 @@ export default function RankTower({ currentRank, playerAlias, stars, onComplete 
 
         {/* Torre de rangos */}
         <div className="w-full space-y-1.5">
-          {RANKS.map((rank, i) => {
+          {TOWER_RANKS.map((rank, i) => {
+            const textColor = RANK_TEXT_COLOR[rank.letter];
             const isCurrent = i === currentIndex;
             const isHighlighted = i === highlightIndex;
-            const isPast = i > currentIndex;
             const isZoomed = phase === "zoom" && isCurrent;
 
             return (
@@ -100,17 +105,21 @@ export default function RankTower({ currentRank, playerAlias, stars, onComplete 
                   ${isHighlighted && !isCurrent ? "scale-105 brightness-125" : ""}
                   ${!isCurrent && !isHighlighted ? "opacity-40 scale-95" : ""}
                   ${isCurrent && !isZoomed ? "opacity-90" : ""}`}
-                style={isZoomed ? { boxShadow: `0 0 50px ${rank.glowColor}` } : undefined}
+                style={isZoomed ? { boxShadow: `0 0 50px ${rank.glow}` } : undefined}
               >
                 {/* Rango */}
                 <div className="w-10 h-10 rounded bg-black/40 flex items-center justify-center">
-                  <span className={`text-xl font-black ${rank.textColor}`}>{rank.letter}</span>
+                  <span className={`text-xl font-black ${textColor}`}>{rank.letter}</span>
                 </div>
 
                 {/* Info */}
                 <div className="flex-1">
                   <div className="font-bold text-sm text-white">{rank.name}</div>
-                  <div className="text-[10px] text-white/50">⭐ {rank.stars}</div>
+                  <div className="text-[10px] text-white/50">
+                    {rank.ticketTarget != null
+                      ? `🎫 ${rank.ticketTarget.toLocaleString()} pts`
+                      : "RANGO MÁXIMO"}
+                  </div>
                 </div>
 
                 {/* Indicador de jugador */}
@@ -118,7 +127,7 @@ export default function RankTower({ currentRank, playerAlias, stars, onComplete 
                   <div className={`transition-all duration-500 ${isZoomed ? "opacity-100 scale-100" : "opacity-0 scale-75"}`}>
                     <div className="text-right">
                       <div className="text-xs font-bold text-white">{playerAlias}</div>
-                      <div className={`text-[10px] ${rank.textColor}`}>⭐ {stars}</div>
+                      <div className={`text-[10px] ${textColor}`}>🎫 {ticketPoints.toLocaleString()}</div>
                     </div>
                   </div>
                 )}
