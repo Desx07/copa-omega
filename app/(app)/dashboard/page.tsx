@@ -514,19 +514,19 @@ export default async function DashboardPage() {
             <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Zona Juez</h2>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Link href="/admin/matches/random" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-purple/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-purple/20 col-span-2">
-              <div className="size-10 rounded-xl bg-omega-purple/20 mb-2 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
-                <Shuffle className="size-5 text-omega-purple" />
+            <Link href="/admin/matches/random" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-4 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Shuffle className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-omega-text">Sorteo</p>
+              <p className="text-xs font-bold text-white">Sorteo</p>
             </Link>
             {/* Sorteo Equipos — only when teams feature is enabled */}
             <DashboardTeamsSorteoButton isAdmin={!!player.is_admin} isJudge={!!player.is_judge} />
-            <Link href="/admin/matches/new" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-gold/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-gold/20">
-              <div className="size-10 rounded-xl bg-omega-gold/20 mb-2 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors">
-                <Plus className="size-5 text-omega-gold" />
+            <Link href="/admin/matches/new" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Plus className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-omega-text">Crear partida</p>
+              <p className="text-xs font-bold text-white">Crear partida</p>
             </Link>
             <Link href="/admin/matches" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-gold/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-gold/20">
               <div className="size-10 rounded-xl bg-omega-gold/20 mb-2 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors">
@@ -534,11 +534,11 @@ export default async function DashboardPage() {
               </div>
               <p className="text-xs font-bold text-omega-text">Ver partidas</p>
             </Link>
-            <Link href="/admin/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-gold/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-gold/20 col-span-2">
-              <div className="size-10 rounded-xl bg-omega-gold/20 mb-2 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors">
-                <Trophy className="size-5 text-omega-gold" />
+            <Link href="/admin/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Trophy className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-omega-text">Torneos</p>
+              <p className="text-xs font-bold text-white">Torneos</p>
             </Link>
           </div>
         </div>
@@ -569,41 +569,41 @@ export default async function DashboardPage() {
             <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Zona Admin</h2>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Link href="/admin/products" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-blue/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-blue/20">
-              <div className="size-10 rounded-xl bg-omega-blue/20 mb-2 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors">
-                <Package className="size-5 text-omega-blue" />
+            <Link href="/admin/products" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Package className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-omega-text">Productos</p>
+              <p className="text-xs font-bold text-white">Productos</p>
             </Link>
-            <Link href="/admin/orders" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-blue/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-blue/20">
-              <div className="size-10 rounded-xl bg-omega-blue/20 mb-2 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors">
-                <ClipboardList className="size-5 text-omega-blue" />
+            <Link href="/admin/orders" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <ClipboardList className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-omega-text">Pedidos</p>
+              <p className="text-xs font-bold text-white">Pedidos</p>
             </Link>
-            <Link href="/admin/players" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-blue/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-blue/20">
-              <div className="size-10 rounded-xl bg-omega-blue/20 mb-2 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors">
-                <User className="size-5 text-omega-blue" />
+            <Link href="/admin/players" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <User className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-omega-text">Jugadores</p>
+              <p className="text-xs font-bold text-white">Jugadores</p>
             </Link>
-            <Link href="/admin/carousel" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-blue/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-blue/20">
-              <div className="size-10 rounded-xl bg-omega-blue/20 mb-2 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors">
-                <Image className="size-5 text-omega-blue" />
+            <Link href="/admin/carousel" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Image className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-omega-text">Carousel</p>
+              <p className="text-xs font-bold text-white">Carousel</p>
             </Link>
-            <Link href="/admin/seasons" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-blue/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-blue/20">
-              <div className="size-10 rounded-xl bg-omega-blue/20 mb-2 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors">
-                <Calendar className="size-5 text-omega-blue" />
+            <Link href="/admin/seasons" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Calendar className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-omega-text">Temporadas</p>
+              <p className="text-xs font-bold text-white">Temporadas</p>
             </Link>
-            <Link href="/admin/analytics" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-4 shadow-md shadow-omega-gold/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center border border-omega-gold/20">
-              <div className="size-10 rounded-xl bg-omega-gold/20 mb-2 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors">
-                <TrendingUp className="size-5 text-omega-gold" />
+            <Link href="/admin/analytics" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <TrendingUp className="size-5 text-white" />
               </div>
-              <p className="text-xs font-bold text-omega-text">Analytics</p>
+              <p className="text-xs font-bold text-white">Analytics</p>
             </Link>
           </div>
           <TournamentModeToggle />
