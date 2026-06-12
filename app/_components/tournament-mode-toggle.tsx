@@ -111,13 +111,13 @@ export function TournamentModeToggle() {
             <div
               key={mode}
               className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
-                on ? "border-omega-border/60 bg-omega-card/40" : "border-omega-border/20 bg-transparent opacity-60"
+                on ? "border-omega-border/60 bg-omega-card/40" : "border-omega-border/30 bg-omega-card/15"
               }`}
             >
-              <Icon className={`size-5 shrink-0 ${meta.color}`} />
+              <Icon className={`size-5 shrink-0 ${meta.color} ${on ? "" : "opacity-50"}`} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-omega-text">{meta.label}</p>
-                <p className="text-xs text-omega-muted truncate">{meta.desc}</p>
+                <p className={`text-sm font-bold ${on ? "text-omega-text" : "text-omega-muted"}`}>{meta.label}</p>
+                <p className={`text-xs truncate ${on ? "text-omega-muted" : "text-omega-muted/70"}`}>{meta.desc}</p>
               </div>
 
               {/* Destacar en landing (radio: solo una) */}
@@ -125,10 +125,12 @@ export function TournamentModeToggle() {
                 onClick={() => setAsFeatured(mode)}
                 disabled={!!busy || !on}
                 title="Mostrar en la landing"
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-all disabled:opacity-40 ${
+                className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition-all disabled:cursor-not-allowed ${
                   isFeat
-                    ? "bg-omega-purple/20 text-omega-purple"
-                    : "bg-omega-card/60 text-omega-muted hover:text-omega-text"
+                    ? "border-omega-purple/40 bg-omega-purple/20 text-omega-purple"
+                    : on
+                      ? "border-omega-border/50 bg-omega-card/60 text-omega-muted hover:text-omega-text hover:border-omega-border"
+                      : "border-omega-border/40 bg-omega-card/40 text-omega-muted/80"
                 }`}
               >
                 {busy === `feat-${mode}` ? (
@@ -147,7 +149,7 @@ export function TournamentModeToggle() {
                 disabled={!!busy}
                 aria-pressed={on}
                 className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
-                  on ? "bg-omega-green" : "bg-omega-border/60"
+                  on ? "bg-omega-green" : "bg-omega-border"
                 }`}
               >
                 <span

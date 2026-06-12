@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isTournamentMode, LANDING_FEATURED_KEY } from "@/lib/tournament-mode";
 
 // Keys de configuración de modalidades + flags varios de la app.
@@ -69,8 +70,11 @@ export async function PATCH(request: Request) {
       return Response.json({ error: "Modalidad invalida" }, { status: 400 });
     }
 
-    // Upsert en app_settings
-    const { error } = await supabase
+    // Upsert en app_settings con el cliente de servicio: la RLS de la tabla
+    // solo permite UPDATE (no INSERT), así que las keys que todavía no tienen
+    // fila fallarían. El permiso real ya se validó arriba (is_admin).
+    const adminClient = createAdminClient();
+    const { error } = await adminClient
       .from("app_settings")
       .upsert(
         { key, value, updated_at: new Date().toISOString() },
