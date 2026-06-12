@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
         .join("");
 
       await getResend().emails.send({
-        from: "Copa Omega <onboarding@resend.dev>",
+        from: "Bladers Santa Fe <onboarding@resend.dev>",
         to: "arieltsume@gmail.com",
         subject: `Nuevo pedido #${order.id.slice(0, 8)}`,
         html: `

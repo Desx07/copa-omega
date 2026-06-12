@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getTournamentMode, isTournamentMode, type TournamentMode } from "@/lib/tournament-mode";
+import { getModeConfig, isTournamentMode, type TournamentMode } from "@/lib/tournament-mode";
 import { LandingShell } from "@/app/_components/landing/landing-shell";
 import { LandingCopaOmega, type TopPlayer } from "@/app/_components/landing/landing-copa-omega";
 import { LandingAscenso } from "@/app/_components/landing/landing-ascenso";
@@ -40,8 +40,8 @@ export default async function LandingPage({
     redirect("/dashboard");
   }
 
-  // Modalidad activa define qué landing se muestra.
-  const mode: TournamentMode = previewMode ?? (await getTournamentMode(supabase));
+  // La landing muestra la modalidad DESTACADA (elegida a mano por el admin).
+  const mode: TournamentMode = previewMode ?? (await getModeConfig(supabase)).featured;
 
   if (mode === "ascenso") {
     const [playersResult, matchesResult] = await Promise.all([

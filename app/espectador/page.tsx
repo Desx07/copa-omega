@@ -389,7 +389,7 @@ export default function EspectadorPage() {
           </div>
           <div>
             <h1 className="text-2xl font-black tracking-tight text-omega-text">
-              COPA OMEGA <span className="neon-gold">STAR</span>
+              BLADERS <span className="neon-gold">SANTA FE</span>
             </h1>
             <p className="text-[10px] text-omega-muted uppercase tracking-[0.3em]">
               Beyblade X Tournament System
@@ -965,7 +965,7 @@ function WaitingScreen({
 
       <div className="text-center space-y-3">
         <h2 className="text-5xl font-black text-omega-text">
-          COPA OMEGA <span className="neon-gold">STAR</span>
+          BLADERS <span className="neon-gold">SANTA FE</span>
         </h2>
         <p className="text-xl text-omega-muted/60 font-medium">
           Esperando el próximo torneo...

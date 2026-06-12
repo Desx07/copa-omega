@@ -3,7 +3,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Copa Omega Star | Torneo Beyblade X",
+  title: "Bladers Santa Fe | Torneo Beyblade X",
   description: "Torneo oficial de Beyblade X. Registrate, competí y llevate todas las estrellas.",
 };
 

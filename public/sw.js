@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-// Copa Omega Star — Push Notifications Service Worker
+// Bladers Santa Fe — Push Notifications Service Worker
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
@@ -10,7 +10,7 @@ self.addEventListener("push", (event) => {
     payload = event.data.json();
   } catch {
     payload = {
-      title: "Copa Omega Star",
+      title: "Bladers Santa Fe",
       body: event.data.text(),
     };
   }
@@ -25,7 +25,7 @@ self.addEventListener("push", (event) => {
     vibrate: [100, 50, 100],
   };
 
-  event.waitUntil(self.registration.showNotification(title || "Copa Omega Star", options));
+  event.waitUntil(self.registration.showNotification(title || "Bladers Santa Fe", options));
 });
 
 self.addEventListener("notificationclick", (event) => {

@@ -70,7 +70,7 @@ export default async function UpdatesPage() {
           </div>
           <div>
             <h1 className="text-xl font-black text-omega-text">Actualizaciones</h1>
-            <p className="text-xs text-omega-muted">Novedades de Copa Omega Star</p>
+            <p className="text-xs text-omega-muted">Novedades de Bladers Santa Fe</p>
           </div>
         </div>
       </div>

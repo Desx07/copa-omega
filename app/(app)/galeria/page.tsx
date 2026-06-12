@@ -40,7 +40,7 @@ export default async function GaleriaPage() {
             <h1 className="text-2xl font-black text-omega-text">GALERIA</h1>
           </div>
           <p className="text-xs text-omega-muted mt-2">
-            Fotos y videos de los torneos Copa Omega Star
+            Fotos y videos de los torneos de Bladers Santa Fe
           </p>
         </div>
       </div>

@@ -77,7 +77,7 @@ export async function GET(request: Request) {
             display: "flex",
           }}
         >
-          COPA OMEGA STAR
+          BLADERS SANTA FE
         </div>
 
         {/* Rank badge */}

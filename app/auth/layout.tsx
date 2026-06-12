@@ -30,8 +30,8 @@ export default async function AuthLayout({
       {/* Logo */}
       <Link href="/" className="relative z-10 mb-8 flex flex-col items-center gap-3">
         <Image
-          src="/copaomega-logo.png"
-          alt="Copa Omega Star"
+          src="/bladers-logo.png"
+          alt="Bladers Santa Fe"
           width={180}
           height={116}
           className="h-16 w-auto drop-shadow-[0_0_20px_rgba(123,47,247,0.25)]"

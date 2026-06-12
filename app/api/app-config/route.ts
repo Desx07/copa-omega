@@ -1,5 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
-import { isTournamentMode } from "@/lib/tournament-mode";
+import { isTournamentMode, LANDING_FEATURED_KEY } from "@/lib/tournament-mode";
+
+// Keys de configuración de modalidades + flags varios de la app.
+const CONFIG_KEYS = [
+  "teams_enabled",
+  "mode_copa_omega_enabled",
+  "mode_ascenso_enabled",
+  "mode_liga_enabled",
+  LANDING_FEATURED_KEY,
+];
 
 // GET — obtener feature flags
 export async function GET() {
@@ -14,7 +23,7 @@ export async function GET() {
     const { data } = await supabase
       .from("app_settings")
       .select("key, value")
-      .in("key", ["teams_enabled", "tournament_mode"]);
+      .in("key", CONFIG_KEYS);
 
     const config: Record<string, string> = {};
     for (const row of data ?? []) {
@@ -51,13 +60,12 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { key, value } = body as { key: string; value: string };
 
-    const validKeys = ["teams_enabled", "tournament_mode"];
-    if (!validKeys.includes(key)) {
+    if (!CONFIG_KEYS.includes(key)) {
       return Response.json({ error: "Key invalida" }, { status: 400 });
     }
 
-    // La modalidad de torneo solo acepta valores conocidos
-    if (key === "tournament_mode" && !isTournamentMode(value)) {
+    // La landing destacada solo acepta una modalidad conocida
+    if (key === LANDING_FEATURED_KEY && !isTournamentMode(value)) {
       return Response.json({ error: "Modalidad invalida" }, { status: 400 });
     }
 

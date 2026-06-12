@@ -102,7 +102,7 @@ function getEventText(item: FeedItem): string {
     case "tournament_result":
       return `${actorAlias} termino en posicion ${meta.position ?? "?"}`;
     case "new_player":
-      return `${actorAlias} se unio a Copa Omega Star`;
+      return `${actorAlias} se unio a Bladers Santa Fe`;
     case "rank_change":
       return `${actorAlias} subio al puesto #${meta.new_rank ?? "?"}`;
     case "streak":
@@ -314,7 +314,7 @@ export default function FeedClient({ userId }: { userId: string }) {
           <div>
             <h1 className="text-xl font-black text-omega-text">Feed</h1>
             <p className="text-xs text-omega-muted">
-              Actividad reciente de Copa Omega
+              Actividad reciente de Bladers Santa Fe
             </p>
           </div>
         </div>

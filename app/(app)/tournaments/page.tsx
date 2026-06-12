@@ -116,7 +116,7 @@ export default async function TournamentsPage() {
               TORNEOS
             </h1>
             <p className="text-sm text-omega-muted">
-              Copa Omega Star -- Todos los torneos
+              Bladers Santa Fe -- Todos los torneos
             </p>
           </div>
         </div>

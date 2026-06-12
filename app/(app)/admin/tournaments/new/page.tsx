@@ -125,7 +125,7 @@ export default function NewTournamentPage() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ej: Copa Omega Star #1"
+              placeholder="Ej: Copa Omega #5"
               maxLength={100}
               className="omega-input"
             />

@@ -156,7 +156,7 @@ export function ChatBot() {
                     <Pencil className="size-2.5 text-omega-muted opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 )}
-                <p className="text-[10px] text-omega-muted">Asistente Copa Omega Star</p>
+                <p className="text-[10px] text-omega-muted">Asistente Bladers Santa Fe</p>
               </div>
             </div>
             <div className="flex items-center gap-1">

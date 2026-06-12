@@ -172,7 +172,7 @@ export default async function RankingPage() {
         {/* Title */}
         <div className="relative text-center space-y-1">
           <h1 className="text-3xl font-black tracking-tight neon-gold">RANKING</h1>
-          <p className="text-sm text-omega-muted">Copa Omega Star — Bladers Santa Fe</p>
+          <p className="text-sm text-omega-muted">Bladers Santa Fe</p>
         </div>
 
         {/* Stats strip inside hero */}

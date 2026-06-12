@@ -11,12 +11,12 @@ interface ShareButtonProps {
 export default function ShareButton({ playerId, alias }: ShareButtonProps) {
   async function handleShare() {
     const shareUrl = `${window.location.origin}/player/${playerId}`;
-    const shareText = `Mira mi perfil de blader en Copa Omega Star: ${alias}`;
+    const shareText = `Mira mi perfil de blader en Bladers Santa Fe: ${alias}`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${alias} - Copa Omega Star`,
+          title: `${alias} - Bladers Santa Fe`,
           text: shareText,
           url: shareUrl,
         });

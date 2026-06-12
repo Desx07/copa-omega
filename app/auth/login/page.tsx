@@ -41,7 +41,7 @@ export default function LoginPage() {
         <div className="flex justify-center mb-1">
           <Star className="size-6 text-omega-gold fill-omega-gold star-glow" />
         </div>
-        <h1 className="text-2xl font-black neon-gold">COPA OMEGA STAR</h1>
+        <h1 className="text-2xl font-black neon-gold">BLADERS SANTA FE</h1>
         <p className="text-sm text-omega-muted">Tu próximo combate te está esperando</p>
       </div>
 

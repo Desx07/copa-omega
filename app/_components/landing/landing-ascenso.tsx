@@ -1,288 +1,379 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronUp, Swords, Ticket, Lock, Trophy } from "lucide-react";
+import { Swords, Ticket, ChevronRight, ArrowRight, ChevronsUp } from "lucide-react";
 
 interface LandingAscensoProps {
   totalPlayers: number;
   totalMatches: number;
 }
 
-// Rangos del Torneo de Ascenso (de mayor a menor: S arriba, F abajo).
-// Colores y nombres alineados a los componentes reales del torneo
-// (app/(app)/ascenso/_components/rank-tower.tsx).
-// TODO Fase 3: leer rangos, umbrales y ocupantes reales desde DB.
-const RANKS = [
-  { letter: "S", name: "Omega",    grad: "from-yellow-500 to-amber-600", text: "text-yellow-300", glow: "rgba(253,224,71,0.55)", stars: "56+",   tag: "Cima" },
-  { letter: "A", name: "Diamante", grad: "from-amber-700 to-amber-900",  text: "text-amber-400",  glow: "rgba(251,191,36,0.45)", stars: "41-55", tag: "Élite" },
-  { letter: "B", name: "Oro",      grad: "from-red-700 to-red-900",      text: "text-red-400",    glow: "rgba(248,113,113,0.45)", stars: "31-40", tag: "Veterano" },
-  { letter: "C", name: "Plata",    grad: "from-purple-700 to-purple-900",text: "text-purple-400", glow: "rgba(192,132,252,0.45)", stars: "21-30", tag: "Aspirante" },
-  { letter: "D", name: "Bronce",   grad: "from-blue-700 to-blue-900",    text: "text-blue-400",   glow: "rgba(96,165,250,0.45)",  stars: "11-20", tag: "Retador" },
-  { letter: "E", name: "Hierro",   grad: "from-green-800 to-green-950",  text: "text-green-400",  glow: "rgba(74,222,128,0.4)",   stars: "1-10",  tag: "Iniciado" },
-  { letter: "F", name: "Novato",   grad: "from-gray-700 to-gray-900",    text: "text-gray-400",   glow: "rgba(156,163,175,0.3)",  stars: "0",     tag: "Punto de partida" },
+// ── Rangos por LETRA pura F→S ──────────────────────────────────────────────
+// PROHIBIDO nombres de metales/gemas y "estrellas". Solo la letra del tier.
+// `wins` = victorias necesarias para ascender DESDE este rango al siguiente.
+interface Rank {
+  letter: string;
+  /** Victorias que carga el ticket para saltar al rango de arriba (S no asciende). */
+  wins: number | null;
+  /** Color del acento del tier (hex para usar en estilos inline del beystadium). */
+  hex: string;
+}
+
+// De abajo (F, punto de partida) hacia arriba (S, la cima).
+const RANKS: readonly Rank[] = [
+  { letter: "F", wins: 5, hex: "#7dd3fc" },
+  { letter: "E", wins: 10, hex: "#38bdf8" },
+  { letter: "D", wins: 15, hex: "#22d3ee" },
+  { letter: "C", wins: 20, hex: "#818cf8" },
+  { letter: "B", wins: 25, hex: "#c084fc" },
+  { letter: "A", wins: 30, hex: "#f472b6" },
+  { letter: "S", wins: null, hex: "#fbbf24" },
 ] as const;
 
-// Landing de la modalidad Torneo de Ascenso.
-// Identidad propia tipo arcade/Pokémon Z-A: la TORRE DE RANGOS F→S es la protagonista.
-// Mobile-first: una columna; desktop (lg+): hero a 2 columnas y secciones full-width.
+// Los dos bladers protagonistas del duelo (assets anime de Beyblade X).
+const FIGHTER_LEFT = "/characters/chr_00.png";
+const FIGHTER_RIGHT = "/characters/chr_05.png";
+
+// Landing de la modalidad "Torneo de Ascenso".
+// Concepto: NO es marketing apilado — es una PANTALLA DE COMBATE Beyblade X.
+// El beystadium hexagonal y los dos bladers enfrentados son los protagonistas;
+// la progresión F→S es un "tablero de combate" lateral, no una pila de barras.
+// Mobile-first; el layout de duelo a 2 columnas aparece desde md (768px).
 export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoProps) {
   return (
     <>
-      {/* ════════════════════════════════════════════════
-          ARENA — hero
-          Mobile: torre apilada bajo el título.
-          Desktop: 2 columnas (torre | título + CTAs + HUD), full-bleed.
-         ════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden">
-        {/* Fondo: estadio difuminado full-bleed + grid neón diagonal (vibe de juego de pelea) */}
-        <div className="absolute inset-0 -z-10">
-          <Image src="/stadium.png" alt="" fill priority className="object-cover opacity-[0.18] blur-[2px]" />
-          <div className="absolute inset-0 bg-gradient-to-b from-omega-black/70 via-omega-black/85 to-omega-black" />
-          {/* Glow lateral que acompaña la columna de la torre en desktop */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_70%_at_28%_45%,_rgba(253,224,71,0.10)_0%,_rgba(123,47,247,0.06)_45%,_transparent_72%)]" />
-          <div
-            className="absolute inset-0 opacity-[0.12]"
-            style={{
-              backgroundImage:
-                "linear-gradient(60deg, rgba(0,180,216,0.5) 1px, transparent 1px), linear-gradient(-60deg, rgba(123,47,247,0.5) 1px, transparent 1px)",
-              backgroundSize: "44px 44px",
-            }}
-          />
-        </div>
+      {/* ════════════════════════════════════════════════════════════════
+          FONDO PROPIO FULL-PAGE (fixed, -z-10)
+          Tapa los orbs púrpura/azul/dorado de Copa Omega que trae el shell.
+          Capa 1: el beystadium hexagonal real, gigante y centrado.
+          Capa 2: tinte oscuro + viñeta para que el contenido respire.
+         ════════════════════════════════════════════════════════════════ */}
+      <div aria-hidden className="fixed inset-0 -z-10 overflow-hidden bg-[#05070d]">
+        {/* El estadio real de Beyblade X de fondo, ocupando todo el ancho de PC. */}
+        <Image
+          src="/stadium.png"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-top opacity-60 mix-blend-screen"
+        />
+        {/* Resplandor frío del estadio + viñeta para asentar el combate. */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_30%,_rgba(56,189,248,0.2),_transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_120%_at_50%_0%,_transparent_45%,_rgba(2,4,10,0.92)_100%)]" />
+      </div>
 
-        <div className="mx-auto max-w-7xl px-4 md:px-8 pt-10 pb-16 md:pt-14 md:pb-20 lg:pt-20 lg:pb-24">
-          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
-            {/* ── COLUMNA TORRE — primero en mobile, izquierda en desktop ── */}
-            <div className="relative mx-auto w-full max-w-lg lg:mx-0 lg:max-w-xl lg:order-first">
-              {/* Halo de la cima */}
-              <div className="pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 h-32 w-64 rounded-full bg-yellow-400/10 blur-3xl" />
+      {/* ════════════════════════════════════════════════════════════════
+          DUELO — pantalla de combate a todo el ancho (1440px en PC).
+          Izquierda: blader retador.  Centro: HUD VS + título.  Derecha: rival.
+          En mobile se apila; el duelo de 2 bladers a los costados aparece en md.
+         ════════════════════════════════════════════════════════════════ */}
+      <section className="relative">
+        <div className="mx-auto w-full max-w-[1440px] px-6 pt-8 pb-14 md:px-10 md:pt-12 lg:px-14">
+          {/* Marquesina de combate */}
+          <div className="flex items-center justify-center gap-3">
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-cyan-400/60" />
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.4em] text-cyan-300/90 md:text-xs">
+              Bladers Santa Fe · combate por el rango
+            </p>
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-amber-400/60" />
+          </div>
 
-              <ol className="relative flex flex-col items-center gap-2 md:gap-2.5 lg:gap-3">
-                {RANKS.map((r, i) => {
-                  // El rango S (i=0) es el más ancho; F (último) el más angosto: forma de torre.
-                  const width = 100 - i * 6;
-                  const isTop = i === 0;
-                  const isBottom = i === RANKS.length - 1;
-                  return (
-                    <li
-                      key={r.letter}
-                      style={{ width: `${width}%`, boxShadow: `0 0 24px ${r.glow}` }}
-                      className={`relative flex items-center gap-3 rounded-xl border border-white/15 bg-gradient-to-r ${r.grad} px-3 py-2.5 md:px-4 md:py-3 lg:py-3.5 ${isTop ? "star-glow" : ""}`}
-                    >
-                      {/* Sello del rango */}
-                      <span className="flex size-9 md:size-11 lg:size-12 shrink-0 items-center justify-center rounded-lg bg-black/45 ring-1 ring-white/20">
-                        <span className={`text-xl md:text-2xl font-black ${r.text}`}>{r.letter}</span>
-                      </span>
+          {/* Escena del duelo: bladers a los costados, HUD en el medio.
+              Columnas laterales con minmax para que NO colapsen a 0 ancho. */}
+          <div className="relative mt-6 grid items-center gap-0 md:mt-4 md:grid-cols-[minmax(200px,1fr)_minmax(0,560px)_minmax(200px,1fr)] lg:grid-cols-[minmax(280px,1fr)_minmax(0,560px)_minmax(280px,1fr)]">
+            {/* ── Blader izquierdo (retador) ── */}
+            <Fighter
+              src={FIGHTER_LEFT}
+              side="left"
+              rank="F"
+              label="Retador"
+              accent="#7dd3fc"
+            />
 
-                      {/* Nombre + etiqueta */}
-                      <span className="flex-1 text-left">
-                        <span className="block text-sm md:text-base lg:text-lg font-black text-white leading-tight">{r.name}</span>
-                        <span className="block text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-white/55">{r.tag}</span>
-                      </span>
+            {/* ── Núcleo central: título + HUD VS + CTAs ── */}
+            <div className="relative z-10 order-first px-2 text-center md:order-none md:px-6">
+              {/* Disco de energía del beystadium detrás del título */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 size-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,_rgba(56,189,248,0.16),_transparent_65%)] blur-2xl"
+              />
 
-                      {/* Estrellas requeridas */}
-                      <span className="shrink-0 text-right">
-                        <span className={`block text-xs md:text-sm font-black ${r.text}`}>⭐ {r.stars}</span>
-                        <span className="block text-[9px] md:text-[10px] uppercase tracking-widest text-white/40">estrellas</span>
-                      </span>
-
-                      {/* Bandera "estás acá" en el punto de partida */}
-                      {isBottom && (
-                        <span className="absolute -right-2 -top-2 rotate-3 rounded-md border border-cyan-400/50 bg-omega-black px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-cyan-300 shadow-[0_0_12px_rgba(0,180,216,0.4)]">
-                          Arrancás acá
-                        </span>
-                      )}
-                    </li>
-                  );
-                })}
-              </ol>
-
-              {/* Flechas de ascenso laterales — refuerzan la dirección "hacia arriba" */}
-              <div className="pointer-events-none absolute -left-6 md:-left-9 top-0 bottom-0 hidden sm:flex flex-col justify-center gap-1 text-cyan-400/50">
-                {[0, 1, 2].map((n) => (
-                  <ChevronUp key={n} className="size-5 md:size-6" style={{ opacity: 1 - n * 0.3 }} />
-                ))}
-              </div>
-              <div className="pointer-events-none absolute -right-6 md:-right-9 top-0 bottom-0 hidden sm:flex flex-col justify-center gap-1 text-cyan-400/50">
-                {[0, 1, 2].map((n) => (
-                  <ChevronUp key={n} className="size-5 md:size-6" style={{ opacity: 1 - n * 0.3 }} />
-                ))}
-              </div>
-            </div>
-
-            {/* ── COLUMNA TEXTO — segundo en mobile, derecha en desktop ── */}
-            <div className="text-center lg:text-left">
-              {/* Marquesina arcade */}
-              <p className="font-mono text-[11px] md:text-xs uppercase tracking-[0.45em] text-cyan-400/80 mb-3">
-                Bladers Santa Fe — Modo
-              </p>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[0.95] tracking-tight">
-                TORNEO DE
-                <br />
-                <span className="neon-purple bg-gradient-to-r from-cyan-300 via-purple-300 to-yellow-300 bg-clip-text text-transparent">
-                  ASCENSO
+              <h1 className="text-5xl font-black uppercase leading-[0.85] tracking-tight md:text-6xl lg:text-7xl">
+                <span className="block text-white/95">Torneo</span>
+                <span className="block bg-gradient-to-b from-cyan-200 via-sky-300 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(56,189,248,0.45)]">
+                  de Ascenso
                 </span>
               </h1>
-              <p className="mt-4 mx-auto lg:mx-0 max-w-md lg:max-w-lg text-sm md:text-base lg:text-lg text-omega-muted font-mono tracking-wide">
-                Escalá la torre del rango F al S. Cada combate te acerca a la cima.
+
+              {/* HUD VS — sello de combate (insignia hexagonal con la letra del rango) */}
+              <div className="mt-6 flex items-center justify-center gap-4 md:mt-7">
+                <RankSeal letter="F" hex="#7dd3fc" caption="vos" />
+                <div className="flex flex-col items-center">
+                  <Swords className="size-6 text-amber-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)] md:size-7" />
+                  <span className="mt-0.5 font-mono text-lg font-black italic text-amber-300 md:text-xl">
+                    VS
+                  </span>
+                </div>
+                <RankSeal letter="S" hex="#fbbf24" caption="la cima" />
+              </div>
+
+              <p className="mx-auto mt-6 max-w-sm text-sm leading-relaxed text-omega-muted md:text-base">
+                Entrás en <span className="font-black text-cyan-300">F</span>. Cada combate ganado
+                carga tu ticket de ascenso. Llenalo y peleá el salto al rango de arriba, hasta
+                la <span className="font-black text-amber-300">S</span>.
               </p>
 
-              {/* ── CTAs estilo "INSERT COIN" ── */}
-              <div className="mt-8 lg:mt-10 flex flex-col sm:flex-row items-center lg:items-stretch justify-center lg:justify-start gap-3">
+              {/* CTAs de combate */}
+              <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link
                   href="/auth/register"
-                  className="group inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-yellow-400/40 bg-gradient-to-r from-yellow-500 to-amber-600 px-8 py-4 text-base font-black uppercase tracking-widest text-black shadow-[0_0_30px_rgba(253,224,71,0.4)] transition-all hover:shadow-[0_0_50px_rgba(253,224,71,0.65)] active:scale-95"
+                  className="group inline-flex w-full items-center justify-center gap-2 rounded-lg border border-amber-300/60 bg-gradient-to-r from-amber-400 to-amber-500 px-7 py-3.5 text-sm font-black uppercase tracking-widest text-black shadow-[0_0_30px_rgba(251,191,36,0.45)] transition-all hover:shadow-[0_0_50px_rgba(251,191,36,0.7)] active:scale-95 sm:w-auto"
                 >
-                  <Swords className="size-5" />
+                  <ChevronsUp className="size-5" />
                   Empezar a ascender
                 </Link>
                 <Link
                   href="/ascenso"
-                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-cyan-500/40 bg-cyan-500/5 px-8 py-4 text-base font-bold uppercase tracking-widest text-cyan-300 transition-all hover:bg-cyan-500/15 active:scale-95"
+                  className="group inline-flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-400/40 bg-cyan-500/10 px-7 py-3.5 text-sm font-bold uppercase tracking-widest text-cyan-200 backdrop-blur-sm transition-all hover:border-cyan-400/80 hover:bg-cyan-500/20 active:scale-95 sm:w-auto"
                 >
-                  Ver la arena
+                  Ver el estadio
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
-
-              {/* HUD de stats — fila tipo marcador de arcade */}
-              <div className="mt-8 inline-flex items-stretch divide-x divide-omega-border/50 rounded-xl border border-omega-border/40 bg-omega-black/60 backdrop-blur-sm">
-                <HudStat value={totalPlayers} label="bladers" color="text-cyan-400" />
-                <HudStat value={7} label="rangos" color="text-purple-400" />
-                <HudStat value={totalMatches} label="combates" color="text-yellow-300" />
-              </div>
             </div>
+
+            {/* ── Blader derecho (campeón) ── */}
+            <Fighter
+              src={FIGHTER_RIGHT}
+              side="right"
+              rank="S"
+              label="Campeón"
+              accent="#fbbf24"
+            />
+          </div>
+
+          {/* Cinta-marcador del combate (tipo HUD de fighting game) */}
+          <div className="mx-auto mt-2 flex max-w-2xl items-stretch divide-x divide-white/10 overflow-hidden rounded-lg border border-white/10 bg-black/50 backdrop-blur-md md:mt-0">
+            <ScoreCell value={totalPlayers} label="bladers en pista" accent="text-cyan-300" />
+            <ScoreCell value={7} label="rangos · F a S" accent="text-indigo-300" />
+            <ScoreCell value={totalMatches} label="combates jugados" accent="text-amber-300" />
           </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════
-          REGLAS DEL ASCENSO — tira horizontal de "mecánicas"
-          (deliberadamente NO hexágonos de marketing)
-         ════════════════════════════════════════════════ */}
-      <section className="relative border-y border-omega-border/30 bg-omega-dark/60 py-12 md:py-14 lg:py-16 px-4 md:px-8">
-        <div className="mx-auto max-w-6xl">
-          <p className="text-center font-mono text-[11px] uppercase tracking-[0.4em] text-purple-300/80 mb-8 lg:mb-12">
-            ▸ Cómo se sube de rango
+      {/* ════════════════════════════════════════════════════════════════
+          TABLERO DE ASCENSO — la progresión F→S como escalera de combate.
+          NO es una pila de barras: cada rango es una "estación" con su
+          insignia hexagonal y el ticket de victorias que abre la siguiente.
+         ════════════════════════════════════════════════════════════════ */}
+      <section className="relative border-t border-white/[0.06] bg-black/40 py-14 backdrop-blur-sm md:py-20">
+        <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-14">
+          <div className="text-center">
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.4em] text-cyan-300/80">
+              El camino a la cima
+            </p>
+            <h2 className="mt-3 text-3xl font-black uppercase md:text-4xl lg:text-5xl">
+              Subí <span className="text-amber-300">rango</span> a <span className="text-amber-300">rango</span>
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-omega-muted md:text-base">
+              Dentro de cada rango competís en una tabla por prioridad: ganás y subís en la tabla,
+              perdés y bajás. Cuando el ticket se llena, jugás el combate de ascenso.
+            </p>
+          </div>
+
+          {/* Escalera de rangos — de F (izquierda) a S (derecha) en PC. */}
+          <ol className="mt-12 flex flex-col gap-3 md:flex-row md:items-stretch md:gap-2 lg:gap-3">
+            {RANKS.map((r, i) => (
+              <RankStation key={r.letter} rank={r} index={i} isLast={i === RANKS.length - 1} />
+            ))}
+          </ol>
+
+          {/* Nota del ticket: el contador se reinicia en cada rango. */}
+          <p className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-omega-muted md:text-sm">
+            <Ticket className="size-4 text-amber-300/80" />
+            El contador del ticket arranca de cero en cada rango. Perder no te baja de rango: te baja en la tabla.
           </p>
-          <div className="grid gap-4 lg:gap-6 sm:grid-cols-3">
-            <Mechanic
-              icon={Swords}
-              step="01"
-              title="Combatí"
-              desc="Pelea contra rivales de tu mismo rango. Ganar suma; perder no te baja."
-              accent="text-cyan-400"
-            />
-            <Mechanic
-              icon={Ticket}
-              step="02"
-              title="Cargá el Ticket"
-              desc="Cada victoria acumula Ticket Points hasta llenar tu Challenger's Ticket."
-              accent="text-purple-400"
-            />
-            <Mechanic
-              icon={ChevronUp}
-              step="03"
-              title="Ganá el ascenso"
-              desc="Con el ticket lleno, jugás el combate de ascenso. Ganás → subís de rango."
-              accent="text-yellow-300"
-            />
-          </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════
-          SALÓN DE LA CIMA — leaderboard "próximamente"
-          Desktop: 2 columnas (intro a la izquierda | tablero a la derecha).
-          // TODO Fase 3: reemplazar por el ranking real de jugadores por rango.
-         ════════════════════════════════════════════════ */}
-      <section className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-            {/* Intro — centrada en mobile, alineada a la izquierda en desktop */}
-            <div className="text-center lg:text-left">
-              <Trophy className="mx-auto lg:mx-0 size-9 lg:size-11 text-yellow-300/80 star-glow" />
-              <h2 className="mt-4 text-2xl md:text-3xl lg:text-4xl font-black">
-                <span className="neon-gold bg-gradient-to-r from-yellow-200 to-amber-400 bg-clip-text text-transparent">
-                  Salón del Rango Omega
-                </span>
-              </h2>
-              <p className="mt-3 mx-auto lg:mx-0 max-w-md text-sm md:text-base text-omega-muted">
-                Acá van a quedar los que lleguen más alto. Subí la torre, plantá tu nombre en la cima y defendé el rango S.
-              </p>
-
-              <Link
-                href="/auth/register"
-                className="mt-7 inline-flex items-center gap-2 rounded-xl border border-yellow-400/30 px-6 py-3 text-sm font-black uppercase tracking-wider text-yellow-300 transition-all hover:bg-yellow-400/10 active:scale-95"
-              >
-                Reclamá tu lugar en la torre
-                <ChevronUp className="size-4" />
-              </Link>
-            </div>
-
-            {/* Tablero bloqueado con efecto "locked slot" */}
-            <div className="overflow-hidden rounded-2xl border border-yellow-400/20 bg-omega-card/40">
-              <div className="border-b border-white/10 bg-black/40 px-4 py-2.5 text-left font-mono text-[11px] uppercase tracking-[0.3em] text-yellow-300/70">
-                Top de la torre
-              </div>
-              <ul className="divide-y divide-white/5">
-                {[1, 2, 3, 4, 5].map((pos) => (
-                  <li key={pos} className="flex items-center gap-4 px-4 py-4 opacity-60">
-                    <span className="w-6 text-center font-black text-omega-muted">{pos}</span>
-                    <span className="flex size-10 items-center justify-center rounded-lg bg-black/40 ring-1 ring-white/10">
-                      <Lock className="size-4 text-omega-muted" />
-                    </span>
-                    <span className="flex-1 text-left">
-                      <span className="block h-3 w-28 rounded bg-omega-elevated/60" />
-                      <span className="mt-1.5 block h-2 w-16 rounded bg-omega-elevated/40" />
-                    </span>
-                    <span className="rounded-md bg-yellow-400/10 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-yellow-300/60">
-                      Rango {pos <= 2 ? "S" : "A"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div className="bg-black/30 px-4 py-3 font-mono text-xs uppercase tracking-widest text-cyan-400/70">
-                Próximamente — temporada en preparación
-              </div>
-            </div>
-          </div>
+      {/* ════════════════════════════════════════════════════════════════
+          CIERRE — desafío directo, sin podio ni leaderboard.
+         ════════════════════════════════════════════════════════════════ */}
+      <section className="relative px-6 py-16 md:px-10 md:py-24">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="font-mono text-base font-bold uppercase tracking-[0.5em] text-cyan-300/90 md:text-lg">
+            3 · 2 · 1
+          </p>
+          <h2 className="mt-2 text-5xl font-black uppercase leading-[0.9] tracking-tight md:text-7xl lg:text-8xl">
+            <span className="bg-gradient-to-r from-amber-300 via-orange-400 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(251,146,60,0.6)]">¡Go Shoot!</span>
+          </h2>
+          <p className="mx-auto mt-5 max-w-md text-sm text-omega-muted md:text-base">
+            Soltá el bey, ganá combates y subí del rango F a la cima S.
+          </p>
+          <Link
+            href="/auth/register"
+            className="group mt-8 inline-flex items-center justify-center gap-2 rounded-lg border border-amber-300/60 bg-gradient-to-r from-amber-400 to-amber-500 px-9 py-4 text-sm font-black uppercase tracking-widest text-black shadow-[0_0_30px_rgba(251,191,36,0.45)] transition-all hover:shadow-[0_0_55px_rgba(251,191,36,0.7)] active:scale-95"
+          >
+            <ChevronsUp className="size-5" />
+            Empezar a ascender
+            <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
       </section>
     </>
   );
 }
 
-// Marcador HUD: número grande arriba, etiqueta chica abajo.
-function HudStat({ value, label, color }: { value: number; label: string; color: string }) {
+// ── Blader protagonista del duelo ──────────────────────────────────────────
+// Ilustración anime grande, con halo del color de su rango y una placa de
+// rango al pie. En mobile se reduce y comparte fila; en md ocupa el costado.
+function Fighter({
+  src,
+  side,
+  rank,
+  label,
+  accent,
+}: {
+  src: string;
+  side: "left" | "right";
+  rank: string;
+  label: string;
+  accent: string;
+}) {
+  const isLeft = side === "left";
   return (
-    <div className="px-5 py-3 md:px-7 md:py-4">
-      <p className={`font-mono text-2xl md:text-3xl font-black tabular-nums ${color}`}>
-        {value.toLocaleString("es-AR")}
-      </p>
-      <p className="mt-0.5 text-[10px] uppercase tracking-[0.25em] text-omega-muted">{label}</p>
+    <div
+      className={`relative flex flex-col items-center ${
+        isLeft ? "md:items-start" : "md:items-end"
+      }`}
+    >
+      {/* Halo de energía detrás del blader, del color de su rango. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-3/4 w-[88%] -translate-x-1/2 rounded-full blur-3xl"
+        style={{ background: `radial-gradient(circle, ${accent}33, transparent 70%)` }}
+      />
+      <div
+        className={`relative h-[230px] w-[180px] sm:h-[300px] sm:w-[230px] md:h-[360px] md:w-[280px] lg:h-[440px] lg:w-[340px] ${
+          isLeft ? "" : "scale-x-[-1]"
+        }`}
+      >
+        <Image
+          src={src}
+          alt={`Blader ${label} en pose de combate`}
+          fill
+          sizes="(max-width: 768px) 230px, 340px"
+          className="object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.6)]"
+          priority
+        />
+      </div>
+      {/* Placa de rango al pie (no es texto invertido: va fuera del scale-x). */}
+      <div
+        className={`-mt-4 flex items-center gap-2 rounded-md border bg-black/60 px-3 py-1.5 backdrop-blur-sm ${
+          isLeft ? "md:self-start" : "md:self-end"
+        }`}
+        style={{ borderColor: `${accent}66` }}
+      >
+        <span
+          className="font-mono text-xl font-black leading-none"
+          style={{ color: accent }}
+        >
+          {rank}
+        </span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">
+          {label}
+        </span>
+      </div>
     </div>
   );
 }
 
-// Tarjeta de mecánica: número de paso + ícono + texto. Layout de "ficha", no de feature card.
-function Mechanic({
-  icon: Icon,
-  step,
-  title,
-  desc,
-  accent,
-}: {
-  icon: typeof Swords;
-  step: string;
-  title: string;
-  desc: string;
-  accent: string;
-}) {
+// ── Sello de rango hexagonal (insignia de combate del HUD VS) ──────────────
+function RankSeal({ letter, hex, caption }: { letter: string; hex: string; caption: string }) {
   return (
-    <div className="relative rounded-xl border border-white/10 bg-omega-black/50 p-5 lg:p-7 transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-omega-black/70">
-      <span className="absolute right-3 top-2 font-mono text-3xl lg:text-5xl font-black text-white/5">{step}</span>
-      <Icon className={`size-7 lg:size-9 ${accent}`} />
-      <h3 className="mt-3 text-base lg:text-lg font-black">{title}</h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-omega-muted">{desc}</p>
+    <div className="flex flex-col items-center gap-1.5">
+      <span
+        className="hex-clip flex size-16 items-center justify-center md:size-20"
+        style={{
+          background: `linear-gradient(135deg, ${hex}, ${hex}99)`,
+          boxShadow: `0 0 28px ${hex}80`,
+        }}
+      >
+        <span className="text-3xl font-black text-black/85 md:text-4xl">{letter}</span>
+      </span>
+      <span className="text-[10px] font-bold uppercase tracking-widest text-white/55">
+        {caption}
+      </span>
     </div>
+  );
+}
+
+// ── Celda del marcador HUD ──────────────────────────────────────────────────
+function ScoreCell({ value, label, accent }: { value: number; label: string; accent: string }) {
+  return (
+    <div className="flex-1 px-4 py-3 text-center md:px-6 md:py-4">
+      <p className={`font-mono text-2xl font-black tabular-nums md:text-3xl ${accent}`}>
+        {value.toLocaleString("es-AR")}
+      </p>
+      <p className="mt-0.5 text-[10px] uppercase tracking-[0.2em] text-omega-muted">{label}</p>
+    </div>
+  );
+}
+
+// ── Estación de rango en el tablero de ascenso ─────────────────────────────
+// Cada rango es una tarjeta-insignia con su letra hexagonal y, debajo, el
+// ticket de victorias que hay que cargar para saltar al rango siguiente.
+function RankStation({ rank, index, isLast }: { rank: Rank; index: number; isLast: boolean }) {
+  const { letter, wins, hex } = rank;
+  return (
+    <li className="relative flex flex-1 flex-col items-center rounded-xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-white/[0.06] md:p-5">
+      {/* Conector hacia el siguiente rango (flecha de ascenso). */}
+      {!isLast && (
+        <ChevronRight
+          aria-hidden
+          className="absolute -right-3 top-1/2 hidden size-5 -translate-y-1/2 text-white/30 md:block"
+          style={{ color: `${hex}99` }}
+        />
+      )}
+
+      {/* Insignia hexagonal con la letra del rango. */}
+      <span
+        className="hex-clip flex size-14 items-center justify-center md:size-16"
+        style={{
+          background: `linear-gradient(135deg, ${hex}, ${hex}88)`,
+          boxShadow: `0 0 22px ${hex}66`,
+        }}
+      >
+        <span className="text-2xl font-black text-black/85 md:text-3xl">{letter}</span>
+      </span>
+
+      <p className="mt-3 text-xs font-bold uppercase tracking-widest text-white/70">
+        Rango {letter}
+      </p>
+
+      {/* Ticket de ascenso: victorias para saltar al rango de arriba. */}
+      {wins !== null ? (
+        <span
+          className="mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1"
+          style={{ borderColor: `${hex}55`, background: `${hex}1a` }}
+        >
+          <Ticket className="size-3.5" style={{ color: hex }} />
+          <span className="font-mono text-xs font-black" style={{ color: hex }}>
+            {wins} victorias
+          </span>
+        </span>
+      ) : (
+        <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-300/15 px-2.5 py-1">
+          <span className="font-mono text-xs font-black uppercase text-amber-300">La cima</span>
+        </span>
+      )}
+
+      {/* Etiqueta de punto de partida en F. */}
+      {index === 0 && (
+        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-cyan-400/50 bg-[#05070d] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-cyan-300 shadow-[0_0_12px_rgba(56,189,248,0.5)]">
+          Arrancás acá
+        </span>
+      )}
+    </li>
   );
 }
