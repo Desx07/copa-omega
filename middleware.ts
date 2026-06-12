@@ -10,6 +10,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  // Preview de pantallas sin sesión en localhost, solo en desarrollo.
+  // Mismo criterio que el preview ?modo= de la landing. En prod no existe.
+  if (
+    process.env.NODE_ENV === "development" &&
+    request.nextUrl.pathname.startsWith("/dev-preview")
+  ) {
+    return NextResponse.next();
+  }
+
   try {
     return await updateSession(request);
   } catch {

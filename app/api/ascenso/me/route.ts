@@ -22,8 +22,56 @@ interface ActiveMatch {
   opponent: OpponentInfo;
 }
 
-export async function GET() {
+// Datos de ejemplo para preview en localhost (?demo=1|2|3). Solo existe en dev,
+// mismo patrón que el preview ?modo= de la landing. Nunca llega a producción.
+function demoPayload(escenario: string) {
+  const player = {
+    id: "demo-player",
+    alias: "Desx07",
+    avatar_url: null,
+    rank_letter: "C",
+    ticket_points: 180,
+    wins: 28,
+    losses: 12,
+  };
+  const rival = {
+    id: "demo-rival",
+    alias: "ShadowBurst",
+    avatar_url: null,
+    rank_letter: "C",
+    ticket_points: 320,
+  };
+  // 1: progreso medio · 2: ticket lleno esperando combate · 3: combate de ascenso creado
+  if (escenario === "2" || escenario === "3") {
+    player.ticket_points = 310;
+  }
+  return {
+    player,
+    ticket_target: 300,
+    has_ticket: escenario !== "1",
+    eligible_opponents: escenario === "1" ? [] : [rival],
+    active_match:
+      escenario === "3"
+        ? {
+            id: "demo-match",
+            match_kind: "ascension",
+            points_awarded: null,
+            opponent: { id: rival.id, alias: rival.alias, avatar_url: null, rank_letter: "C" },
+          }
+        : null,
+  };
+}
+
+export async function GET(request: Request) {
   try {
+    // Preview sin base de datos, solo en desarrollo
+    if (process.env.NODE_ENV === "development") {
+      const demo = new URL(request.url).searchParams.get("demo");
+      if (demo) {
+        return Response.json(demoPayload(demo));
+      }
+    }
+
     const supabase = await createClient();
 
     const {
