@@ -55,7 +55,7 @@ export async function PATCH(
     // Fetch match first to check current status
     const { data: currentMatch, error: matchFetchError } = await supabase
       .from("matches")
-      .select("player1_id, player2_id, stars_bet, status, winner_id")
+      .select("player1_id, player2_id, stars_bet, status, winner_id, mode, match_kind, points_awarded")
       .eq("id", id)
       .single();
 
@@ -63,7 +63,19 @@ export async function PATCH(
       return Response.json({ error: "Partida no encontrada" }, { status: 404 });
     }
 
+    // Las peleas de ascenso se resuelven con su propio RPC (puntos de ticket / rangos)
+    const esAscenso = currentMatch.mode === "ascenso";
+
     const isEdit = currentMatch.status === "completed";
+
+    if (isEdit && esAscenso) {
+      // edit_match_winner revierte transferencias de estrellas — no aplica al modo
+      // ascenso (puntos de ticket y rangos). Bloqueamos para no corromper datos.
+      return Response.json(
+        { error: "Las peleas de ascenso completadas no se pueden editar (los puntos de ticket y rangos ya fueron aplicados)" },
+        { status: 400 }
+      );
+    }
 
     if (isEdit) {
       // EDIT MODE: match already completed, admin is correcting the result
@@ -80,10 +92,15 @@ export async function PATCH(
       }
     } else {
       // FIRST RESOLVE: use the RPC
-      const { error } = await supabase.rpc("resolve_match", {
-        p_match_id: id,
-        p_winner_id: winner_id,
-      });
+      // Modo ascenso → resolve_ascenso_match (maneja puntos de ticket y subida de rango)
+      // Modo copa omega → resolve_match (maneja estrellas)
+      const { error } = await supabase.rpc(
+        esAscenso ? "resolve_ascenso_match" : "resolve_match",
+        {
+          p_match_id: id,
+          p_winner_id: winner_id,
+        }
+      );
 
       // Save scores if provided (use admin client to bypass RLS for judges)
       if (!error && player1_score != null && player2_score != null) {
@@ -132,7 +149,13 @@ export async function PATCH(
       try {
         const adminXp = createAdminClient();
         const starsBet = matchData.stars_bet ?? 0;
-        const xpLabel = starsBet > 0 ? "batalla de estrellas" : "amistoso";
+        const xpLabel = esAscenso
+          ? matchData.match_kind === "ascension"
+            ? "combate de ascenso"
+            : "pelea de ascenso"
+          : starsBet > 0
+            ? "batalla de estrellas"
+            : "amistoso";
         await awardXp(adminXp, winner_id, 20, "win_match", `Victoria en ${xpLabel}`);
         if (loserId) await awardXp(adminXp, loserId, 5, "lose_match", `Derrota en ${xpLabel}`);
       } catch (xpErr) {
@@ -152,9 +175,17 @@ export async function PATCH(
           const starsBet = matchData.stars_bet ?? 0;
 
           if (winnerPlayer) {
-            const winMsg = starsBet > 0
-              ? `Le ganaste a ${loserPlayer?.alias}. +${starsBet} estrellas`
-              : `Le ganaste a ${loserPlayer?.alias} en un amistoso`;
+            // Mensaje según modo: ascenso habla de puntos/rango, copa omega de estrellas
+            let winMsg: string;
+            if (esAscenso) {
+              winMsg = matchData.match_kind === "ascension"
+                ? `Le ganaste a ${loserPlayer?.alias} el combate de ascenso. Subiste de rango`
+                : `Le ganaste a ${loserPlayer?.alias}. +${matchData.points_awarded ?? 0} puntos de ticket`;
+            } else {
+              winMsg = starsBet > 0
+                ? `Le ganaste a ${loserPlayer?.alias}. +${starsBet} estrellas`
+                : `Le ganaste a ${loserPlayer?.alias} en un amistoso`;
+            }
             sendPushToPlayer(
               winnerPlayer.id,
               "Victoria",
@@ -164,9 +195,16 @@ export async function PATCH(
           }
 
           if (loserPlayer) {
-            const loseMsg = starsBet > 0
-              ? `${winnerPlayer?.alias} se llevó ${starsBet} estrellas. Revancha?`
-              : `${winnerPlayer?.alias} ganó el amistoso. Revancha?`;
+            let loseMsg: string;
+            if (esAscenso) {
+              loseMsg = matchData.match_kind === "ascension"
+                ? `${winnerPlayer?.alias} ganó el combate de ascenso. La próxima es tuya`
+                : `${winnerPlayer?.alias} ganó la pelea de ascenso. Revancha?`;
+            } else {
+              loseMsg = starsBet > 0
+                ? `${winnerPlayer?.alias} se llevó ${starsBet} estrellas. Revancha?`
+                : `${winnerPlayer?.alias} ganó el amistoso. Revancha?`;
+            }
             sendPushToPlayer(
               loserPlayer.id,
               "Derrota",
@@ -363,12 +401,21 @@ export async function DELETE(
     // Fetch match data
     const { data: match, error: matchError } = await adminSupabase
       .from("matches")
-      .select("player1_id, player2_id, stars_bet, status, winner_id")
+      .select("player1_id, player2_id, stars_bet, status, winner_id, mode")
       .eq("id", id)
       .single();
 
     if (matchError || !match) {
       return Response.json({ error: "Partida no encontrada" }, { status: 404 });
+    }
+
+    // reverse_match_stars no revierte puntos de ticket ni rangos del modo ascenso.
+    // Bloqueamos el borrado de peleas de ascenso completadas para no dejar datos inconsistentes.
+    if (match.mode === "ascenso" && match.status === "completed") {
+      return Response.json(
+        { error: "No se puede eliminar una pelea de ascenso completada (los puntos de ticket y rangos ya fueron aplicados)" },
+        { status: 400 }
+      );
     }
 
     // If match was completed, atomically reverse the star transfer and win/loss counts

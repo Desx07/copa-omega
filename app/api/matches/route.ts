@@ -56,7 +56,33 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { player1_id, player2_id, stars_bet } = body;
+    const { player1_id, player2_id, stars_bet, mode, match_kind, points_awarded } = body;
+
+    // Validar mode (opcional): sin mode o 'copa_omega' → flujo histórico intacto
+    if (mode != null && mode !== "copa_omega" && mode !== "ascenso") {
+      return Response.json(
+        { error: "mode debe ser 'copa_omega' o 'ascenso'" },
+        { status: 400 }
+      );
+    }
+
+    // ── MODO ASCENSO: peleas sin apuesta de estrellas ──
+    if (mode === "ascenso") {
+      return createAscensoMatch(supabase, user.id, {
+        player1_id,
+        player2_id,
+        match_kind,
+        points_awarded,
+      });
+    }
+
+    // match_kind y points_awarded solo aplican al modo ascenso
+    if (match_kind != null || points_awarded != null) {
+      return Response.json(
+        { error: "match_kind y points_awarded solo aplican con mode='ascenso'" },
+        { status: 400 }
+      );
+    }
 
     // Validate required fields
     if (!player1_id || !player2_id || stars_bet == null) {
@@ -147,4 +173,170 @@ export async function POST(request: Request) {
     console.error("POST /api/matches error:", err);
     return Response.json({ error: "Error interno del servidor" }, { status: 500 });
   }
+}
+
+// ── Modo Ascenso ──
+// Crea una pelea de ascenso (sin apuesta de estrellas).
+//  - kind 'normal': el juez asigna points_awarded (1..500) que suma el ganador a su ticket.
+//  - kind 'ascension': combate de ascenso entre dos jugadores del mismo rango con
+//    ticket lleno (validado contra ascenso_ranks). El ganador sube de rango.
+type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
+
+interface AscensoMatchInput {
+  player1_id: unknown;
+  player2_id: unknown;
+  match_kind: unknown;
+  points_awarded: unknown;
+}
+
+async function createAscensoMatch(
+  supabase: ServerSupabase,
+  createdBy: string,
+  input: AscensoMatchInput
+): Promise<Response> {
+  const { player1_id, player2_id, match_kind, points_awarded } = input;
+
+  // match_kind: default 'normal' si no viene
+  const kind = match_kind ?? "normal";
+  if (kind !== "normal" && kind !== "ascension") {
+    return Response.json(
+      { error: "match_kind debe ser 'normal' o 'ascension'" },
+      { status: 400 }
+    );
+  }
+
+  if (typeof player1_id !== "string" || typeof player2_id !== "string" || !player1_id || !player2_id) {
+    return Response.json(
+      { error: "Faltan campos: player1_id, player2_id" },
+      { status: 400 }
+    );
+  }
+
+  if (player1_id === player2_id) {
+    return Response.json(
+      { error: "Los jugadores deben ser diferentes" },
+      { status: 400 }
+    );
+  }
+
+  // Validar points_awarded según el tipo de pelea
+  if (kind === "normal") {
+    if (
+      typeof points_awarded !== "number" ||
+      !Number.isInteger(points_awarded) ||
+      points_awarded < 1 ||
+      points_awarded > 500
+    ) {
+      return Response.json(
+        { error: "points_awarded es requerido y debe ser un entero entre 1 y 500" },
+        { status: 400 }
+      );
+    }
+  } else if (points_awarded != null) {
+    return Response.json(
+      { error: "points_awarded no aplica en un combate de ascenso (los puntos los define el rango)" },
+      { status: 400 }
+    );
+  }
+
+  // Verificar que ambos jugadores existan y estén activos
+  const { data: players, error: playersError } = await supabase
+    .from("players")
+    .select("id, alias, is_eliminated, rank_letter, ticket_points")
+    .in("id", [player1_id, player2_id]);
+
+  if (playersError) {
+    return Response.json({ error: playersError.message }, { status: 500 });
+  }
+
+  if (!players || players.length !== 2) {
+    return Response.json(
+      { error: "Uno o ambos jugadores no existen" },
+      { status: 404 }
+    );
+  }
+
+  const p1 = players.find((p) => p.id === player1_id);
+  const p2 = players.find((p) => p.id === player2_id);
+
+  if (!p1 || !p2) {
+    return Response.json(
+      { error: "Uno o ambos jugadores no existen" },
+      { status: 404 }
+    );
+  }
+
+  if (p1.is_eliminated || p2.is_eliminated) {
+    return Response.json(
+      { error: "Uno o ambos jugadores están eliminados" },
+      { status: 400 }
+    );
+  }
+
+  // Validaciones extra para el combate de ascenso
+  if (kind === "ascension") {
+    if (p1.rank_letter !== p2.rank_letter) {
+      return Response.json(
+        {
+          error: `Para un combate de ascenso ambos jugadores deben tener el mismo rango (${p1.alias}: ${p1.rank_letter ?? "?"}, ${p2.alias}: ${p2.rank_letter ?? "?"})`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (p1.rank_letter === "S") {
+      return Response.json(
+        { error: "Los jugadores de rango S ya están en el rango máximo, no pueden ascender" },
+        { status: 400 }
+      );
+    }
+
+    // Buscar el objetivo de ticket del rango en ascenso_ranks
+    const { data: rankRow, error: rankError } = await supabase
+      .from("ascenso_ranks")
+      .select("ticket_target")
+      .eq("letter", p1.rank_letter)
+      .single();
+
+    if (rankError || !rankRow) {
+      return Response.json(
+        { error: `No se encontró configuración del rango ${p1.rank_letter}` },
+        { status: 500 }
+      );
+    }
+
+    const target: number = rankRow.ticket_target;
+    for (const p of [p1, p2]) {
+      const points = p.ticket_points ?? 0;
+      if (points < target) {
+        return Response.json(
+          {
+            error: `${p.alias} no tiene el ticket lleno (${points}/${target} puntos). No puede pelear el combate de ascenso`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+  }
+
+  // Crear la pelea: sin estrellas en juego (stars_bet 0)
+  const { data: match, error: insertError } = await supabase
+    .from("matches")
+    .insert({
+      player1_id,
+      player2_id,
+      stars_bet: 0,
+      mode: "ascenso",
+      match_kind: kind,
+      points_awarded: kind === "normal" ? points_awarded : null,
+      created_by: createdBy,
+    })
+    .select()
+    .single();
+
+  if (insertError) {
+    return Response.json({ error: insertError.message }, { status: 500 });
+  }
+
+  return Response.json(match, { status: 201 });
 }
