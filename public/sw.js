@@ -19,8 +19,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: body || "",
-    icon: icon || "/copaomega-logo.png",
-    badge: "/copaomega-logo.png",
+    icon: icon || "/bladers-logo.png",
+    badge: "/bladers-logo.png",
     data: { url: url || "/" },
     vibrate: [100, 50, 100],
   };

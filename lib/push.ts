@@ -60,7 +60,7 @@ export async function sendPushToPlayer(
   const payload: PushPayload = {
     title,
     body,
-    icon: "/copaomega-logo.png",
+    icon: "/bladers-logo.png",
     url,
   };
 
