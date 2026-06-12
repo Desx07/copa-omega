@@ -13,6 +13,9 @@ export interface PlayerSearchResult {
   full_name?: string | null;
   avatar_url?: string | null;
   stars?: number;
+  // Datos del modo ascenso (solo los usan los consumidores que pasan showRank)
+  rank_letter?: string | null;
+  ticket_points?: number | null;
 }
 
 interface PlayerSearchProps {
@@ -22,6 +25,8 @@ interface PlayerSearchProps {
   excludeIds?: string[];
   /** Mostrar estrellas en cada resultado */
   showStars?: boolean;
+  /** Mostrar rango y ticket points (modo ascenso) en lugar de estrellas */
+  showRank?: boolean;
   /** Cantidad maxima de resultados a mostrar */
   maxResults?: number;
   /** Permite limpiar la seleccion */
@@ -44,6 +49,7 @@ export default function PlayerSearch({
   placeholder = "Buscar blader...",
   excludeIds = [],
   showStars = true,
+  showRank = false,
   maxResults = 8,
   clearable = false,
   label,
@@ -183,11 +189,23 @@ export default function PlayerSearch({
               {selectedPlayer.alias}
             </span>
           </div>
-          {showStars && selectedPlayer.stars !== undefined && (
+          {showRank && selectedPlayer.rank_letter != null ? (
+            <span className="text-xs shrink-0">
+              <span className="font-black text-omega-purple">
+                Rango {selectedPlayer.rank_letter}
+              </span>
+              {selectedPlayer.ticket_points != null && (
+                <span className="text-omega-muted">
+                  {" "}
+                  · 🎫 {selectedPlayer.ticket_points}
+                </span>
+              )}
+            </span>
+          ) : showStars && selectedPlayer.stars !== undefined ? (
             <span className="text-xs text-omega-muted shrink-0">
               {selectedPlayer.stars} est.
             </span>
-          )}
+          ) : null}
           {clearable && (
             <button
               type="button"
@@ -313,12 +331,24 @@ export default function PlayerSearch({
                   )}
                 </div>
 
-                {/* Stars */}
-                {showStars && player.stars !== undefined && (
+                {/* Meta: rango/ticket (modo ascenso) o estrellas (copa) */}
+                {showRank && player.rank_letter != null ? (
+                  <span className="text-xs shrink-0">
+                    <span className="font-black text-omega-purple">
+                      Rango {player.rank_letter}
+                    </span>
+                    {player.ticket_points != null && (
+                      <span className="text-omega-muted">
+                        {" "}
+                        · 🎫 {player.ticket_points}
+                      </span>
+                    )}
+                  </span>
+                ) : showStars && player.stars !== undefined ? (
                   <span className="text-xs text-omega-muted shrink-0">
                     {player.stars} est.
                   </span>
-                )}
+                ) : null}
               </button>
             ))
           )}

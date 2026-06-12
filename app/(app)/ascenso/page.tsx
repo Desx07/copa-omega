@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import BattleScreen, { type BattlePlayer } from "./_components/battle-card";
 import RankTower from "./_components/rank-tower";
 import RankUpAnimation from "./_components/rank-up-animation";
-import { RANKS, rankInfo, type RankLetter } from "@/lib/ascenso";
+import { rankInfo, type RankLetter } from "@/lib/ascenso";
 
 // ── Tipos de la respuesta de GET /api/ascenso/me ──
 interface MePlayer {
@@ -34,7 +34,25 @@ interface MeActiveMatch {
     alias: string;
     avatar_url: string | null;
     rank_letter: RankLetter;
+    ticket_points: number | null;
   };
+}
+
+// Último combate completado del usuario — siempre viene en /me (el server no trackea visto)
+interface MeLastResult {
+  match_id: string;
+  match_kind: "normal" | "ascension";
+  won: boolean;
+  points_awarded: number | null;
+  from_rank: RankLetter | null;
+  to_rank: RankLetter | null;
+  opponent: {
+    id: string;
+    alias: string;
+    avatar_url: string | null;
+    rank_letter: RankLetter;
+  };
+  completed_at: string;
 }
 
 interface AscensoMe {
@@ -43,6 +61,16 @@ interface AscensoMe {
   has_ticket: boolean;
   eligible_opponents: MeOpponent[];
   active_match: MeActiveMatch | null;
+  last_result: MeLastResult | null;
+}
+
+// Forma mínima del rival para armar la card de batalla (ticket solo en match activo)
+interface OpponentDisplay {
+  id: string;
+  alias: string;
+  avatar_url: string | null;
+  rank_letter: RankLetter;
+  ticket_points?: number | null;
 }
 
 // ── Personajes de Beyblade X disponibles en /public/characters ──
@@ -62,28 +90,43 @@ function characterFor(playerId: string): string {
   return CHARACTER_IDS[hash % CHARACTER_IDS.length];
 }
 
-// Posición del rango en la escalera F→S (mayor índice = rango más alto)
-function rankIndexOf(letter: RankLetter): number {
-  return RANKS.findIndex((r) => r.letter === letter);
-}
-
 type GamePhase = "idle" | "tower" | "loading" | "versus" | "rank_up" | "result";
 
-// Resultado del último combate resuelto (se infiere del refetch)
+// Resultado del último combate resuelto (viene de last_result en /me)
 interface ResultInfo {
   kind: "rank_up" | "won_points" | "lost";
   delta?: number;
 }
 
+// ── Persistencia del último resultado visto (para no repetirlo) ──
+const SEEN_RESULT_KEY = "ascenso_last_result_seen";
+
+// En el preview dev (?demo=N) el "visto" vive solo en memoria así cada
+// recarga vuelve a mostrar el resultado del escenario
+function isDemoPreview(): boolean {
+  return new URLSearchParams(window.location.search).has("demo");
+}
+
+function readSeenResultId(): string | null {
+  try {
+    return localStorage.getItem(SEEN_RESULT_KEY);
+  } catch {
+    return null;
+  }
+}
+
 export default function AscensoPage() {
   const [data, setData] = useState<AscensoMe | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [phase, setPhase] = useState<GamePhase>("idle");
   const [battleStatus, setBattleStatus] = useState<
     "loading" | "reveal" | "ready" | "in_progress" | "completed"
   >("loading");
   const [rankUp, setRankUp] = useState<{ from: RankLetter; to: RankLetter } | null>(null);
   const [resultInfo, setResultInfo] = useState<ResultInfo | null>(null);
+  // Aviso de combate cancelado por el juez (banner temporal en idle)
+  const [cancelNotice, setCancelNotice] = useState<string | null>(null);
 
   // Refs para usar el estado actual dentro del fetch sin re-crear callbacks
   const prevRef = useRef<AscensoMe | null>(null);
@@ -91,10 +134,28 @@ export default function AscensoPage() {
   // Guardamos el último match activo para seguir mostrando el versus/resultado
   // cuando el juez ya lo resolvió y desaparece de la API
   const lastMatchRef = useRef<MeActiveMatch | null>(null);
+  // Resultado ya disparado en esta sesión (evita re-mostrar en cada refetch)
+  const shownResultIdRef = useRef<string | null>(null);
+  // "Visto" en memoria para el preview dev (?demo) — no toca localStorage
+  const demoSeenRef = useRef<string | null>(null);
+  // Timer del loading → versus, cancelable si el resultado llega antes
+  const versusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
+
+  // Marca un resultado como visto (en demo solo en memoria, así el preview se repite)
+  const markResultSeen = useCallback((matchId: string) => {
+    demoSeenRef.current = matchId;
+    if (!isDemoPreview()) {
+      try {
+        localStorage.setItem(SEEN_RESULT_KEY, matchId);
+      } catch {
+        // Sin storage disponible no persistimos: el peor caso es re-mostrar el resultado
+      }
+    }
+  }, []);
 
   // ── Fetch del estado real del jugador ──
   const fetchMe = useCallback(async () => {
@@ -104,6 +165,7 @@ export default function AscensoPage() {
       const res = await fetch(`/api/ascenso/me${demo ? `?demo=${demo}` : ""}`, { cache: "no-store" });
       if (!res.ok) {
         if (!prevRef.current) {
+          setUnauthorized(res.status === 401);
           setLoadError(
             res.status === 401
               ? "Iniciá sesión para ver tu progreso de ascenso"
@@ -115,35 +177,45 @@ export default function AscensoPage() {
       const me = (await res.json()) as AscensoMe;
       const prev = prevRef.current;
 
-      if (prev) {
-        const prevIdx = rankIndexOf(prev.player.rank_letter);
-        const newIdx = rankIndexOf(me.player.rank_letter);
+      // ── Resultado pendiente de ver: last_result es la fuente de verdad ──
+      const lr = me.last_result;
+      const seenId = isDemoPreview() ? demoSeenRef.current : readSeenResultId();
 
-        if (newIdx > prevIdx) {
-          // El juez resolvió a favor: ¡ascenso de rango!
-          setRankUp({ from: prev.player.rank_letter, to: me.player.rank_letter });
+      if (lr && lr.match_id !== seenId && lr.match_id !== shownResultIdRef.current) {
+        // Resultado nuevo no visto: lo mostramos desde cualquier fase (incluso idle)
+        shownResultIdRef.current = lr.match_id;
+        setBattleStatus("completed");
+        if (lr.match_kind === "ascension" && lr.won && lr.from_rank && lr.to_rank) {
+          // Ascenso ganado: animación con los rangos reales del server
+          setRankUp({ from: lr.from_rank, to: lr.to_rank });
           setResultInfo({ kind: "rank_up" });
-          setBattleStatus("completed");
           setPhase("rank_up");
-        } else if (
-          prev.active_match &&
-          !me.active_match &&
-          (phaseRef.current === "versus" ||
-            phaseRef.current === "loading" ||
-            phaseRef.current === "tower")
-        ) {
-          // El combate que estaba mirando se resolvió sin ascenso
-          const delta = me.player.ticket_points - prev.player.ticket_points;
-          setResultInfo({ kind: delta > 0 ? "won_points" : "lost", delta });
-          setBattleStatus("completed");
+        } else {
+          setResultInfo({
+            kind: lr.won ? "won_points" : "lost",
+            delta: lr.points_awarded ?? undefined,
+          });
           setPhase("result");
         }
+      } else if (prev?.active_match && !me.active_match) {
+        // El match desapareció SIN resultado nuevo ⇒ el juez lo canceló (no es derrota)
+        lastMatchRef.current = null;
+        if (
+          phaseRef.current === "tower" ||
+          phaseRef.current === "loading" ||
+          phaseRef.current === "versus"
+        ) {
+          setPhase("idle");
+          setBattleStatus("loading");
+        }
+        setCancelNotice("El combate fue cancelado por el juez");
       }
 
       if (me.active_match) lastMatchRef.current = me.active_match;
       prevRef.current = me;
       setData(me);
       setLoadError(null);
+      setUnauthorized(false);
     } catch {
       if (!prevRef.current) {
         setLoadError("No pudimos cargar tu estado de ascenso");
@@ -176,8 +248,16 @@ export default function AscensoPage() {
     return () => clearInterval(id);
   }, [data?.active_match, fetchMe]);
 
+  // El aviso de cancelación se esconde solo después de unos segundos
+  useEffect(() => {
+    if (!cancelNotice) return;
+    const id = setTimeout(() => setCancelNotice(null), 6000);
+    return () => clearTimeout(id);
+  }, [cancelNotice]);
+
   // Flujo: idle → tower → loading → versus (el resultado lo carga el juez)
   const startBattle = useCallback(() => {
+    setCancelNotice(null);
     setPhase("tower");
     setBattleStatus("loading");
   }, []);
@@ -185,11 +265,24 @@ export default function AscensoPage() {
   const onTowerComplete = useCallback(() => {
     setPhase("loading");
     setBattleStatus("loading");
-    // Loading 3s → reveal oponente → versus
-    setTimeout(() => {
-      setPhase("versus");
-      setBattleStatus("ready");
+    // Loading 3s → reveal oponente → versus (cancelable: el resultado puede llegar antes)
+    if (versusTimerRef.current) clearTimeout(versusTimerRef.current);
+    versusTimerRef.current = setTimeout(() => {
+      versusTimerRef.current = null;
+      // Solo avanzamos a versus si seguimos en loading: si llegó un resultado
+      // o el usuario salió, no pisamos la fase actual
+      if (phaseRef.current === "loading") {
+        setPhase("versus");
+        setBattleStatus("ready");
+      }
     }, 3500);
+  }, []);
+
+  // Limpieza del timer loading → versus al desmontar
+  useEffect(() => {
+    return () => {
+      if (versusTimerRef.current) clearTimeout(versusTimerRef.current);
+    };
   }, []);
 
   // ── Loading inicial (estética del modo) ──
@@ -209,16 +302,27 @@ export default function AscensoPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white flex flex-col items-center justify-center px-4">
         <p className="text-white/60 text-sm font-mono text-center">{loadError}</p>
-        <button
-          onClick={() => {
-            setLoadError(null);
-            void fetchMe();
-          }}
-          data-testid="ascenso-retry-btn"
-          className="mt-5 px-6 py-2 bg-white/10 rounded-lg text-sm font-bold hover:bg-white/20 transition"
-        >
-          Reintentar
-        </button>
+        {unauthorized ? (
+          // Sin sesión: reintentar no sirve, va directo al login
+          <a
+            href="/auth/login"
+            data-testid="ascenso-login-btn"
+            className="mt-5 px-6 py-2 bg-white/10 rounded-lg text-sm font-bold hover:bg-white/20 transition"
+          >
+            Iniciar sesión
+          </a>
+        ) : (
+          <button
+            onClick={() => {
+              setLoadError(null);
+              void fetchMe();
+            }}
+            data-testid="ascenso-retry-btn"
+            className="mt-5 px-6 py-2 bg-white/10 rounded-lg text-sm font-bold hover:bg-white/20 transition"
+          >
+            Reintentar
+          </button>
+        )}
       </div>
     );
   }
@@ -232,9 +336,32 @@ export default function AscensoPage() {
     ? Math.min((player.ticket_points / ticketTarget) * 100, 100)
     : 100;
 
+  const lastResult = data.last_result;
   // Match a mostrar en versus/result: el activo, o el último visto si ya se resolvió
   const matchForBattle = activeMatch ?? lastMatchRef.current;
   const playerCharacterId = characterFor(player.id);
+
+  // Rival a mostrar: cuando hay resultado manda el del last_result (es el combate
+  // que se resolvió); si no, el del match activo o el último conocido
+  const opponentInfo: OpponentDisplay | null =
+    (resultInfo && lastResult ? lastResult.opponent : null) ??
+    activeMatch?.opponent ??
+    lastMatchRef.current?.opponent ??
+    lastResult?.opponent ??
+    null;
+
+  // Tipo de combate vigente (define los textos de torre y batalla)
+  const battleKind: "normal" | "ascension" =
+    (resultInfo && lastResult ? lastResult.match_kind : null) ??
+    matchForBattle?.match_kind ??
+    lastResult?.match_kind ??
+    "ascension";
+
+  // Puntos del combate (para el banner de victoria en peleas normales)
+  const battlePoints: number | null =
+    (resultInfo && lastResult ? lastResult.points_awarded : null) ??
+    matchForBattle?.points_awarded ??
+    null;
 
   const battlePlayer: BattlePlayer = {
     id: player.id,
@@ -248,15 +375,15 @@ export default function AscensoPage() {
     statusText: hasTicket ? "¡AL MÁXIMO!" : "EN COMBATE",
   };
 
-  const battleOpponent: BattlePlayer | null = matchForBattle
+  const battleOpponent: BattlePlayer | null = opponentInfo
     ? {
-        id: matchForBattle.opponent.id,
-        alias: matchForBattle.opponent.alias,
-        avatar_url: matchForBattle.opponent.avatar_url ?? undefined,
-        rank: matchForBattle.opponent.rank_letter,
-        ticketPoints: eligibleOpponents.find((o) => o.id === matchForBattle.opponent.id)
-          ?.ticket_points,
-        characterId: characterFor(matchForBattle.opponent.id),
+        id: opponentInfo.id,
+        alias: opponentInfo.alias,
+        avatar_url: opponentInfo.avatar_url ?? undefined,
+        rank: opponentInfo.rank_letter,
+        // El ticket del rival viene directo en active_match.opponent (campo nuevo)
+        ticketPoints: opponentInfo.ticket_points ?? undefined,
+        characterId: characterFor(opponentInfo.id),
         statusText: "PRÓXIMO COMBATE",
       }
     : null;
@@ -266,7 +393,7 @@ export default function AscensoPage() {
     resultInfo == null
       ? undefined
       : resultInfo.kind === "lost"
-        ? matchForBattle?.opponent.id
+        ? opponentInfo?.id
         : player.id;
 
   return (
@@ -288,6 +415,7 @@ export default function AscensoPage() {
           currentRank={player.rank_letter}
           playerAlias={player.alias}
           ticketPoints={player.ticket_points}
+          kind={battleKind}
           onComplete={onTowerComplete}
         />
       )}
@@ -305,6 +433,16 @@ export default function AscensoPage() {
       {/* ── IDLE: tu rango + barra de progreso + estado ── */}
       {phase === "idle" && (
         <div className="px-4 mb-8 max-w-md mx-auto">
+          {/* Aviso de combate cancelado por el juez (temporal) */}
+          {cancelNotice && (
+            <div
+              data-testid="ascenso-cancel-notice"
+              className="mb-4 px-4 py-3 bg-orange-500/10 border border-orange-500/30 rounded-xl text-center"
+            >
+              <p className="text-orange-400 text-sm font-bold">{cancelNotice}</p>
+            </div>
+          )}
+
           {/* Card de rango actual */}
           <div className="bg-gradient-to-r from-purple-800/60 to-purple-900/60 rounded-xl p-5 border border-purple-500/30 mb-6">
             <div className="flex items-center gap-4 mb-4">
@@ -435,20 +573,40 @@ export default function AscensoPage() {
       )}
 
       {/* ── LOADING + VERSUS + RESULT: pantalla de combate ── */}
-      {(phase === "loading" || phase === "versus" || phase === "result") && battleOpponent && (
+      {(phase === "loading" || phase === "versus" || phase === "result") && (
         <div className="px-4 mb-8">
-          <BattleScreen
-            player={battlePlayer}
-            opponent={battleOpponent}
-            status={battleStatus}
-            winner={battleWinner}
-          />
+          {/* La card de batalla solo si conocemos al rival; el resultado se muestra igual */}
+          {battleOpponent && (
+            <BattleScreen
+              player={battlePlayer}
+              opponent={battleOpponent}
+              status={battleStatus}
+              winner={battleWinner}
+              kind={battleKind}
+              pointsAwarded={battlePoints}
+            />
+          )}
 
-          {/* En versus, el resultado lo carga el juez — acá solo se espera */}
-          {phase === "versus" && (
-            <p className="text-center mt-4 text-white/40 text-xs font-mono tracking-[0.2em] animate-pulse">
-              EL JUEZ CARGA EL RESULTADO AL TERMINAR
-            </p>
+          {/* En versus/loading, el resultado lo carga el juez — siempre con salida */}
+          {(phase === "versus" || phase === "loading") && (
+            <div className="text-center mt-4">
+              {phase === "versus" && (
+                <p className="text-white/40 text-xs font-mono tracking-[0.2em] animate-pulse">
+                  EL JUEZ CARGA EL RESULTADO AL TERMINAR
+                </p>
+              )}
+              <button
+                onClick={() => {
+                  // Salida segura: el combate sigue armado y el resultado llega igual
+                  setPhase("idle");
+                  setBattleStatus("loading");
+                }}
+                data-testid="ascenso-exit-btn"
+                className="mt-3 px-5 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-white/50 hover:bg-white/10 hover:text-white/80 transition"
+              >
+                Volver
+              </button>
+            </div>
           )}
 
           {/* Resultado */}
@@ -465,7 +623,7 @@ export default function AscensoPage() {
                   {/* Compartir en WhatsApp */}
                   <a
                     href={`https://wa.me/?text=${encodeURIComponent(
-                      `⚔️ *COMBATE DE ASCENSO* ⚔️\n\n${player.alias} venció a ${matchForBattle?.opponent.alias ?? "su rival"} y ascendió al *Rango ${rankUp.to} (${rankInfo(rankUp.to).name})*!\n\n🏆 Bladers Santa Fe — Torneo de Ascenso\n👉 https://bladers-sf.vercel.app/ascenso`
+                      `⚔️ *COMBATE DE ASCENSO* ⚔️\n\n${player.alias} venció a ${opponentInfo?.alias ?? "su rival"} y ascendió al *Rango ${rankUp.to} (${rankInfo(rankUp.to).name})*!\n\n🏆 Bladers Santa Fe — Torneo de Ascenso\n👉 https://bladers-sf.vercel.app/ascenso`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -497,6 +655,9 @@ export default function AscensoPage() {
               )}
               <button
                 onClick={() => {
+                  // Marcamos el resultado como visto para no repetirlo en próximas cargas
+                  const seenId = lastResult?.match_id ?? shownResultIdRef.current;
+                  if (seenId) markResultSeen(seenId);
                   setPhase("idle");
                   setResultInfo(null);
                   setRankUp(null);

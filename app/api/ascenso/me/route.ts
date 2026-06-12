@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { RANKS } from "@/lib/ascenso";
 
 // ── GET /api/ascenso/me ──
 // Estado del modo ascenso para el usuario autenticado:
@@ -6,7 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 //  - objetivo de ticket de su rango (null si es S, el rango máximo)
 //  - si tiene el ticket lleno
 //  - rivales elegibles para el combate de ascenso (mismo rango, ticket lleno)
-//  - pelea de ascenso pendiente en la que participa (si hay)
+//  - pelea de ascenso activa (pendiente o en vivo) en la que participa (si hay)
+//  - último resultado de ascenso completado (para mostrarlo aunque no estuviera mirando)
 
 interface OpponentInfo {
   id: string;
@@ -19,10 +21,22 @@ interface ActiveMatch {
   id: string;
   match_kind: string;
   points_awarded: number | null;
-  opponent: OpponentInfo;
+  // El rival incluye sus puntos de ticket para mostrarlos en el versus
+  opponent: OpponentInfo & { ticket_points: number | null };
 }
 
-// Datos de ejemplo para preview en localhost (?demo=1|2|3). Solo existe en dev,
+interface LastResult {
+  match_id: string;
+  match_kind: string;
+  won: boolean;
+  points_awarded: number | null;
+  from_rank: string | null;
+  to_rank: string | null;
+  opponent: OpponentInfo;
+  completed_at: string;
+}
+
+// Datos de ejemplo para preview en localhost (?demo=1|2|3|4). Solo existe en dev,
 // mismo patrón que el preview ?modo= de la landing. Nunca llega a producción.
 function demoPayload(escenario: string) {
   const player = {
@@ -42,21 +56,48 @@ function demoPayload(escenario: string) {
     ticket_points: 320,
   };
   // 1: progreso medio · 2: ticket lleno esperando combate · 3: combate de ascenso creado
+  // 4: como el 1 pero recién ascendido (ganó el combate C → B, ticket reiniciado)
   if (escenario === "2" || escenario === "3") {
     player.ticket_points = 310;
   }
+  if (escenario === "4") {
+    player.rank_letter = "B";
+    player.ticket_points = 0;
+  }
+  const hasTicket = escenario === "2" || escenario === "3";
   return {
     player,
-    ticket_target: 300,
-    has_ticket: escenario !== "1",
-    eligible_opponents: escenario === "1" ? [] : [rival],
+    // El objetivo es del rango actual: C = 300, B = 400 (escenario 4, ya ascendido)
+    ticket_target: escenario === "4" ? 400 : 300,
+    has_ticket: hasTicket,
+    eligible_opponents: hasTicket ? [rival] : [],
     active_match:
       escenario === "3"
         ? {
             id: "demo-match",
             match_kind: "ascension",
             points_awarded: null,
+            opponent: {
+              id: rival.id,
+              alias: rival.alias,
+              avatar_url: null,
+              rank_letter: "C",
+              ticket_points: rival.ticket_points,
+            },
+          }
+        : null,
+    last_result:
+      escenario === "4"
+        ? {
+            match_id: "demo-last-match",
+            match_kind: "ascension",
+            won: true,
+            points_awarded: null,
+            from_rank: "C",
+            to_rank: "B",
             opponent: { id: rival.id, alias: rival.alias, avatar_url: null, rank_letter: "C" },
+            // Fecha fija para que el demo sea determinístico (no usar new Date())
+            completed_at: "2026-06-07T21:30:00.000Z",
           }
         : null,
   };
@@ -152,14 +193,16 @@ export async function GET(request: Request) {
       }));
     }
 
-    // Pelea de ascenso pendiente donde participa el usuario (la más reciente)
+    // Pelea de ascenso activa donde participa el usuario (la más reciente).
+    // Incluye "in_progress": el juez puede ponerla en vivo antes de resolverla
+    // y no tiene que desaparecer de la pantalla del jugador.
     const { data: pendingMatch, error: matchError } = await supabase
       .from("matches")
       .select(
-        "id, match_kind, points_awarded, player1_id, player2_id, player1:players!player1_id(id, alias, avatar_url, rank_letter), player2:players!player2_id(id, alias, avatar_url, rank_letter)"
+        "id, match_kind, points_awarded, player1_id, player2_id, player1:players!player1_id(id, alias, avatar_url, rank_letter, ticket_points), player2:players!player2_id(id, alias, avatar_url, rank_letter, ticket_points)"
       )
       .eq("mode", "ascenso")
-      .eq("status", "pending")
+      .in("status", ["pending", "in_progress"])
       .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -187,7 +230,67 @@ export async function GET(request: Request) {
             alias: opponent.alias,
             avatar_url: opponent.avatar_url ?? null,
             rank_letter: opponent.rank_letter,
+            ticket_points: opponent.ticket_points ?? null,
           },
+        };
+      }
+    }
+
+    // Último resultado de ascenso completado donde participó el usuario.
+    // Sirve para mostrarle el resultado aunque no estuviera mirando cuando el
+    // juez resolvió. El cliente decide si ya lo vio (localStorage); el server
+    // siempre devuelve el último. Es informativo: si falla, no rompemos el endpoint.
+    let lastResult: LastResult | null = null;
+    const { data: lastMatch, error: lastMatchError } = await supabase
+      .from("matches")
+      .select(
+        "id, match_kind, points_awarded, winner_id, completed_at, player1_id, player2_id, player1:players!player1_id(id, alias, avatar_url, rank_letter), player2:players!player2_id(id, alias, avatar_url, rank_letter)"
+      )
+      .eq("mode", "ascenso")
+      .eq("status", "completed")
+      .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (lastMatchError) {
+      console.error("GET /api/ascenso/me — error buscando último resultado:", lastMatchError);
+    } else if (lastMatch && lastMatch.completed_at) {
+      const esPlayer1 = lastMatch.player1_id === user.id;
+      const rawOpponent = esPlayer1 ? lastMatch.player2 : lastMatch.player1;
+      const opponent = Array.isArray(rawOpponent) ? rawOpponent[0] : rawOpponent;
+
+      if (opponent) {
+        const won = lastMatch.winner_id === user.id;
+        const matchKind: string = lastMatch.match_kind ?? "normal";
+
+        // from/to_rank solo si fue un combate de ascensión GANADO: el rango ya
+        // fue actualizado por el RPC, así que to = rango actual y from = el
+        // escalón anterior de la escalera F → S.
+        let fromRank: string | null = null;
+        let toRank: string | null = null;
+        if (matchKind === "ascension" && won) {
+          const idx = RANKS.findIndex((r) => r.letter === rankLetter);
+          if (idx > 0) {
+            toRank = rankLetter;
+            fromRank = RANKS[idx - 1].letter;
+          }
+        }
+
+        lastResult = {
+          match_id: lastMatch.id,
+          match_kind: matchKind,
+          won,
+          points_awarded: lastMatch.points_awarded ?? null,
+          from_rank: fromRank,
+          to_rank: toRank,
+          opponent: {
+            id: opponent.id,
+            alias: opponent.alias,
+            avatar_url: opponent.avatar_url ?? null,
+            rank_letter: opponent.rank_letter,
+          },
+          completed_at: lastMatch.completed_at,
         };
       }
     }
@@ -206,6 +309,7 @@ export async function GET(request: Request) {
       has_ticket: hasTicket,
       eligible_opponents: eligibleOpponents,
       active_match: activeMatch,
+      last_result: lastResult,
     });
   } catch (err) {
     console.error("GET /api/ascenso/me error:", err);

@@ -299,9 +299,148 @@ BEGIN
 END;
 $$;
 
+-- ────────────────────────────────────────────
+-- 5. RLS: players_update_own debe proteger rank_letter y ticket_points
+-- ────────────────────────────────────────────
+-- La policy vigente (20260313000001) solo fija stars, wins, losses, is_admin
+-- e is_eliminated en su WITH CHECK. Sin esto, cualquier usuario autenticado
+-- podría auto-asignarse rank_letter='S' o ticket_points arbitrarios vía
+-- UPDATE directo con el anon key. Se recrea la policy con el WITH CHECK
+-- original MÁS las dos columnas nuevas (mismo patrón de subquery).
+
+DROP POLICY IF EXISTS players_update_own ON players;
+
+CREATE POLICY players_update_own ON players
+  FOR UPDATE TO authenticated
+  USING (id = auth.uid())
+  WITH CHECK (
+    id = auth.uid()
+    AND stars = (SELECT p.stars FROM players p WHERE p.id = auth.uid())
+    AND wins = (SELECT p.wins FROM players p WHERE p.id = auth.uid())
+    AND losses = (SELECT p.losses FROM players p WHERE p.id = auth.uid())
+    AND is_admin = (SELECT p.is_admin FROM players p WHERE p.id = auth.uid())
+    AND is_eliminated = (SELECT p.is_eliminated FROM players p WHERE p.id = auth.uid())
+    AND rank_letter = (SELECT p.rank_letter FROM players p WHERE p.id = auth.uid())
+    AND ticket_points = (SELECT p.ticket_points FROM players p WHERE p.id = auth.uid())
+  );
+
+-- ────────────────────────────────────────────
+-- 6. RPC: resolve_match no debe aceptar matches de ascenso
+-- ────────────────────────────────────────────
+-- La definición vigente (20260321000000) no conoce el modo: si un juez la
+-- llama vía supabase.rpc() sobre un match de ascenso, lo marca completed
+-- sin aplicar puntos ni rangos (y además transfiere estrellas) y queda
+-- irrecuperable. Se copia EXACTAMENTE esa definición agregando:
+--   a) el rechazo explícito de mode = 'ascenso' (después del check de status)
+--   b) SET search_path = '' (que las redefiniciones de 20260320200000 y
+--      20260321000000 perdieron; el cuerpo ya usa referencias public.*
+--      cualificadas en todas las tablas, así que es seguro restaurarlo)
+
+CREATE OR REPLACE FUNCTION public.resolve_match(p_match_id uuid, p_winner_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_match RECORD;
+  v_loser_id uuid;
+  v_loser_stars int;
+BEGIN
+  -- Verify caller is admin OR judge
+  IF NOT EXISTS (
+    SELECT 1 FROM public.players
+    WHERE id = auth.uid()
+      AND (is_admin = true OR is_judge = true)
+  ) THEN
+    RAISE EXCEPTION 'Only admins or judges can resolve matches';
+  END IF;
+
+  -- Fetch the match and lock the row
+  SELECT * INTO v_match
+    FROM public.matches
+    WHERE id = p_match_id
+    FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Match not found: %', p_match_id;
+  END IF;
+
+  -- Accept both 'pending' and 'in_progress' matches for resolution
+  IF v_match.status NOT IN ('pending', 'in_progress') THEN
+    RAISE EXCEPTION 'Match must be pending or in_progress to resolve (current status: %)', v_match.status;
+  END IF;
+
+  -- Los matches de ascenso tienen su propio RPC (puntos/rangos, sin estrellas)
+  IF v_match.mode = 'ascenso' THEN
+    RAISE EXCEPTION 'Las peleas de ascenso se resuelven con resolve_ascenso_match';
+  END IF;
+
+  -- Validate winner is one of the two players
+  IF p_winner_id != v_match.player1_id AND p_winner_id != v_match.player2_id THEN
+    RAISE EXCEPTION 'Winner must be one of the match participants';
+  END IF;
+
+  -- Determine the loser
+  IF p_winner_id = v_match.player1_id THEN
+    v_loser_id := v_match.player2_id;
+  ELSE
+    v_loser_id := v_match.player1_id;
+  END IF;
+
+  -- Mark match as completed
+  UPDATE public.matches
+    SET status = 'completed',
+        winner_id = p_winner_id,
+        completed_at = now()
+    WHERE id = p_match_id;
+
+  -- Transfer stars: winner gains, loser loses
+  UPDATE public.players
+    SET stars = stars + v_match.stars_bet,
+        wins = wins + 1
+    WHERE id = p_winner_id;
+
+  UPDATE public.players
+    SET stars = stars - v_match.stars_bet,
+        losses = losses + 1
+    WHERE id = v_loser_id;
+
+  -- Check if loser is eliminated (0 stars)
+  SELECT stars INTO v_loser_stars
+    FROM public.players
+    WHERE id = v_loser_id;
+
+  IF v_loser_stars <= 0 THEN
+    UPDATE public.players
+      SET is_eliminated = true
+      WHERE id = v_loser_id;
+  END IF;
+END;
+$$;
+
+-- ────────────────────────────────────────────
+-- 7. APP_SETTINGS: policy de INSERT para admins
+-- ────────────────────────────────────────────
+-- 20260314050000 solo creó SELECT (all) y UPDATE (admin). Sin INSERT, el
+-- upsert de PATCH /api/app-config falla con claves nuevas (el toggle de
+-- modalidades tira "Error cambiando el estado" hasta que exista el seed).
+
+DROP POLICY IF EXISTS "settings_insert_admin" ON app_settings;
+CREATE POLICY "settings_insert_admin"
+  ON app_settings FOR INSERT
+  TO authenticated
+  WITH CHECK (EXISTS (SELECT 1 FROM players WHERE id = auth.uid() AND is_admin = true));
+
 -- ============================================================================
 -- ROLLBACK MANUAL (referencia — NO ejecutar como parte de la migración):
 --
+--   DROP POLICY IF EXISTS "settings_insert_admin" ON app_settings;
+--   -- resolve_match: re-ejecutar la definición de
+--   --   20260321000000_matches_in_progress_status.sql (sin check de mode
+--   --   ni search_path)
+--   -- players_update_own: re-ejecutar la policy de
+--   --   20260313000001_fix_rls_and_bugs.sql (sin rank_letter/ticket_points)
 --   DROP FUNCTION IF EXISTS public.resolve_ascenso_match(uuid, uuid);
 --   DROP TABLE IF EXISTS ascenso_ranks;
 --   DROP INDEX IF EXISTS idx_matches_ascenso_mode_status;

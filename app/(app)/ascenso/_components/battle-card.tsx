@@ -24,6 +24,10 @@ interface BattleCardProps {
   opponent: BattlePlayer;
   status: "loading" | "reveal" | "ready" | "in_progress" | "completed";
   winner?: string;
+  /** Tipo de combate: normal (por puntos) o ascension (sube de rango) */
+  kind: "normal" | "ascension";
+  /** Puntos ganados en el combate (solo relevante en victoria normal) */
+  pointsAwarded?: number | null;
 }
 
 // ── Colores del rango (badge chico) ──
@@ -172,7 +176,7 @@ function LoadingAnimation() {
             style={{ animationDuration: "2s" }} />
         </div>
         <p className="mt-5 text-cyan-400 text-sm font-mono tracking-[0.3em] animate-pulse">
-          BUSCANDO OPONENTE
+          OPONENTE DEFINIDO
         </p>
       </div>
     </div>
@@ -180,9 +184,17 @@ function LoadingAnimation() {
 }
 
 // ── Pantalla principal ──
-export default function BattleScreen({ player, opponent, status, winner }: BattleCardProps) {
+export default function BattleScreen({ player, opponent, status, winner, kind, pointsAwarded }: BattleCardProps) {
   const [showLoading, setShowLoading] = useState(status === "loading");
   const [revealed, setRevealed] = useState(status !== "loading");
+  const isAscension = kind === "ascension";
+
+  // Texto de victoria según el tipo de combate
+  const victoryText = isAscension
+    ? "¡VICTORIA! ASCENSO CONFIRMADO"
+    : pointsAwarded != null
+      ? `¡VICTORIA! +${pointsAwarded.toLocaleString()} PUNTOS`
+      : "¡VICTORIA!";
 
   useEffect(() => {
     if (status === "loading") {
@@ -208,7 +220,7 @@ export default function BattleScreen({ player, opponent, status, winner }: Battl
           <span className="text-white/40 text-xs">⚔️ Zona de combate</span>
         </div>
         <span className="text-white font-bold text-xs sm:text-sm bg-white/10 px-3 py-1 rounded-full">
-          Combate de ascenso
+          {isAscension ? "Combate de ascenso" : "Combate"}
         </span>
       </div>
 
@@ -244,7 +256,7 @@ export default function BattleScreen({ player, opponent, status, winner }: Battl
         {status === "ready" && (
           <div className="bg-gradient-to-r from-cyan-600 to-blue-600 py-2 text-center">
             <span className="text-white font-bold text-xs tracking-wider">
-              ¡COMBATE DE ASCENSO LISTO!
+              {isAscension ? "¡COMBATE DE ASCENSO LISTO!" : "¡COMBATE LISTO!"}
             </span>
           </div>
         )}
@@ -253,7 +265,7 @@ export default function BattleScreen({ player, opponent, status, winner }: Battl
             ? "bg-gradient-to-r from-yellow-600 to-amber-600"
             : "bg-gradient-to-r from-gray-700 to-gray-800"}`}>
             <span className="text-white font-bold text-xs tracking-wider">
-              {winner === player.id ? "¡VICTORIA! ASCENSO CONFIRMADO" : "DERROTA — INTENTÁ DE NUEVO"}
+              {winner === player.id ? victoryText : "DERROTA — INTENTÁ DE NUEVO"}
             </span>
           </div>
         )}

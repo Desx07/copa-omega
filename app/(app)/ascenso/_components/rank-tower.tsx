@@ -7,6 +7,7 @@ interface RankTowerProps {
   currentRank: RankLetter;
   playerAlias: string;
   ticketPoints: number; // puntos de ticket actuales del jugador
+  kind: "normal" | "ascension"; // tipo de combate: normal (por puntos) o de ascenso
   onComplete: () => void; // Callback cuando termina la animación
 }
 
@@ -24,7 +25,7 @@ const RANK_TEXT_COLOR: Record<RankLetter, string> = {
 // La torre se dibuja de arriba (S) hacia abajo (F)
 const TOWER_RANKS = [...RANKS].reverse();
 
-export default function RankTower({ currentRank, playerAlias, ticketPoints, onComplete }: RankTowerProps) {
+export default function RankTower({ currentRank, playerAlias, ticketPoints, kind, onComplete }: RankTowerProps) {
   const [phase, setPhase] = useState<"enter" | "highlight" | "zoom" | "exit">("enter");
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const currentIndex = TOWER_RANKS.findIndex(r => r.letter === currentRank);
@@ -85,7 +86,7 @@ export default function RankTower({ currentRank, playerAlias, ticketPoints, onCo
           className={`text-lg font-mono tracking-[0.3em] text-cyan-400/80 mb-6 transition-all duration-500
             ${phase === "highlight" || phase === "zoom" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
         >
-          COMBATE DE ASCENSO
+          {kind === "ascension" ? "COMBATE DE ASCENSO" : "COMBATE DE RANGO"}
         </h2>
 
         {/* Torre de rangos */}
@@ -146,7 +147,7 @@ export default function RankTower({ currentRank, playerAlias, ticketPoints, onCo
           className={`mt-6 text-sm font-mono text-white/40 tracking-wider transition-all duration-500
             ${phase === "zoom" ? "opacity-100" : "opacity-0"}`}
         >
-          BUSCANDO OPONENTE...
+          OPONENTE DEFINIDO
         </p>
       </div>
     </div>

@@ -128,38 +128,38 @@ export async function PATCH(
         ? matchData.player2_id
         : matchData.player1_id;
 
-      // Insert match_result event into activity_feed
-      try {
-        const adminSupabase = createAdminClient();
+      // Feed + XP solo para copa omega: el RPC resolve_ascenso_match ya inserta
+      // el evento de activity_feed y otorga XP DENTRO de su transacción (ver
+      // supabase/migrations/20260612000000_ascenso_system.sql). Repetirlo acá
+      // duplicaría XP y feed para las peleas de ascenso.
+      if (!esAscenso) {
+        // Insert match_result event into activity_feed
+        try {
+          const adminSupabase = createAdminClient();
 
-        await adminSupabase.from("activity_feed").insert({
-          type: "match_result",
-          actor_id: winner_id,
-          target_id: loserId,
-          reference_id: id,
-          metadata: {
-            stars_bet: matchData.stars_bet ?? 0,
-          },
-        });
-      } catch (feedErr) {
-        console.error("Error inserting match_result feed event:", feedErr);
-      }
+          await adminSupabase.from("activity_feed").insert({
+            type: "match_result",
+            actor_id: winner_id,
+            target_id: loserId,
+            reference_id: id,
+            metadata: {
+              stars_bet: matchData.stars_bet ?? 0,
+            },
+          });
+        } catch (feedErr) {
+          console.error("Error inserting match_result feed event:", feedErr);
+        }
 
-      // Award XP to both players (fire-and-forget)
-      try {
-        const adminXp = createAdminClient();
-        const starsBet = matchData.stars_bet ?? 0;
-        const xpLabel = esAscenso
-          ? matchData.match_kind === "ascension"
-            ? "combate de ascenso"
-            : "pelea de ascenso"
-          : starsBet > 0
-            ? "batalla de estrellas"
-            : "amistoso";
-        await awardXp(adminXp, winner_id, 20, "win_match", `Victoria en ${xpLabel}`);
-        if (loserId) await awardXp(adminXp, loserId, 5, "lose_match", `Derrota en ${xpLabel}`);
-      } catch (xpErr) {
-        console.error("Error awarding match XP:", xpErr);
+        // Award XP to both players (fire-and-forget)
+        try {
+          const adminXp = createAdminClient();
+          const starsBet = matchData.stars_bet ?? 0;
+          const xpLabel = starsBet > 0 ? "batalla de estrellas" : "amistoso";
+          await awardXp(adminXp, winner_id, 20, "win_match", `Victoria en ${xpLabel}`);
+          if (loserId) await awardXp(adminXp, loserId, 5, "lose_match", `Derrota en ${xpLabel}`);
+        } catch (xpErr) {
+          console.error("Error awarding match XP:", xpErr);
+        }
       }
 
       // Push notifications to both players (fire-and-forget)
@@ -173,6 +173,8 @@ export async function PATCH(
           const winnerPlayer = matchPlayers.find((p) => p.id === winner_id);
           const loserPlayer = matchPlayers.find((p) => p.id === loserId);
           const starsBet = matchData.stars_bet ?? 0;
+          // Deep link según modo: las peleas de ascenso llevan a su pantalla
+          const pushUrl = esAscenso ? "/ascenso" : "/dashboard";
 
           if (winnerPlayer) {
             // Mensaje según modo: ascenso habla de puntos/rango, copa omega de estrellas
@@ -190,7 +192,7 @@ export async function PATCH(
               winnerPlayer.id,
               "Victoria",
               winMsg,
-              "/dashboard"
+              pushUrl
             ).catch((e) => console.error("[push] error:", e));
           }
 
@@ -209,7 +211,7 @@ export async function PATCH(
               loserPlayer.id,
               "Derrota",
               loseMsg,
-              "/dashboard"
+              pushUrl
             ).catch((e) => console.error("[push] error:", e));
           }
         }

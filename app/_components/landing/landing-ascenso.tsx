@@ -1,33 +1,26 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Swords, Ticket, ChevronRight, ArrowRight, ChevronsUp } from "lucide-react";
+import { RANKS, type RankInfo } from "@/lib/ascenso";
 
 interface LandingAscensoProps {
   totalPlayers: number;
   totalMatches: number;
 }
 
-// ── Rangos por LETRA pura F→S ──────────────────────────────────────────────
-// PROHIBIDO nombres de metales/gemas y "estrellas". Solo la letra del tier.
-// `wins` = victorias necesarias para ascender DESDE este rango al siguiente.
-interface Rank {
-  letter: string;
-  /** Victorias que carga el ticket para saltar al rango de arriba (S no asciende). */
-  wins: number | null;
-  /** Color del acento del tier (hex para usar en estilos inline del beystadium). */
-  hex: string;
-}
-
-// De abajo (F, punto de partida) hacia arriba (S, la cima).
-const RANKS: readonly Rank[] = [
-  { letter: "F", wins: 5, hex: "#7dd3fc" },
-  { letter: "E", wins: 10, hex: "#38bdf8" },
-  { letter: "D", wins: 15, hex: "#22d3ee" },
-  { letter: "C", wins: 20, hex: "#818cf8" },
-  { letter: "B", wins: 25, hex: "#c084fc" },
-  { letter: "A", wins: 30, hex: "#f472b6" },
-  { letter: "S", wins: null, hex: "#fbbf24" },
-] as const;
+// ── Acentos visuales por rango ─────────────────────────────────────────────
+// Paleta hex propia de esta landing (estilos inline del beystadium).
+// Los DATOS del sistema (objetivo de Ticket Points por rango) salen de
+// lib/ascenso — única fuente de verdad, nunca números inventados acá.
+const RANK_HEX: Record<RankInfo["letter"], string> = {
+  F: "#7dd3fc",
+  E: "#38bdf8",
+  D: "#22d3ee",
+  C: "#818cf8",
+  B: "#c084fc",
+  A: "#f472b6",
+  S: "#fbbf24",
+};
 
 // Los dos bladers protagonistas del duelo (assets anime de Beyblade X).
 const FIGHTER_LEFT = "/characters/chr_00.png";
@@ -118,8 +111,9 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
               </div>
 
               <p className="mx-auto mt-6 max-w-sm text-sm leading-relaxed text-omega-muted md:text-base">
-                Entrás en <span className="font-black text-cyan-300">F</span>. Cada combate ganado
-                carga tu ticket de ascenso. Llenalo y peleá el salto al rango de arriba, hasta
+                Entrás en <span className="font-black text-cyan-300">F</span>. Cada pelea ganada
+                suma puntos a tu ticket — perder no te resta nada. Con el ticket lleno jugás el
+                combate de ascenso por el salto de rango, hasta
                 la <span className="font-black text-amber-300">S</span>.
               </p>
 
@@ -155,7 +149,7 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
           {/* Cinta-marcador del combate (tipo HUD de fighting game) */}
           <div className="mx-auto mt-2 flex max-w-2xl items-stretch divide-x divide-white/10 overflow-hidden rounded-lg border border-white/10 bg-black/50 backdrop-blur-md md:mt-0">
             <ScoreCell value={totalPlayers} label="bladers en pista" accent="text-cyan-300" />
-            <ScoreCell value={7} label="rangos · F a S" accent="text-indigo-300" />
+            <ScoreCell value={RANKS.length} label="rangos · F a S" accent="text-indigo-300" />
             <ScoreCell value={totalMatches} label="combates jugados" accent="text-amber-300" />
           </div>
         </div>
@@ -164,7 +158,8 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
       {/* ════════════════════════════════════════════════════════════════
           TABLERO DE ASCENSO — la progresión F→S como escalera de combate.
           NO es una pila de barras: cada rango es una "estación" con su
-          insignia hexagonal y el ticket de victorias que abre la siguiente.
+          insignia hexagonal y el objetivo de Ticket Points que abre la
+          siguiente (targets reales de lib/ascenso).
          ════════════════════════════════════════════════════════════════ */}
       <section className="relative border-t border-white/[0.06] bg-black/40 py-14 backdrop-blur-sm md:py-20">
         <div className="mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-14">
@@ -176,8 +171,9 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
               Subí <span className="text-amber-300">rango</span> a <span className="text-amber-300">rango</span>
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-omega-muted md:text-base">
-              Dentro de cada rango competís en una tabla por prioridad: ganás y subís en la tabla,
-              perdés y bajás. Cuando el ticket se llena, jugás el combate de ascenso.
+              El juez asigna puntos de ticket por cada pelea ganada — el que pierde no pierde
+              nada. Cada rango tiene su objetivo de Ticket Points: al llegar, desbloqueás el
+              combate de ascenso contra otro blader de tu rango con el ticket lleno.
             </p>
           </div>
 
@@ -188,10 +184,10 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
             ))}
           </ol>
 
-          {/* Nota del ticket: el contador se reinicia en cada rango. */}
+          {/* Nota del ticket: qué pasa en el combate de ascenso. */}
           <p className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-omega-muted md:text-sm">
             <Ticket className="size-4 text-amber-300/80" />
-            El contador del ticket arranca de cero en cada rango. Perder no te baja de rango: te baja en la tabla.
+            En el combate de ascenso el ganador sube de rango y los dos reinician el ticket en cero.
           </p>
         </div>
       </section>
@@ -322,9 +318,10 @@ function ScoreCell({ value, label, accent }: { value: number; label: string; acc
 
 // ── Estación de rango en el tablero de ascenso ─────────────────────────────
 // Cada rango es una tarjeta-insignia con su letra hexagonal y, debajo, el
-// ticket de victorias que hay que cargar para saltar al rango siguiente.
-function RankStation({ rank, index, isLast }: { rank: Rank; index: number; isLast: boolean }) {
-  const { letter, wins, hex } = rank;
+// objetivo de Ticket Points que habilita el combate de ascenso.
+function RankStation({ rank, index, isLast }: { rank: RankInfo; index: number; isLast: boolean }) {
+  const { letter, ticketTarget } = rank;
+  const hex = RANK_HEX[letter];
   return (
     <li className="relative flex flex-1 flex-col items-center rounded-xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-white/[0.06] md:p-5">
       {/* Conector hacia el siguiente rango (flecha de ascenso). */}
@@ -351,15 +348,15 @@ function RankStation({ rank, index, isLast }: { rank: Rank; index: number; isLas
         Rango {letter}
       </p>
 
-      {/* Ticket de ascenso: victorias para saltar al rango de arriba. */}
-      {wins !== null ? (
+      {/* Objetivo del ticket: puntos que habilitan el combate de ascenso. */}
+      {ticketTarget !== null ? (
         <span
           className="mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1"
           style={{ borderColor: `${hex}55`, background: `${hex}1a` }}
         >
           <Ticket className="size-3.5" style={{ color: hex }} />
           <span className="font-mono text-xs font-black" style={{ color: hex }}>
-            {wins} victorias
+            {ticketTarget} pts
           </span>
         </span>
       ) : (

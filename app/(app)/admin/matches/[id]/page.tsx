@@ -543,8 +543,10 @@ export default function MatchDetailPage() {
             </div>
           )}
 
-          {/* Edit result button for completed matches */}
-          {isCompleted && !showScoreForm && (
+          {/* Edit result button for completed matches.
+              En ascenso los puntos/rangos ya se aplicaron y el server rechaza
+              el PATCH siempre: no mostramos el botón (ver nota más abajo). */}
+          {isCompleted && !isAscenso && !showScoreForm && (
             <div className="text-center">
               <button
                 onClick={() => {
@@ -625,21 +627,32 @@ export default function MatchDetailPage() {
             </div>
           )}
 
-          {/* Delete match */}
-          <div className="pt-4 border-t border-omega-border/30 text-center">
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-red-400 border border-transparent hover:border-red-500/40 transition-all disabled:opacity-50"
-            >
-              {deleting ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
-              )}
-              Eliminar partida
-            </button>
-          </div>
+          {/* Delete match — una partida de ascenso completada no se puede
+              eliminar (el server devuelve 400: puntos/rangos ya aplicados),
+              así que mostramos una nota en lugar del botón. */}
+          {isAscenso && isCompleted ? (
+            <div className="pt-4 border-t border-omega-border/30 text-center">
+              <p className="text-xs text-omega-muted">
+                Los puntos y rangos ya fueron aplicados — esta pelea no se
+                puede editar ni eliminar.
+              </p>
+            </div>
+          ) : (
+            <div className="pt-4 border-t border-omega-border/30 text-center">
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-red-400 border border-transparent hover:border-red-500/40 transition-all disabled:opacity-50"
+              >
+                {deleting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                Eliminar partida
+              </button>
+            </div>
+          )}
 
           {/* Match metadata */}
           <div className="pt-4 border-t border-omega-border/30 text-center">

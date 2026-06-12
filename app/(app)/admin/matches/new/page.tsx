@@ -121,7 +121,29 @@ export default function NewMatchPage() {
   );
   const shouldFilterByTicket =
     matchMode === "ascenso" && isAscension && playersWithTicketData.length > 0;
-  const searchablePlayers = shouldFilterByTicket ? fullTicketPlayers : players;
+
+  // Jugador 1: en combate de ascenso, solo bladers con ticket lleno.
+  const searchablePlayers1 = shouldFilterByTicket ? fullTicketPlayers : players;
+
+  // Jugador 2: además del ticket lleno, mismo rango que el jugador 1 elegido
+  // (el combate de ascenso se pelea entre bladers del mismo rango).
+  const selectedP1Data = selectedPlayer1
+    ? (players.find((p) => p.id === selectedPlayer1.id) ?? null)
+    : null;
+  const searchablePlayers2 =
+    shouldFilterByTicket && selectedP1Data?.rank_letter != null
+      ? fullTicketPlayers.filter((p) => p.rank_letter === selectedP1Data.rank_letter)
+      : searchablePlayers1;
+
+  // Al entrar al modo combate de ascenso, deseleccionamos a quien no tenga el
+  // ticket lleno — así el juez no se entera del error recién en el submit.
+  // Solo si tenemos datos de rango para validarlo localmente.
+  function deselectPlayersWithoutFullTicket() {
+    if (playersWithTicketData.length === 0) return;
+    const fullIds = new Set(fullTicketPlayers.map((p) => p.id));
+    if (selectedPlayer1 && !fullIds.has(selectedPlayer1.id)) setSelectedPlayer1(null);
+    if (selectedPlayer2 && !fullIds.has(selectedPlayer2.id)) setSelectedPlayer2(null);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -287,7 +309,12 @@ export default function NewMatchPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setMatchMode("ascenso")}
+                  onClick={() => {
+                    setMatchMode("ascenso");
+                    // Si el toggle de combate de ascenso quedó activo de antes,
+                    // aplicamos la misma limpieza de selecciones inválidas.
+                    if (isAscension) deselectPlayersWithoutFullTicket();
+                  }}
                   data-testid="mode-ascenso-btn"
                   className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-bold transition-all ${
                     matchMode === "ascenso"
@@ -304,24 +331,43 @@ export default function NewMatchPage() {
 
           {/* Player 1 */}
           <PlayerSearch
-            players={searchablePlayers}
-            onSelect={(p) => setSelectedPlayer1(p ?? null)}
+            players={searchablePlayers1}
+            onSelect={(p) => {
+              setSelectedPlayer1(p ?? null);
+              // En combate de ascenso el rival debe ser del mismo rango: si el
+              // jugador 2 ya elegido no coincide, lo deseleccionamos.
+              if (p && shouldFilterByTicket && selectedPlayer2) {
+                const p1Data = players.find((pl) => pl.id === p.id);
+                const p2Data = players.find((pl) => pl.id === selectedPlayer2.id);
+                if (
+                  p1Data?.rank_letter != null &&
+                  p2Data?.rank_letter != null &&
+                  p1Data.rank_letter !== p2Data.rank_letter
+                ) {
+                  setSelectedPlayer2(null);
+                }
+              }
+            }}
             placeholder="Buscar jugador 1..."
             label="Jugador 1"
             selectedPlayer={selectedPlayer1}
             excludeIds={player2Id ? [player2Id] : []}
+            showStars={matchMode === "copa_omega"}
+            showRank={matchMode === "ascenso"}
             clearable
             testId="player1-search"
           />
 
           {/* Player 2 */}
           <PlayerSearch
-            players={searchablePlayers}
+            players={searchablePlayers2}
             onSelect={(p) => setSelectedPlayer2(p ?? null)}
             placeholder="Buscar jugador 2..."
             label="Jugador 2"
             selectedPlayer={selectedPlayer2}
             excludeIds={player1Id ? [player1Id] : []}
+            showStars={matchMode === "copa_omega"}
+            showRank={matchMode === "ascenso"}
             clearable
             testId="player2-search"
           />
@@ -364,7 +410,13 @@ export default function NewMatchPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsAscension((v) => !v)}
+                  onClick={() => {
+                    const next = !isAscension;
+                    setIsAscension(next);
+                    // Al activar: limpiamos selecciones sin ticket lleno para
+                    // que el juez no choque con el 400 del server al guardar.
+                    if (next) deselectPlayersWithoutFullTicket();
+                  }}
                   aria-pressed={isAscension}
                   data-testid="ascension-toggle"
                   className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
@@ -382,8 +434,10 @@ export default function NewMatchPage() {
               {isAscension ? (
                 <p className="text-[11px] text-omega-muted">
                   {shouldFilterByTicket
-                    ? "Mostrando solo jugadores con ticket lleno."
-                    : "El servidor valida que ambos jugadores tengan el ticket lleno."}
+                    ? selectedP1Data?.rank_letter != null
+                      ? `Mostrando solo jugadores de rango ${selectedP1Data.rank_letter} con ticket lleno.`
+                      : "Mostrando solo jugadores con ticket lleno."
+                    : "El servidor valida que ambos jugadores tengan el ticket lleno y el mismo rango."}
                 </p>
               ) : (
                 /* Puntos para el ganador */

@@ -7,12 +7,23 @@ import path from "path";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const p1Name = searchParams.get("p1") || "Jugador 1";
-    const p2Name = searchParams.get("p2") || "Jugador 2";
-    const r1 = searchParams.get("r1") || "F";
-    const r2 = searchParams.get("r2") || "F";
-    const c1 = searchParams.get("c1") || "00";
-    const c2 = searchParams.get("c2") || "05";
+    // Validación de query params: el endpoint es público (imagen para compartir),
+    // así que sanitizamos todo antes de dibujar o de armar paths de archivos.
+    // - p1/p2: recortados a 24 caracteres para que no desborden el canvas
+    // - r1/r2: solo letras de rango válidas (F,E,D,C,B,A,S), sino "F"
+    // - c1/c2: solo 1-2 dígitos (índice de personaje), sino defaults
+    const RANGO_VALIDO = /^[FEDCBAS]$/;
+    const PERSONAJE_VALIDO = /^[0-9]{1,2}$/;
+    const p1Name = (searchParams.get("p1") || "Jugador 1").slice(0, 24);
+    const p2Name = (searchParams.get("p2") || "Jugador 2").slice(0, 24);
+    const r1Raw = searchParams.get("r1") ?? "";
+    const r1 = RANGO_VALIDO.test(r1Raw) ? r1Raw : "F";
+    const r2Raw = searchParams.get("r2") ?? "";
+    const r2 = RANGO_VALIDO.test(r2Raw) ? r2Raw : "F";
+    const c1Raw = searchParams.get("c1") ?? "";
+    const c1 = PERSONAJE_VALIDO.test(c1Raw) ? c1Raw : "00";
+    const c2Raw = searchParams.get("c2") ?? "";
+    const c2 = PERSONAJE_VALIDO.test(c2Raw) ? c2Raw : "05";
 
     const WIDTH = 1200;
     const HEIGHT = 630; // OG image standard
