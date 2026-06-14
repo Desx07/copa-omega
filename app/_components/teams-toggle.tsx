@@ -28,9 +28,18 @@ export function TeamsToggle() {
       if (res.ok) {
         setEnabled(newValue);
         toast.success(`Equipos: ${newValue ? "Habilitados" : "Deshabilitados"}`);
+      } else {
+        // Respuesta HTTP de error (403/500/etc): leemos el mensaje del body.
+        const msg = await res
+          .json()
+          .then((d) => d?.error as string | undefined)
+          .catch(() => undefined);
+        console.error("Error cambiando estado de equipos:", res.status, msg);
+        toast.error(msg ?? "No se pudo cambiar el estado de equipos");
       }
-    } catch {
-      toast.error("Error cambiando estado");
+    } catch (err) {
+      console.error("Error de red cambiando estado de equipos:", err);
+      toast.error("Error de conexión cambiando estado");
     }
     setToggling(false);
   }

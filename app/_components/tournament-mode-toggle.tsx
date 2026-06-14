@@ -63,7 +63,21 @@ export function TournamentModeToggle() {
     setBusy(`active-${mode}`);
     if (await patch(enabledKeyFor(mode), next ? "true" : "false")) {
       // En modo Liga, los equipos dependen del flag teams_enabled: lo acompañamos.
-      if (mode === "liga") await patch("teams_enabled", next ? "true" : "false");
+      // El 2º PATCH también hay que chequearlo: si falla, la modalidad ya quedó
+      // cambiada pero teams_enabled no, dejando un estado inconsistente.
+      if (mode === "liga") {
+        const teamsOk = await patch("teams_enabled", next ? "true" : "false");
+        if (!teamsOk) {
+          // Revertimos el primer PATCH para no dejar liga y equipos desincronizados.
+          await patch(enabledKeyFor(mode), next ? "false" : "true");
+          toast.error(
+            "No se pudo sincronizar el estado de equipos. Se revirtió el cambio de Liga para evitar inconsistencias."
+          );
+          router.refresh();
+          setBusy(null);
+          return;
+        }
+      }
       setActive((p) => ({ ...p, [mode]: next }));
       toast.success(`${MODE_META[mode].label}: ${next ? "activada" : "desactivada"}`);
       router.refresh();

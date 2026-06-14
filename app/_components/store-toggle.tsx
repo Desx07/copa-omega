@@ -36,9 +36,18 @@ export function StoreToggle() {
       if (res.ok) {
         setStatus(next);
         toast.success(`Tienda: ${statusConfig[next].label}`);
+      } else {
+        // Respuesta HTTP de error (403/500/etc): leemos el mensaje del body.
+        const msg = await res
+          .json()
+          .then((d) => d?.error as string | undefined)
+          .catch(() => undefined);
+        console.error("Error cambiando estado de la tienda:", res.status, msg);
+        toast.error(msg ?? "No se pudo cambiar el estado de la tienda");
       }
-    } catch {
-      toast.error("Error cambiando estado");
+    } catch (err) {
+      console.error("Error de red cambiando estado de la tienda:", err);
+      toast.error("Error de conexión cambiando estado");
     }
     setToggling(false);
   }

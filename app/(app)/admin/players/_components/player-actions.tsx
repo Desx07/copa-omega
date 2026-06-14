@@ -9,13 +9,50 @@ interface PlayerActionsProps {
   playerId: string;
   isHidden: boolean;
   isJudge: boolean;
+  ascensoEnabled: boolean;
   alias: string;
 }
 
-export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActionsProps) {
+export function PlayerActions({ playerId, isHidden, isJudge, ascensoEnabled, alias }: PlayerActionsProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState<"hide" | "delete" | "judge" | null>(null);
+  const [loading, setLoading] = useState<"hide" | "delete" | "judge" | "ascenso" | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  // Estado optimista local del flag de ascenso: se actualiza ni bien se clickea
+  // y se revierte si el PATCH falla.
+  const [ascenso, setAscenso] = useState(ascensoEnabled);
+
+  async function handleToggleAscenso() {
+    const next = !ascenso;
+    setLoading("ascenso");
+    setAscenso(next); // optimista
+    try {
+      const res = await fetch(`/api/admin/players/${playerId}/ascenso`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: next }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || `Error ${res.status} al cambiar ascenso`);
+        setAscenso(!next); // revert
+        return;
+      }
+      const data = await res.json();
+      // Sincronizamos con lo que devolvió el server (fuente de verdad).
+      setAscenso(Boolean(data.ascenso_enabled));
+      toast.success(
+        data.ascenso_enabled
+          ? `${alias} habilitado para Ascenso`
+          : `${alias} deshabilitado de Ascenso`
+      );
+      router.refresh();
+    } catch {
+      toast.error("Error de conexión");
+      setAscenso(!next); // revert
+    } finally {
+      setLoading(null);
+    }
+  }
 
   async function handleToggleHidden() {
     setLoading("hide");
@@ -82,6 +119,30 @@ export function PlayerActions({ playerId, isHidden, isJudge, alias }: PlayerActi
 
   return (
     <div className="flex items-center gap-1 shrink-0">
+      {/* Switch ascenso — habilita/deshabilita la participación en el Torneo de Ascenso */}
+      <button
+        onClick={handleToggleAscenso}
+        disabled={loading !== null}
+        role="switch"
+        aria-checked={ascenso}
+        aria-label={ascenso ? `Deshabilitar a ${alias} de Ascenso` : `Habilitar a ${alias} en Ascenso`}
+        title={ascenso ? "Deshabilitar de Ascenso" : "Habilitar para Ascenso"}
+        data-testid="ascenso-toggle"
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-60 ${
+          ascenso ? "bg-omega-green" : "bg-omega-elevated border border-omega-border"
+        }`}
+      >
+        <span
+          className={`absolute top-1/2 flex size-[18px] -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md transition-all duration-200 ${
+            ascenso ? "left-[calc(100%-20px)]" : "left-[2px]"
+          }`}
+        >
+          {loading === "ascenso" && (
+            <Loader2 className="size-3 animate-spin text-omega-dark" />
+          )}
+        </span>
+      </button>
+
       {/* Toggle judge */}
       <button
         onClick={handleToggleJudge}

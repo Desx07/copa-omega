@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Star, Users, Shield, UserCheck, EyeOff, ArrowLeft, Scale } from "lucide-react";
+import { Star, Users, Shield, UserCheck, EyeOff, ArrowLeft, Scale, TrendingUp } from "lucide-react";
 import { PlayerActions } from "./_components/player-actions";
 
 export default async function AdminPlayersPage() {
@@ -15,16 +15,48 @@ export default async function AdminPlayersPage() {
     redirect("/auth/login");
   }
 
+  // Columnas base + ascenso_enabled. La columna ascenso_enabled puede no existir
+  // todavía (migración sin aplicar): si la query falla por columna inexistente
+  // (Postgres code 42703) reintentamos sin ella y tratamos el flag como false.
+  const BASE_COLUMNS =
+    "id, full_name, alias, stars, wins, losses, is_eliminated, is_admin, is_hidden, is_judge, created_at";
+
+  type PlayerRow = {
+    id: string;
+    full_name: string;
+    alias: string;
+    stars: number;
+    wins: number;
+    losses: number;
+    is_eliminated: boolean;
+    is_admin: boolean;
+    is_hidden: boolean;
+    is_judge: boolean;
+    created_at: string;
+    ascenso_enabled?: boolean | null;
+  };
+
   const [profileResult, playersResult] = await Promise.all([
     supabase.from("players").select("is_admin").eq("id", user.id).single(),
     supabase
       .from("players")
-      .select("id, full_name, alias, stars, wins, losses, is_eliminated, is_admin, is_hidden, is_judge, created_at")
+      .select(`${BASE_COLUMNS}, ascenso_enabled`)
       .order("stars", { ascending: false }),
   ]);
 
   const { data: profile } = profileResult;
-  const { data: players } = playersResult;
+
+  let players = playersResult.data as PlayerRow[] | null;
+
+  // Fallback: si la columna ascenso_enabled no existe (42703), reintentamos
+  // con las columnas base para no romper la página antes de la migración.
+  if (playersResult.error?.code === "42703") {
+    const { data: fallbackPlayers } = await supabase
+      .from("players")
+      .select(BASE_COLUMNS)
+      .order("stars", { ascending: false });
+    players = fallbackPlayers as PlayerRow[] | null;
+  }
 
   if (!profile?.is_admin) {
     redirect("/dashboard");
@@ -166,6 +198,12 @@ export default async function AdminPlayersPage() {
                         {player.is_hidden && (
                           <EyeOff className="size-3.5 text-omega-gold shrink-0" />
                         )}
+                        {player.ascenso_enabled && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-omega-green/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-omega-green ring-1 ring-inset ring-omega-green/30 shrink-0">
+                            <TrendingUp className="size-2.5" />
+                            Ascenso
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-omega-muted truncate">
                         {player.full_name}
@@ -203,6 +241,7 @@ export default async function AdminPlayersPage() {
                         playerId={player.id}
                         isHidden={player.is_hidden}
                         isJudge={player.is_judge}
+                        ascensoEnabled={player.ascenso_enabled ?? false}
                         alias={player.alias}
                       />
                     )}

@@ -42,13 +42,24 @@ export async function PATCH(
     return Response.json({ error: "No hay campos para actualizar" }, { status: 400 });
   }
 
-  const { error } = await supabase
+  // Usamos el cliente admin (service role) para el UPDATE: la RLS puede impedir
+  // que un admin edite filas de otros jugadores y el update afectaría 0 filas
+  // sin devolver error (toggle silencioso). El permiso ya se validó arriba.
+  const adminClient = createAdminClient();
+  const { data: updated, error } = await adminClient
     .from("players")
     .update(updateData)
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     return Response.json({ error: error.message }, { status: 500 });
+  }
+
+  // Si no se afectó ninguna fila, el jugador no existe (o el id es inválido):
+  // devolvemos error explícito en vez de un success engañoso.
+  if (!updated || updated.length === 0) {
+    return Response.json({ error: "Jugador no encontrado" }, { status: 404 });
   }
 
   return Response.json({ success: true });

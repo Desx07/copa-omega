@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // GET — check store status: 'open' | 'closed' | 'hidden'
 export async function GET() {
@@ -47,10 +48,17 @@ export async function PATCH(request: Request) {
     return Response.json({ error: "Estado inválido" }, { status: 400 });
   }
 
-  const { error } = await supabase
+  // Upsert con el cliente de servicio: si la key "store_enabled" todavía no
+  // tiene fila, un UPDATE afectaría 0 filas sin error y no persistiría nada.
+  // Además la RLS de app_settings puede no permitir INSERT al usuario. El
+  // permiso real ya se validó arriba (is_admin).
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
     .from("app_settings")
-    .update({ value: body.status, updated_at: new Date().toISOString() })
-    .eq("key", "store_enabled");
+    .upsert(
+      { key: "store_enabled", value: body.status, updated_at: new Date().toISOString() },
+      { onConflict: "key" }
+    );
 
   if (error) {
     return Response.json({ error: error.message }, { status: 500 });

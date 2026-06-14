@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import BattleScreen, { type BattlePlayer } from "./_components/battle-card";
+import BattleClash from "./_components/battle-clash";
 import RankTower from "./_components/rank-tower";
 import RankUpAnimation from "./_components/rank-up-animation";
 import { rankInfo, type RankLetter } from "@/lib/ascenso";
@@ -90,7 +91,7 @@ function characterFor(playerId: string): string {
   return CHARACTER_IDS[hash % CHARACTER_IDS.length];
 }
 
-type GamePhase = "idle" | "tower" | "loading" | "versus" | "rank_up" | "result";
+type GamePhase = "idle" | "tower" | "loading" | "clash" | "versus" | "rank_up" | "result";
 
 // Resultado del último combate resuelto (viene de last_result en /me)
 interface ResultInfo {
@@ -265,17 +266,25 @@ export default function AscensoPage() {
   const onTowerComplete = useCallback(() => {
     setPhase("loading");
     setBattleStatus("loading");
-    // Loading 3s → reveal oponente → versus (cancelable: el resultado puede llegar antes)
+    // Loading 3s → reveal oponente → CHOQUE (clash) (cancelable: el resultado puede llegar antes)
     if (versusTimerRef.current) clearTimeout(versusTimerRef.current);
     versusTimerRef.current = setTimeout(() => {
       versusTimerRef.current = null;
-      // Solo avanzamos a versus si seguimos en loading: si llegó un resultado
+      // Solo avanzamos al choque si seguimos en loading: si llegó un resultado
       // o el usuario salió, no pisamos la fase actual
       if (phaseRef.current === "loading") {
-        setPhase("versus");
-        setBattleStatus("ready");
+        setPhase("clash");
       }
     }, 3500);
+  }, []);
+
+  // El choque (clash) terminó → mostramos la pantalla de versus estática
+  const onClashComplete = useCallback(() => {
+    // Si mientras chocaban ya llegó el resultado, no pisamos esa fase
+    if (phaseRef.current === "clash") {
+      setPhase("versus");
+      setBattleStatus("ready");
+    }
   }, []);
 
   // Limpieza del timer loading → versus al desmontar
@@ -284,6 +293,18 @@ export default function AscensoPage() {
       if (versusTimerRef.current) clearTimeout(versusTimerRef.current);
     };
   }, []);
+
+  // Seguridad: si entramos al choque sin un rival conocido, saltamos al versus
+  // (la pantalla de versus tolera la ausencia de rival y no deja la fase trabada)
+  const hasOpponentForClash = Boolean(
+    data?.active_match?.opponent ?? lastMatchRef.current?.opponent ?? data?.last_result?.opponent
+  );
+  useEffect(() => {
+    if (phase === "clash" && !hasOpponentForClash) {
+      setPhase("versus");
+      setBattleStatus("ready");
+    }
+  }, [phase, hasOpponentForClash]);
 
   // ── Loading inicial (estética del modo) ──
   if (!data && !loadError) {
@@ -417,6 +438,24 @@ export default function AscensoPage() {
           ticketPoints={player.ticket_points}
           kind={battleKind}
           onComplete={onTowerComplete}
+        />
+      )}
+
+      {/* Choque de enfrentamiento (fullscreen overlay) — estilo Beyblade X */}
+      {phase === "clash" && battleOpponent && (
+        <BattleClash
+          player={{
+            alias: battlePlayer.alias,
+            rank: battlePlayer.rank,
+            characterId: battlePlayer.characterId,
+          }}
+          opponent={{
+            alias: battleOpponent.alias,
+            rank: battleOpponent.rank,
+            characterId: battleOpponent.characterId,
+          }}
+          kind={battleKind}
+          onComplete={onClashComplete}
         />
       )}
 

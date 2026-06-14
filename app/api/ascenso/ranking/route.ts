@@ -18,12 +18,19 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
+    // Solo jugadores habilitados por el admin (ascenso_enabled = true).
     const { data: players, error } = await supabase
       .from("players")
       .select("id, alias, avatar_url, rank_letter, ticket_points, wins, losses")
-      .eq("is_eliminated", false);
+      .eq("is_eliminated", false)
+      .eq("ascenso_enabled", true);
 
     if (error) {
+      // Tolerante: si la columna todavía no existe (migración sin aplicar),
+      // devolvemos un ranking vacío con la bandera pending_migration en vez de 500.
+      if (error.code === "42703") {
+        return Response.json({ ranking: [], pending_migration: true });
+      }
       return Response.json({ error: error.message }, { status: 500 });
     }
 

@@ -83,6 +83,8 @@ export default function NewMatchPage() {
 
         if (error) {
           toast.error("Error al cargar jugadores");
+          // Sin esto el spinner queda girando para siempre: cortamos el loading.
+          setLoadingPlayers(false);
           return;
         }
         playerData = (data ?? []) as Player[];
@@ -223,26 +225,23 @@ export default function NewMatchPage() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        toast.error("No estas autenticado");
-        setLoading(false);
-        return;
-      }
-
-      const { error } = await supabase.from("matches").insert({
-        player1_id: player1Id,
-        player2_id: player2Id,
-        stars_bet: starsBetNum,
-        created_by: user.id,
+      // Unificamos con el modo ascenso: creamos vía POST /api/matches en vez de
+      // insertar directo. El endpoint revalida en el server (jugadores activos,
+      // estrellas suficientes, roles admin/juez) y crea la fila con stars_bet.
+      const res = await fetch("/api/matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          player1_id: player1Id,
+          player2_id: player2Id,
+          mode: "copa_omega",
+          stars_bet: starsBetNum,
+        }),
       });
 
-      if (error) {
-        toast.error(error.message);
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        toast.error(data?.error ?? "Error al crear la partida");
         setLoading(false);
         return;
       }

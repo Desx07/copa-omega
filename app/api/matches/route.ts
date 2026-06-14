@@ -239,14 +239,42 @@ async function createAscensoMatch(
     );
   }
 
-  // Verificar que ambos jugadores existan y estén activos
-  const { data: players, error: playersError } = await supabase
-    .from("players")
-    .select("id, alias, is_eliminated, rank_letter, ticket_points")
-    .in("id", [player1_id, player2_id]);
+  // Verificar que ambos jugadores existan y estén activos. Incluimos
+  // ascenso_enabled para validar la habilitación; si la columna no existe aún
+  // (migración sin aplicar) reintentamos sin ella y dejamos que el RPC valide
+  // tras migrar (tolerante: no bloqueamos por habilitación en ese caso).
+  let players: Array<{
+    id: string;
+    alias: string;
+    is_eliminated: boolean;
+    rank_letter: string;
+    ticket_points: number | null;
+    ascenso_enabled?: boolean;
+  }> | null = null;
+  let ascensoEnabledKnown = true;
 
-  if (playersError) {
-    return Response.json({ error: playersError.message }, { status: 500 });
+  {
+    const withFlag = await supabase
+      .from("players")
+      .select("id, alias, is_eliminated, rank_letter, ticket_points, ascenso_enabled")
+      .in("id", [player1_id, player2_id]);
+
+    if (withFlag.error?.code === "42703") {
+      // Columna inexistente: reintento sin ella, sin bloquear por habilitación.
+      ascensoEnabledKnown = false;
+      const fallback = await supabase
+        .from("players")
+        .select("id, alias, is_eliminated, rank_letter, ticket_points")
+        .in("id", [player1_id, player2_id]);
+      if (fallback.error) {
+        return Response.json({ error: fallback.error.message }, { status: 500 });
+      }
+      players = fallback.data;
+    } else if (withFlag.error) {
+      return Response.json({ error: withFlag.error.message }, { status: 500 });
+    } else {
+      players = withFlag.data;
+    }
   }
 
   if (!players || players.length !== 2) {
@@ -271,6 +299,22 @@ async function createAscensoMatch(
       { error: "Uno o ambos jugadores están eliminados" },
       { status: 400 }
     );
+  }
+
+  // Ambos jugadores deben estar habilitados por el admin para el Torneo de
+  // Ascenso. Si la columna no existe todavía, no bloqueamos acá: la valida el
+  // RPC resolve_ascenso_match una vez aplicada la migración.
+  if (ascensoEnabledKnown) {
+    const noHabilitados = [p1, p2].filter((p) => p.ascenso_enabled !== true);
+    if (noHabilitados.length > 0) {
+      const nombres = noHabilitados.map((p) => p.alias).join(", ");
+      return Response.json(
+        {
+          error: `Jugador no habilitado para el torneo de ascenso: ${nombres}. Habilitalo desde el panel de administración`,
+        },
+        { status: 400 }
+      );
+    }
   }
 
   // Validaciones extra para el combate de ascenso

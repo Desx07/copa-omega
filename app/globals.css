@@ -675,3 +675,108 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-coin-spin, .gold-shimmer { animation: none; }
 }
+
+/* ═══════════════════════════════════════════
+   BATTLE CLASH — Enfrentamiento estilo Beyblade X
+   Los dos personajes entran a toda velocidad y chocan
+   en el centro: flash, shake, chispas y un VS con impacto.
+   ═══════════════════════════════════════════ */
+
+/* Entrada veloz desde la izquierda: arranca fuera de pantalla,
+   sobrepasa el centro (overshoot) y rebota al impactar */
+@keyframes clash-charge-left {
+  0%   { transform: translateX(-120vw) scale(0.6) rotate(-8deg); opacity: 0; }
+  10%  { opacity: 1; }
+  55%  { transform: translateX(18%) scale(1.12) rotate(2deg); opacity: 1; }  /* impacto */
+  68%  { transform: translateX(-6%) scale(0.98) rotate(-3deg); }              /* rebote */
+  100% { transform: translateX(0) scale(1) rotate(0deg); }
+}
+@keyframes clash-charge-right {
+  0%   { transform: translateX(120vw) scale(0.6) rotate(8deg); opacity: 0; }
+  10%  { opacity: 1; }
+  55%  { transform: translateX(-18%) scale(1.12) rotate(-2deg); opacity: 1; } /* impacto */
+  68%  { transform: translateX(6%) scale(0.98) rotate(3deg); }                /* rebote */
+  100% { transform: translateX(0) scale(1) rotate(0deg); }
+}
+/* timing: 55% del recorrido = momento del choque. duración 1.1s ⇒ impacto ~0.6s */
+.clash-char-left  { animation: clash-charge-left  1.1s cubic-bezier(0.45, 0, 0.2, 1) both; }
+.clash-char-right { animation: clash-charge-right 1.1s cubic-bezier(0.45, 0, 0.2, 1) both; }
+
+/* Flash blanco/cyan en el momento del impacto */
+@keyframes clash-flash-burst {
+  0%   { opacity: 0; transform: scale(0.2); }
+  40%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+.clash-flash {
+  animation: clash-flash-burst 0.5s ease-out 0.55s both;
+}
+
+/* Shake de pantalla — sacudón breve al chocar */
+@keyframes clash-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-6px, 3px) rotate(-0.4deg); }
+  20% { transform: translate(7px, -4px) rotate(0.4deg); }
+  30% { transform: translate(-8px, 2px) rotate(-0.5deg); }
+  40% { transform: translate(6px, -3px) rotate(0.3deg); }
+  50% { transform: translate(-4px, 4px); }
+  60% { transform: translate(4px, -2px); }
+  70% { transform: translate(-3px, 1px); }
+  80% { transform: translate(2px, -1px); }
+  90% { transform: translate(-1px, 1px); }
+}
+.clash-shake {
+  /* arranca cuando ocurre el impacto (~0.55s) */
+  animation: clash-shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) 0.55s both;
+}
+
+/* Onda expansiva del choque */
+@keyframes clash-shockwave {
+  0%   { opacity: 0; transform: scale(0.1); border-width: 10px; }
+  35%  { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(2.4); border-width: 1px; }
+}
+.clash-shockwave {
+  animation: clash-shockwave 0.7s ease-out 0.55s both;
+}
+
+/* Chispas que salen disparadas del centro */
+@keyframes clash-spark {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--sx, 60px), var(--sy, -40px)) scale(0); opacity: 0; }
+}
+.clash-spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  animation: clash-spark 0.6s ease-out 0.55s both;
+}
+
+/* VS con impacto — aparece de golpe al chocar */
+@keyframes clash-vs-slam {
+  0%   { transform: scale(3.5) rotate(-12deg); opacity: 0; }
+  45%  { transform: scale(0.85) rotate(4deg); opacity: 1; }
+  65%  { transform: scale(1.1) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.clash-vs {
+  animation: clash-vs-slam 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+}
+
+/* Líneas de velocidad de fondo (speed lines) */
+@keyframes clash-speed-lines {
+  0%   { opacity: 0; transform: scaleX(0.3); }
+  20%  { opacity: 0.7; }
+  100% { opacity: 0; transform: scaleX(1.4); }
+}
+.clash-speed-lines {
+  animation: clash-speed-lines 0.6s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clash-char-left, .clash-char-right { animation: none; opacity: 1; transform: none; }
+  .clash-flash, .clash-shake, .clash-shockwave, .clash-spark,
+  .clash-vs, .clash-speed-lines { animation: none; }
+  .clash-vs { opacity: 1; }
+}

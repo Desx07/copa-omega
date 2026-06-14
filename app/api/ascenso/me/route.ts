@@ -139,6 +139,26 @@ export async function GET(request: Request) {
     const ticketPoints: number = player.ticket_points ?? 0;
     const esRangoMaximo = rankLetter === "S";
 
+    // Habilitación para el Torneo de Ascenso. Se consulta aparte para tolerar
+    // que la columna todavía no exista (migración sin aplicar): default false
+    // sin romper el endpoint.
+    let ascensoEnabled = false;
+    {
+      const { data: flagRow, error: flagError } = await supabase
+        .from("players")
+        .select("ascenso_enabled")
+        .eq("id", user.id)
+        .single();
+      if (flagError) {
+        if (flagError.code !== "42703") {
+          return Response.json({ error: flagError.message }, { status: 500 });
+        }
+        // columna inexistente → default false
+      } else {
+        ascensoEnabled = flagRow?.ascenso_enabled === true;
+      }
+    }
+
     // Objetivo de ticket del rango actual (null si es S: no hay más ascenso)
     let ticketTarget: number | null = null;
     if (!esRangoMaximo) {
@@ -171,17 +191,24 @@ export async function GET(request: Request) {
     }> = [];
 
     if (hasTicket && ticketTarget != null) {
+      // Solo rivales habilitados para el torneo de ascenso (ascenso_enabled = true).
       const { data: opponents, error: opponentsError } = await supabase
         .from("players")
         .select("id, alias, avatar_url, rank_letter, ticket_points")
         .eq("rank_letter", rankLetter)
         .gte("ticket_points", ticketTarget)
         .eq("is_eliminated", false)
+        .eq("ascenso_enabled", true)
         .neq("id", user.id)
         .order("ticket_points", { ascending: false });
 
       if (opponentsError) {
-        return Response.json({ error: opponentsError.message }, { status: 500 });
+        // Tolerante a columna inexistente (migración sin aplicar): sin el filtro
+        // de habilitación no podemos resolver rivales de forma segura, así que
+        // devolvemos lista vacía en vez de 500.
+        if (opponentsError.code !== "42703") {
+          return Response.json({ error: opponentsError.message }, { status: 500 });
+        }
       }
 
       eligibleOpponents = (opponents ?? []).map((o) => ({
@@ -304,6 +331,7 @@ export async function GET(request: Request) {
         ticket_points: ticketPoints,
         wins: player.wins ?? 0,
         losses: player.losses ?? 0,
+        ascenso_enabled: ascensoEnabled,
       },
       ticket_target: ticketTarget,
       has_ticket: hasTicket,

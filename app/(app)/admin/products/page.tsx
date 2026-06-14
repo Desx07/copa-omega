@@ -89,26 +89,32 @@ export default function AdminProductsPage() {
 
   async function toggleActive(product: Product) {
     setTogglingId(product.id);
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("products")
-      .update({
-        is_active: !product.is_active,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", product.id);
+    // Ruteamos por el endpoint API (que valida admin con service role) en vez
+    // de escribir directo con el client: el UPDATE directo depende de la RLS y
+    // puede afectar 0 filas sin error (no-op silencioso = el botón "no hace nada").
+    const nextActive = !product.is_active;
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: nextActive }),
+      });
 
-    if (error) {
-      toast.error("Error al cambiar estado");
-    } else {
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Error al cambiar estado");
+        setTogglingId(null);
+        return;
+      }
+
       setProducts((prev) =>
         prev.map((p) =>
-          p.id === product.id ? { ...p, is_active: !p.is_active } : p
+          p.id === product.id ? { ...p, is_active: nextActive } : p
         )
       );
-      toast.success(
-        product.is_active ? "Producto desactivado" : "Producto activado"
-      );
+      toast.success(nextActive ? "Producto activado" : "Producto desactivado");
+    } catch {
+      toast.error("Error de conexion");
     }
     setTogglingId(null);
   }
