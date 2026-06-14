@@ -56,8 +56,17 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Core queries (essential for render)
-  const [playerResult, matchesResult, allPlayersResult, last10Result, nextTournamentResult, liveTournamentResult] = await Promise.all([
+  // TODAS las queries en una sola tanda paralela. Antes había dos Promise.all
+  // secuenciales: el segundo esperaba al primero sin necesidad (no depende de
+  // `player`), duplicando la latencia contra Supabase. Unificadas, el TTFB baja
+  // a un solo round-trip.
+  const today = new Date().toISOString().split("T")[0];
+  const [
+    playerResult, matchesResult, allPlayersResult, last10Result,
+    nextTournamentResult, liveTournamentResult,
+    activeSeasonResult, carouselSettingResult, beysResult, predictionsResult,
+    challengesResult, carouselItemsResult, modeConfig, ascensoRowResult,
+  ] = await Promise.all([
     supabase
       .from("players")
       .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, badge, accent_color, is_admin, is_judge, created_at, current_login_streak, max_login_streak, onboarding_completed, xp")
@@ -89,7 +98,7 @@ export default async function DashboardPage() {
       .select("id, name, event_date, status, format, max_participants, participant_count:tournament_participants(count)")
       .eq("status", "registration")
       .not("event_date", "is", null)
-      .gte("event_date", new Date().toISOString().split("T")[0])
+      .gte("event_date", today)
       .order("event_date", { ascending: true })
       .limit(1)
       .maybeSingle(),
@@ -100,13 +109,6 @@ export default async function DashboardPage() {
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-  ]);
-
-  const player = playerResult.data;
-  if (!player) return null;
-
-  // Secondary queries — run in parallel, lighter batch
-  const [activeSeasonResult, carouselSettingResult, beysResult, predictionsResult, challengesResult, carouselItemsResult, modeConfig, ascensoRowResult] = await Promise.all([
     supabase.from("seasons").select("*").eq("status", "active").maybeSingle(),
     supabase.from("app_settings").select("value").eq("key", "dashboard_carousel_enabled").maybeSingle(),
     supabase.from("beys").select("id", { count: "exact", head: true }).eq("player_id", user.id),
@@ -118,6 +120,9 @@ export default async function DashboardPage() {
     // pendiente). Si la query falla, data queda null y caemos al fallback F/0.
     supabase.from("players").select("rank_letter, ticket_points").eq("id", user.id).maybeSingle(),
   ]);
+
+  const player = playerResult.data;
+  if (!player) return null;
 
   const carouselEnabled = carouselSettingResult.data?.value === "true";
 
