@@ -111,50 +111,52 @@ export function TournamentModeToggle() {
             <div
               key={mode}
               className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
-                on ? "border-omega-border/60 bg-omega-card/40" : "border-omega-border/30 bg-omega-card/15"
+                on ? "border-omega-border/60 bg-omega-card/40" : "border-omega-border/25 bg-transparent"
               }`}
             >
-              <Icon className={`size-5 shrink-0 ${meta.color} ${on ? "" : "opacity-50"}`} />
+              <Icon className={`size-5 shrink-0 ${meta.color} ${on ? "" : "opacity-40"}`} />
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-bold ${on ? "text-omega-text" : "text-omega-muted"}`}>{meta.label}</p>
-                <p className={`text-xs truncate ${on ? "text-omega-muted" : "text-omega-muted/70"}`}>{meta.desc}</p>
+                <p className="text-[11px] text-omega-muted/80 truncate">{meta.desc}</p>
               </div>
 
-              {/* Destacar en landing (radio: solo una) */}
-              <button
-                onClick={() => setAsFeatured(mode)}
-                disabled={!!busy || !on}
-                title="Mostrar en la landing"
-                className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition-all disabled:cursor-not-allowed ${
-                  isFeat
-                    ? "border-omega-purple/40 bg-omega-purple/20 text-omega-purple"
-                    : on
-                      ? "border-omega-border/50 bg-omega-card/60 text-omega-muted hover:text-omega-text hover:border-omega-border"
-                      : "border-omega-border/40 bg-omega-card/40 text-omega-muted/80"
-                }`}
-              >
-                {busy === `feat-${mode}` ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : isFeat ? (
-                  <Check className="size-3" />
-                ) : (
-                  <Radio className="size-3" />
-                )}
-                {isFeat ? "En landing" : "Destacar"}
-              </button>
+              {/* Destacar en landing — solo si la modalidad está activa */}
+              {on && (
+                <button
+                  onClick={() => setAsFeatured(mode)}
+                  disabled={!!busy || isFeat}
+                  title="Mostrar esta modalidad en la landing"
+                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition-all disabled:cursor-default ${
+                    isFeat
+                      ? "bg-omega-purple/25 text-omega-purple ring-1 ring-inset ring-omega-purple/40"
+                      : "bg-omega-elevated text-omega-muted hover:text-omega-text"
+                  }`}
+                >
+                  {busy === `feat-${mode}` ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : isFeat ? (
+                    <Check className="size-3" />
+                  ) : (
+                    <Radio className="size-3" />
+                  )}
+                  {isFeat ? "Landing" : "Destacar"}
+                </button>
+              )}
 
               {/* Switch on/off */}
               <button
                 onClick={() => toggleActive(mode)}
                 disabled={!!busy}
-                aria-pressed={on}
-                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
-                  on ? "bg-omega-green" : "bg-omega-border"
+                role="switch"
+                aria-checked={on}
+                title={on ? "Desactivar" : "Activar"}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-60 ${
+                  on ? "bg-omega-green" : "bg-omega-elevated border border-omega-border"
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 size-5 rounded-full bg-white transition-transform ${
-                    on ? "translate-x-5" : "translate-x-0.5"
+                  className={`absolute top-1/2 size-[18px] -translate-y-1/2 rounded-full bg-white shadow-md transition-all duration-200 ${
+                    on ? "left-[calc(100%-20px)]" : "left-[2px]"
                   }`}
                 />
               </button>
