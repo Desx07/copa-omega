@@ -1,10 +1,21 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Ticket, Swords, Trophy, ChevronsUp, Share2, Lock, Users } from "lucide-react";
 import BattleScreen, { type BattlePlayer } from "./_components/battle-card";
 import BattleClash from "./_components/battle-clash";
 import RankTower from "./_components/rank-tower";
 import RankUpAnimation from "./_components/rank-up-animation";
+import {
+  AscensoBackground,
+  AscensoKicker,
+  AscensoPanel,
+  RankSeal,
+  RANK_HEX,
+  ASCENSO_CTA_CLASS,
+  ASCENSO_TEXT_GRADIENT,
+  ASCENSO_TEXT_GRADIENT_GOLD,
+} from "./_components/ascenso-ui";
 import { rankInfo, type RankLetter } from "@/lib/ascenso";
 
 // ── Tipos de la respuesta de GET /api/ascenso/me ──
@@ -319,29 +330,31 @@ export default function AscensoPage() {
     }
   }, [phase, hasOpponentForClash]);
 
-  // ── Loading inicial (estética del modo) ──
+  // ── Loading inicial (estética del modo: estadio + spinner cian) ──
   if (!data && !loadError) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white flex flex-col items-center justify-center">
+      <div className="relative min-h-screen text-white flex flex-col items-center justify-center">
+        <AscensoBackground />
         <div className="w-12 h-12 rounded-full border-2 border-cyan-400/20 border-t-cyan-400 animate-spin" />
-        <p className="mt-5 text-cyan-400 text-sm font-mono tracking-[0.3em] animate-pulse">
+        <p className="mt-5 text-cyan-300 text-sm font-mono tracking-[0.3em] animate-pulse">
           CARGANDO
         </p>
       </div>
     );
   }
 
-  // ── Error ──
+  // ── Error (mismo fondo de estadio para no romper la coherencia) ──
   if (!data) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white flex flex-col items-center justify-center px-4">
+      <div className="relative min-h-screen text-white flex flex-col items-center justify-center px-4">
+        <AscensoBackground />
         <p className="text-white/60 text-sm font-mono text-center">{loadError}</p>
         {unauthorized ? (
           // Sin sesión: reintentar no sirve, va directo al login
           <a
             href="/auth/login"
             data-testid="ascenso-login-btn"
-            className="mt-5 px-6 py-2 bg-white/10 rounded-lg text-sm font-bold hover:bg-white/20 transition"
+            className="mt-5 px-6 py-2 bg-white/10 border border-white/10 rounded-lg text-sm font-bold hover:bg-white/20 transition"
           >
             Iniciar sesión
           </a>
@@ -352,7 +365,7 @@ export default function AscensoPage() {
               void fetchMe();
             }}
             data-testid="ascenso-retry-btn"
-            className="mt-5 px-6 py-2 bg-white/10 rounded-lg text-sm font-bold hover:bg-white/20 transition"
+            className="mt-5 px-6 py-2 bg-white/10 border border-white/10 rounded-lg text-sm font-bold hover:bg-white/20 transition"
           >
             Reintentar
           </button>
@@ -435,7 +448,10 @@ export default function AscensoPage() {
         : player.id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white">
+    <div className="relative min-h-screen text-white">
+      {/* Fondo tipo estadio (mismo de la landing aprobada): /stadium.png sobre #05070d */}
+      <AscensoBackground />
+
       {/* Animación de ascenso de rango (fullscreen overlay) */}
       {phase === "rank_up" && rankUp && (
         <RankUpAnimation
@@ -476,12 +492,16 @@ export default function AscensoPage() {
         />
       )}
 
-      {/* Header */}
-      <div className="text-center pt-8 pb-4">
-        <h1 className="text-3xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-          TORNEO DE ASCENSO
+      {/* Header — kicker + título black uppercase con gradiente cian→ámbar (landing) */}
+      <div className="text-center px-4 pt-8 pb-5">
+        <AscensoKicker left="cyan" right="amber">
+          Bladers Santa Fe · torneo de ascenso
+        </AscensoKicker>
+        <h1 className="mt-4 text-4xl font-black uppercase leading-[0.9] tracking-tight md:text-5xl">
+          <span className="text-white/95">Torneo </span>
+          <span className={ASCENSO_TEXT_GRADIENT}>de Ascenso</span>
         </h1>
-        <p className="text-white/40 text-sm mt-1 font-mono">
+        <p className="mt-2 text-sm text-white/45">
           Subí de rango derrotando a tus rivales
         </p>
       </div>
@@ -493,40 +513,44 @@ export default function AscensoPage() {
           {cancelNotice && (
             <div
               data-testid="ascenso-cancel-notice"
-              className="mb-4 px-4 py-3 bg-orange-500/10 border border-orange-500/30 rounded-xl text-center"
+              className="mb-4 flex items-center justify-center gap-2 px-4 py-3 bg-amber-400/10 border border-amber-400/30 rounded-xl text-center backdrop-blur-sm"
             >
-              <p className="text-orange-400 text-sm font-bold">{cancelNotice}</p>
+              <Swords className="size-4 text-amber-300 shrink-0" />
+              <p className="text-amber-200 text-sm font-bold">{cancelNotice}</p>
             </div>
           )}
 
-          {/* Card de rango actual */}
-          <div className="bg-gradient-to-r from-purple-800/60 to-purple-900/60 rounded-xl p-5 border border-purple-500/30 mb-6">
+          {/* Card de rango actual — panel translúcido + sello hexagonal (landing) */}
+          <AscensoPanel className="mb-6">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 rounded-xl bg-black/40 flex items-center justify-center border border-purple-500/40 shadow-[0_0_20px_rgba(192,132,252,0.3)]">
-                <span className="text-4xl font-black text-purple-400">{player.rank_letter}</span>
-              </div>
+              {/* Sello hexagonal del rango (latido = tu rango activo) */}
+              <RankSeal letter={player.rank_letter} size="md" pulse />
               <div className="flex-1 text-left">
-                <div className="font-bold text-lg">{player.alias}</div>
+                <div className="text-lg font-black uppercase tracking-wide">{player.alias}</div>
                 <div className="text-sm text-white/60">Rango {info.name}</div>
-                <div className="text-xs text-white/40">{player.wins}W / {player.losses}L</div>
+                <div className="text-xs font-mono text-white/40">
+                  {player.wins}W · {player.losses}L
+                </div>
               </div>
             </div>
 
-            {/* Barra de Ticket Points */}
-            <div className="mb-2">
-              <div className="flex justify-between text-xs text-white/50 mb-1">
-                <span>Ticket Points</span>
-                <span>
+            {/* Barra de Ticket Points — cian (en progreso) / ámbar (lleno) */}
+            <div>
+              <div className="mb-1.5 flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-white/50">
+                <span className="flex items-center gap-1.5">
+                  <Ticket className="size-3.5 text-cyan-300/80" /> Ticket Points
+                </span>
+                <span className="tabular-nums text-white/70">
                   {player.ticket_points.toLocaleString()}
                   {ticketTarget != null && ` / ${ticketTarget.toLocaleString()}`}
                 </span>
               </div>
-              <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden">
+              <div className="w-full h-2.5 bg-black/50 rounded-full overflow-hidden border border-white/5">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     hasTicket
-                      ? "bg-gradient-to-r from-yellow-400 to-amber-500 shadow-[0_0_10px_rgba(253,224,71,0.5)]"
-                      : "bg-gradient-to-r from-cyan-500 to-purple-500"
+                      ? "bg-gradient-to-r from-amber-300 to-amber-500 shadow-[0_0_12px_rgba(251,191,36,0.6)]"
+                      : "bg-gradient-to-r from-cyan-400 to-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.5)]"
                   }`}
                   style={{ width: `${progressPercent}%` }}
                 />
@@ -534,39 +558,35 @@ export default function AscensoPage() {
             </div>
 
             {hasTicket && (
-              <div className="text-center mt-3">
-                <span className="text-yellow-400 text-sm font-bold animate-pulse">
-                  🎫 TICKET LLENO — {activeMatch ? "¡COMBATE LISTO!" : "esperando combate"}
-                </span>
+              <div className="mt-3 flex items-center justify-center gap-2 text-amber-300 text-xs font-black uppercase tracking-widest">
+                <Ticket className="size-4 animate-pulse" />
+                <span>Ticket lleno — {activeMatch ? "¡combate listo!" : "esperando combate"}</span>
               </div>
             )}
-          </div>
+          </AscensoPanel>
 
           {/* Estado / acción según haya combate armado por el juez */}
           {activeMatch ? (
             <button
               onClick={startBattle}
               data-testid="ascenso-battle-btn"
-              className={`w-full px-8 py-4 rounded-xl text-lg font-black tracking-wider transition-all active:scale-95 animate-pulse ${
-                activeMatch.match_kind === "ascension"
-                  ? "bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 shadow-[0_0_30px_rgba(253,224,71,0.4)] hover:shadow-[0_0_50px_rgba(253,224,71,0.6)]"
-                  : "bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)]"
-              }`}
+              className={`${ASCENSO_CTA_CLASS} w-full animate-pulse`}
               style={{ animationDuration: "2s" }}
             >
-              ⚔️ {activeMatch.match_kind === "ascension" ? "COMBATE DE ASCENSO" : "COMBATE EN CURSO"}
+              <Swords className="size-5" />
+              {activeMatch.match_kind === "ascension" ? "COMBATE DE ASCENSO" : "COMBATE EN CURSO"}
             </button>
           ) : hasTicket ? (
             <div>
               {/* El combate lo arma el juez en el torneo */}
-              <div className="w-full px-6 py-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-center mb-5">
-                <p className="text-yellow-400 font-bold text-sm tracking-wider">
-                  🎫 TICKET LLENO — ESPERANDO COMBATE
+              <AscensoPanel className="mb-5 border-amber-400/25 bg-amber-400/[0.06] text-center">
+                <p className="flex items-center justify-center gap-2 text-amber-300 font-black text-sm uppercase tracking-widest">
+                  <Ticket className="size-4" /> Ticket lleno — esperando combate
                 </p>
-                <p className="text-white/40 text-xs mt-1.5">
+                <p className="text-white/45 text-xs mt-1.5">
                   El juez va a armar tu combate de ascenso en el torneo
                 </p>
-              </div>
+              </AscensoPanel>
 
               {/* Cola de combate FIFO — posición del usuario + lista ordenada.
                   No se muestra si la cola viene vacía o el usuario está en rango S
@@ -574,35 +594,37 @@ export default function AscensoPage() {
               {queue.length > 0 && player.rank_letter !== "S" && (
                 <div className="text-left" data-testid="ascenso-queue">
                   {/* Titular con la posición en la fila */}
-                  <div className="mb-3 px-4 py-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-center">
-                    <p className="text-lg font-black text-cyan-200" data-testid="ascenso-queue-position">
+                  <AscensoPanel className="mb-3 border-cyan-400/25 bg-cyan-400/[0.06] text-center">
+                    <p className="text-lg font-black" data-testid="ascenso-queue-position">
                       {myQueuePos > 0 ? (
                         <>
-                          Sos el <span className="text-cyan-400">{myQueuePos}º</span> en la fila
+                          Sos el{" "}
+                          <span className={`inline-block ${ASCENSO_TEXT_GRADIENT}`}>{myQueuePos}º</span>{" "}
+                          en la fila
                         </>
                       ) : (
                         "Estás en la fila"
                       )}
                     </p>
-                    <p className="text-white/40 text-xs mt-1.5 leading-relaxed">
-                      Los combates se arman por <span className="text-white/60">orden de llegada</span>:
+                    <p className="text-white/45 text-xs mt-1.5 leading-relaxed">
+                      Los combates se arman por <span className="text-white/65">orden de llegada</span>:
                       a medida que cada jugador llena su ticket entra a la cola y se enfrenta cuando
                       es su turno.
                     </p>
-                  </div>
+                  </AscensoPanel>
 
-                  <p className="text-xs font-mono tracking-[0.2em] text-cyan-400/70 mb-2">
-                    COLA DE COMBATE · {queue.length} EN ESPERA
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-mono uppercase tracking-[0.2em] text-cyan-300/70">
+                    <Users className="size-3.5" /> Cola de combate · {queue.length} en espera
                   </p>
                   <div className="space-y-1.5">
                     {queue.map((q, i) => (
                       <div
                         key={q.id}
                         data-testid={`ascenso-queue-${q.id}`}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg border backdrop-blur-sm ${
                           q.is_me
-                            ? "bg-cyan-500/15 border-cyan-400/50 shadow-[0_0_12px_rgba(34,211,238,0.2)]"
-                            : "bg-white/5 border-white/10"
+                            ? "bg-cyan-400/15 border-cyan-400/50 shadow-[0_0_12px_rgba(56,189,248,0.2)]"
+                            : "bg-white/[0.03] border-white/10"
                         }`}
                       >
                         {/* Posición en la fila */}
@@ -618,7 +640,10 @@ export default function AscensoPage() {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={q.avatar_url} alt={q.alias} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-sm font-black text-purple-400">
+                            <span
+                              className="text-sm font-black"
+                              style={{ color: RANK_HEX[q.rank_letter] }}
+                            >
                               {q.alias.charAt(0).toUpperCase()}
                             </span>
                           )}
@@ -627,7 +652,7 @@ export default function AscensoPage() {
                           <p className="text-sm font-bold truncate">
                             {q.alias}
                             {q.is_me && (
-                              <span className="ml-1.5 align-middle text-[9px] font-black uppercase tracking-wide text-cyan-300 bg-cyan-500/20 px-1.5 py-0.5 rounded-full">
+                              <span className="ml-1.5 align-middle text-[9px] font-black uppercase tracking-wide text-cyan-300 bg-cyan-400/20 px-1.5 py-0.5 rounded-full">
                                 Vos
                               </span>
                             )}
@@ -643,7 +668,11 @@ export default function AscensoPage() {
                               : "Ticket lleno"}
                           </p>
                         </div>
-                        <span className="text-lg font-black text-purple-400 shrink-0">
+                        {/* Letra de rango con el color hex de la sección (RANK_HEX) */}
+                        <span
+                          className="text-lg font-black shrink-0"
+                          style={{ color: RANK_HEX[q.rank_letter] }}
+                        >
                           {q.rank_letter}
                         </span>
                       </div>
@@ -654,16 +683,24 @@ export default function AscensoPage() {
             </div>
           ) : (
             <div className="text-center">
-              <p className="text-white/40 text-sm mb-3">
+              <p className="text-white/45 text-sm mb-3">
                 Ganá batallas para acumular Ticket Points
               </p>
               <button
                 disabled
-                className="w-full px-8 py-4 bg-gray-700/50 rounded-xl text-lg font-black tracking-wider text-white/30 cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-lg border border-white/10 bg-white/[0.03] text-lg font-black uppercase tracking-widest text-white/35 cursor-not-allowed backdrop-blur-sm"
               >
-                {ticketTarget != null
-                  ? `FALTAN ${Math.max(ticketTarget - player.ticket_points, 0).toLocaleString()} PUNTOS`
-                  : "RANGO MÁXIMO"}
+                {ticketTarget != null ? (
+                  <>
+                    <Lock className="size-4" />
+                    Faltan {Math.max(ticketTarget - player.ticket_points, 0).toLocaleString()} puntos
+                  </>
+                ) : (
+                  <>
+                    <Trophy className="size-4 text-amber-300/60" />
+                    Rango máximo
+                  </>
+                )}
               </button>
             </div>
           )}
@@ -711,31 +748,37 @@ export default function AscensoPage() {
           {phase === "result" && resultInfo && (
             <div className="text-center mt-4">
               {resultInfo.kind === "rank_up" && rankUp ? (
-                <div>
-                  <p className="text-yellow-400 font-bold text-lg mb-3">
-                    🎉 ¡ASCENSO AL RANGO {rankUp.to}!
+                <div className="flex flex-col items-center">
+                  {/* Sello hexagonal del rango alcanzado */}
+                  <RankSeal letter={rankUp.to} caption={rankInfo(rankUp.to).name} size="lg" pulse />
+                  <p className="mt-3 flex items-center justify-center gap-2 text-lg font-black uppercase tracking-wide">
+                    <ChevronsUp className="size-5 text-amber-300" />
+                    <span className={ASCENSO_TEXT_GRADIENT_GOLD}>¡Ascenso al rango {rankUp.to}!</span>
                   </p>
                   <p className="text-white/50 text-sm mb-4">
                     Tu nuevo rango: {rankInfo(rankUp.to).name}
                   </p>
-                  {/* Compartir en WhatsApp */}
+                  {/* Compartir en WhatsApp (verde de marca; el mensaje lleva emojis, la UI no) */}
                   <a
                     href={`https://wa.me/?text=${encodeURIComponent(
                       `⚔️ *COMBATE DE ASCENSO* ⚔️\n\n${player.alias} venció a ${opponentInfo?.alias ?? "su rival"} y ascendió al *Rango ${rankUp.to} (${rankInfo(rankUp.to).name})*!\n\n🏆 Bladers Santa Fe — Torneo de Ascenso\n👉 https://bladers-sf.vercel.app/ascenso`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 rounded-xl text-sm font-bold hover:bg-green-500 transition shadow-[0_0_20px_rgba(34,197,94,0.3)]"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 rounded-lg text-sm font-bold hover:bg-green-500 transition shadow-[0_0_20px_rgba(34,197,94,0.3)]"
                   >
-                    📱 Compartir en WhatsApp
+                    <Share2 className="size-4" /> Compartir en WhatsApp
                   </a>
                 </div>
               ) : resultInfo.kind === "won_points" ? (
-                <div>
-                  <p className="text-yellow-400 font-bold text-lg mb-3">🏆 ¡VICTORIA!</p>
+                <div className="flex flex-col items-center">
+                  <p className="flex items-center justify-center gap-2 text-lg font-black uppercase tracking-wide mb-2">
+                    <Trophy className="size-5 text-amber-300" />
+                    <span className={ASCENSO_TEXT_GRADIENT}>¡Victoria!</span>
+                  </p>
                   <p className="text-white/50 text-sm">
                     Sumaste{" "}
-                    <span className="text-cyan-400 font-bold">
+                    <span className="text-cyan-300 font-black">
                       +{(resultInfo.delta ?? 0).toLocaleString()}
                     </span>{" "}
                     Ticket Points
@@ -743,7 +786,7 @@ export default function AscensoPage() {
                 </div>
               ) : (
                 <div>
-                  <p className="text-red-400 font-bold text-lg mb-3">
+                  <p className="text-red-400 font-black text-lg uppercase tracking-wide mb-2">
                     {(resultInfo.delta ?? 0) < 0 ? "Ticket Points reiniciados" : "Derrota"}
                   </p>
                   <p className="text-white/50 text-sm">
@@ -762,7 +805,7 @@ export default function AscensoPage() {
                   setBattleStatus("loading");
                 }}
                 data-testid="ascenso-back-btn"
-                className="mt-4 px-6 py-2 bg-white/10 rounded-lg text-sm font-bold hover:bg-white/20 transition"
+                className="mt-5 px-6 py-2 bg-white/10 border border-white/10 rounded-lg text-sm font-bold hover:bg-white/20 transition"
               >
                 Volver
               </button>

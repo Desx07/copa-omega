@@ -223,19 +223,24 @@ body {
    FORM INPUTS
    ═══════════════════════════════════════════ */
 
-.omega-input {
-  width: 100%;
-  background: var(--color-omega-dark);
-  border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 0.875rem;
-  color: var(--color-omega-text);
-  transition: all 0.2s;
-  outline: none;
+/* En @layer components para que las utilidades de Tailwind (pl-10, py-3, etc.)
+   puedan sobreescribir el padding base. Sin la capa, esta clase suelta le
+   ganaba a `pl-10` y el texto quedaba encima del ícono de los inputs. */
+@layer components {
+  .omega-input {
+    width: 100%;
+    background: var(--color-omega-dark);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.875rem;
+    color: var(--color-omega-text);
+    transition: all 0.2s;
+    outline: none;
+  }
+  .omega-input::placeholder { color: rgba(136,136,170,0.5); }
+  .omega-input:focus { border-color: var(--color-omega-purple); box-shadow: 0 0 0 3px rgba(123,47,247,0.15); }
 }
-.omega-input::placeholder { color: rgba(136,136,170,0.5); }
-.omega-input:focus { border-color: var(--color-omega-purple); box-shadow: 0 0 0 3px rgba(123,47,247,0.15); }
 
 /* ═══════════════════════════════════════════
    PODIUM AURAS
@@ -779,4 +784,21 @@ body {
   .clash-flash, .clash-shake, .clash-shockwave, .clash-spark,
   .clash-vs, .clash-speed-lines { animation: none; }
   .clash-vs { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════
+   ASCENSO — Design system (sellos de rango)
+   Latido suave del glow del sello hexagonal, para señalar el rango
+   activo. El color del glow lo aporta cada sello vía --seal-glow.
+   Usado por <RankSeal pulse /> de app/(app)/ascenso/_components/ascenso-ui.tsx.
+   ═══════════════════════════════════════════ */
+
+@keyframes ascenso-seal-pulse {
+  0%, 100% { box-shadow: 0 0 20px var(--seal-glow, rgba(56,189,248,0.5)); }
+  50%      { box-shadow: 0 0 40px var(--seal-glow, rgba(56,189,248,0.5)); }
+}
+.ascenso-seal-pulse { animation: ascenso-seal-pulse 2.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ascenso-seal-pulse { animation: none; }
 }

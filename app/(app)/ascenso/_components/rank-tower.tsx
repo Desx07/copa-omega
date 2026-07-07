@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Ticket } from "lucide-react";
 import { RANKS, type RankLetter } from "@/lib/ascenso";
+import { RANK_HEX } from "./ascenso-ui";
 
 interface RankTowerProps {
   currentRank: RankLetter;
@@ -10,17 +12,6 @@ interface RankTowerProps {
   kind: "normal" | "ascension"; // tipo de combate: normal (por puntos) o de ascenso
   onComplete: () => void; // Callback cuando termina la animación
 }
-
-// Color del texto de la letra por rango (el gradiente y el glow vienen de lib/ascenso)
-const RANK_TEXT_COLOR: Record<RankLetter, string> = {
-  S: "text-yellow-300",
-  A: "text-amber-400",
-  B: "text-red-400",
-  C: "text-purple-400",
-  D: "text-blue-400",
-  E: "text-green-400",
-  F: "text-gray-400",
-};
 
 // La torre se dibuja de arriba (S) hacia abajo (F)
 const TOWER_RANKS = [...RANKS].reverse();
@@ -92,7 +83,7 @@ export default function RankTower({ currentRank, playerAlias, ticketPoints, kind
         {/* Torre de rangos */}
         <div className="w-full space-y-1.5">
           {TOWER_RANKS.map((rank, i) => {
-            const textColor = RANK_TEXT_COLOR[rank.letter];
+            const hex = RANK_HEX[rank.letter];
             const isCurrent = i === currentIndex;
             const isHighlighted = i === highlightIndex;
             const isZoomed = phase === "zoom" && isCurrent;
@@ -108,18 +99,28 @@ export default function RankTower({ currentRank, playerAlias, ticketPoints, kind
                   ${isCurrent && !isZoomed ? "opacity-90" : ""}`}
                 style={isZoomed ? { boxShadow: `0 0 50px ${rank.glow}` } : undefined}
               >
-                {/* Rango */}
-                <div className="w-10 h-10 rounded bg-black/40 flex items-center justify-center">
-                  <span className={`text-xl font-black ${textColor}`}>{rank.letter}</span>
+                {/* Rango — sello hexagonal con el color de la sección (RANK_HEX) */}
+                <div
+                  className="hex-clip w-10 h-10 flex items-center justify-center shrink-0"
+                  style={{
+                    background: `linear-gradient(135deg, ${hex}, ${hex}99)`,
+                    boxShadow: `0 0 14px ${hex}66`,
+                  }}
+                >
+                  <span className="text-xl font-black text-black/85">{rank.letter}</span>
                 </div>
 
                 {/* Info */}
                 <div className="flex-1">
                   <div className="font-bold text-sm text-white">{rank.name}</div>
-                  <div className="text-[10px] text-white/50">
-                    {rank.ticketTarget != null
-                      ? `🎫 ${rank.ticketTarget.toLocaleString()} pts`
-                      : "RANGO MÁXIMO"}
+                  <div className="flex items-center gap-1 text-[10px] text-white/50">
+                    {rank.ticketTarget != null ? (
+                      <>
+                        <Ticket className="size-3" /> {rank.ticketTarget.toLocaleString()} pts
+                      </>
+                    ) : (
+                      "RANGO MÁXIMO"
+                    )}
                   </div>
                 </div>
 
@@ -128,7 +129,9 @@ export default function RankTower({ currentRank, playerAlias, ticketPoints, kind
                   <div className={`transition-all duration-500 ${isZoomed ? "opacity-100 scale-100" : "opacity-0 scale-75"}`}>
                     <div className="text-right">
                       <div className="text-xs font-bold text-white">{playerAlias}</div>
-                      <div className={`text-[10px] ${textColor}`}>🎫 {ticketPoints.toLocaleString()}</div>
+                      <div className="flex items-center justify-end gap-1 text-[10px]" style={{ color: hex }}>
+                        <Ticket className="size-3" /> {ticketPoints.toLocaleString()}
+                      </div>
                     </div>
                   </div>
                 )}

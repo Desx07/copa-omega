@@ -2,30 +2,26 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { rankInfo, type RankLetter } from "@/lib/ascenso";
+import { RANK_HEX } from "./ascenso-ui";
 
 interface RankUpAnimationProps {
-  fromRank: string;
-  toRank: string;
+  fromRank: RankLetter;
+  toRank: RankLetter;
   playerAlias: string;
   characterId: string;
   onComplete: () => void;
 }
 
-const RANK_INFO: Record<string, { name: string; color: string; glow: string; bg: string }> = {
-  F: { name: "Novato", color: "text-gray-400", glow: "rgba(156,163,175,0.5)", bg: "from-gray-900 to-gray-950" },
-  E: { name: "Hierro", color: "text-green-400", glow: "rgba(74,222,128,0.6)", bg: "from-green-950 to-gray-950" },
-  D: { name: "Bronce", color: "text-blue-400", glow: "rgba(96,165,250,0.6)", bg: "from-blue-950 to-gray-950" },
-  C: { name: "Plata", color: "text-purple-400", glow: "rgba(192,132,252,0.7)", bg: "from-purple-950 to-gray-950" },
-  B: { name: "Oro", color: "text-red-400", glow: "rgba(248,113,113,0.7)", bg: "from-red-950 to-gray-950" },
-  A: { name: "Diamante", color: "text-amber-400", glow: "rgba(251,191,36,0.7)", bg: "from-amber-950 to-gray-950" },
-  S: { name: "Omega", color: "text-yellow-300", glow: "rgba(253,224,71,0.8)", bg: "from-yellow-900 to-gray-950" },
-};
-
 export default function RankUpAnimation({
   fromRank, toRank, playerAlias, characterId, onComplete,
 }: RankUpAnimationProps) {
   const [phase, setPhase] = useState<"flash" | "reveal" | "complete">("flash");
-  const toInfo = RANK_INFO[toRank] || RANK_INFO.F;
+  // Nombre desde lib/ascenso (única fuente) y color desde RANK_HEX (paleta de la sección).
+  const toName = rankInfo(toRank).name;
+  const hex = RANK_HEX[toRank];
+  // Glow del color del rango con alpha para halos y sombras de texto.
+  const glow = `${hex}cc`;
 
   useEffect(() => {
     const timers = [
@@ -37,7 +33,7 @@ export default function RankUpAnimation({
   }, [onComplete]);
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-gradient-to-b ${toInfo.bg}`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#05070d]">
       {/* Flash blanco */}
       {phase === "flash" && (
         <div className="absolute inset-0 bg-white animate-ping" style={{ animationDuration: "0.4s" }} />
@@ -53,7 +49,7 @@ export default function RankUpAnimation({
         <div
           className="absolute w-[500px] h-[500px] rounded-full blur-3xl animate-pulse"
           style={{
-            background: `radial-gradient(circle, ${toInfo.glow}, transparent 60%)`,
+            background: `radial-gradient(circle, ${glow}, transparent 60%)`,
             animationDuration: "1.5s",
           }}
         />
@@ -82,15 +78,15 @@ export default function RankUpAnimation({
             </span>
             <span className="text-white/50 text-2xl">→</span>
             <span
-              className={`text-[80px] font-black ${toInfo.color} leading-none`}
-              style={{ textShadow: `0 0 40px ${toInfo.glow}, 0 0 80px ${toInfo.glow}` }}
+              className="text-[80px] font-black leading-none"
+              style={{ color: hex, textShadow: `0 0 40px ${glow}, 0 0 80px ${glow}` }}
             >
               {toRank}
             </span>
           </div>
 
           <p className="text-center text-white/70 text-xl font-bold mt-2">
-            {toInfo.name}
+            {toName}
           </p>
         </div>
 
@@ -99,11 +95,11 @@ export default function RankUpAnimation({
           phase === "complete" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
         }`}>
           <p className="text-2xl font-black text-center tracking-wider"
-            style={{ color: toInfo.glow }}>
+            style={{ color: hex }}>
             ¡ASCENSO CONFIRMADO!
           </p>
           <p className="text-white/40 text-sm text-center mt-2">
-            {playerAlias} subió al rango {toInfo.name}
+            {playerAlias} subió al rango {toName}
           </p>
         </div>
       </div>
@@ -118,7 +114,7 @@ export default function RankUpAnimation({
               style={{
                 width: "150%",
                 height: "2px",
-                background: `linear-gradient(to right, ${toInfo.glow}, transparent 60%)`,
+                background: `linear-gradient(to right, ${glow}, transparent 60%)`,
                 transform: `rotate(${i * 30}deg)`,
                 opacity: 0.15,
               }}

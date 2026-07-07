@@ -196,7 +196,7 @@ export default function AscensoSandbox() {
           {Object.entries(queuesByRankSafe(queuesByRank)).map(([rank, q]) => (
             <div key={rank} className="text-xs">
               <span className="font-bold" style={{ color: rankInfo(rank as RankLetter).glow }}>
-                Rango {rank} · {rankInfo(rank as RankLetter).name}
+                Rango {rank}
               </span>
               <span className="text-omega-muted"> — {q.length} en espera</span>
               <ol className="list-decimal list-inside text-omega-muted">
@@ -228,7 +228,7 @@ export default function AscensoSandbox() {
               <select value={p.rank} onChange={(e) => changeRank(p.id, e.target.value as RankLetter)}
                 className="w-20 shrink-0 rounded-lg border border-omega-border bg-omega-elevated px-1.5 py-1.5 text-[11px] text-omega-text"
                 title="Cambiar rango (admin)">
-                {RANKS.map((r) => <option key={r.letter} value={r.letter}>{r.letter}·{r.name}</option>)}
+                {RANKS.map((r) => <option key={r.letter} value={r.letter}>{r.letter}</option>)}
               </select>
               <button onClick={() => toggleEnabled(p.id)}
                 className={`w-11 shrink-0 rounded-full px-2 py-1.5 font-bold ${p.enabled ? "bg-omega-green text-black" : "bg-omega-elevated text-omega-muted"}`}>

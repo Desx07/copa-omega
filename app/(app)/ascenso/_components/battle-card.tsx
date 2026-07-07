@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { Swords, Ticket } from "lucide-react";
 import { rankInfo, type RankLetter } from "@/lib/ascenso";
+import { RANK_HEX } from "./ascenso-ui";
 
 // ── Tipos ──
 export interface BattlePlayer {
@@ -30,18 +32,9 @@ interface BattleCardProps {
   pointsAwarded?: number | null;
 }
 
-// ── Colores del rango (badge chico) ──
-const RANK_BADGE: Record<RankLetter, { bg: string; text: string }> = {
-  F: { bg: "bg-gray-600", text: "text-gray-200" },
-  E: { bg: "bg-green-700", text: "text-green-200" },
-  D: { bg: "bg-blue-700", text: "text-blue-200" },
-  C: { bg: "bg-purple-700", text: "text-purple-200" },
-  B: { bg: "bg-red-700", text: "text-red-200" },
-  A: { bg: "bg-amber-700", text: "text-amber-200" },
-  S: { bg: "bg-yellow-500", text: "text-yellow-900" },
-};
-
-// ── Player Card (estilo Pokémon Z-A) ──
+// ── Player Card (estilo pantalla de combate — palette de la landing) ──
+// El color de acento de cada blader sale de RANK_HEX (misma fuente que la
+// landing/idle): borde, badge y banner se tiñen del color de su rango.
 function PlayerCard({
   player,
   side,
@@ -53,14 +46,22 @@ function PlayerCard({
   isWinner?: boolean;
   isRevealed: boolean;
 }) {
-  const badge = RANK_BADGE[player.rank] ?? RANK_BADGE.F;
   const isLeft = side === "left";
   const charId = player.characterId || (isLeft ? "00" : "05");
   const statusText = player.statusText || (isLeft ? "¡AL MÁXIMO!" : "PRÓXIMO COMBATE");
+  // Color de acento del blader = su rango (RANK_HEX)
+  const accent = RANK_HEX[player.rank] ?? RANK_HEX.F;
 
   return (
-    <div className={`relative flex-1 overflow-hidden rounded-xl ${isWinner ? "ring-2 ring-yellow-400" : ""}`}>
-      <div className="relative w-full aspect-[4/3] sm:aspect-[3/4] bg-gradient-to-br from-slate-800 to-slate-950">
+    <div className={`relative flex-1 overflow-hidden rounded-xl ${isWinner ? "ring-2 ring-amber-300" : ""}`}>
+      <div className="relative w-full aspect-[4/3] sm:aspect-[3/4] bg-[#05070d]">
+        {/* Halo del color del rango detrás del personaje */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `radial-gradient(ellipse 80% 70% at 50% 70%, ${accent}22, transparent 70%)` }}
+        />
+
         {/* Personaje de Beyblade X como fondo principal */}
         <div className="absolute inset-0 flex items-end justify-center">
           <Image
@@ -68,44 +69,45 @@ function PlayerCard({
             alt={player.alias}
             width={400}
             height={500}
-            className="object-contain h-[90%] w-auto drop-shadow-[0_0_15px_rgba(100,150,255,0.3)]"
+            className="object-contain h-[90%] w-auto drop-shadow-[0_0_18px_rgba(0,0,0,0.5)]"
           />
         </div>
 
         {/* Overlay gradiente inferior */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/20" />
 
         {/* Nombre arriba */}
         <div className="absolute top-2 left-0 right-0 text-center">
-          <span className="text-white font-bold text-sm sm:text-base drop-shadow-lg">
+          <span className="text-white font-black uppercase tracking-wide text-sm sm:text-base drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
             {player.alias}
           </span>
         </div>
 
-        {/* Badge de rango — esquina */}
+        {/* Badge de rango — esquina, con el color hex del rango */}
         <div className={`absolute ${isLeft ? "left-2" : "right-2"} top-8 sm:top-10`}>
-          <div className={`${badge.bg} px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-lg`}>
-            <span className="text-[10px] font-bold text-white/70 uppercase">Rango</span>
-            <span className={`text-xl font-black ${badge.text}`}>{player.rank}</span>
+          <div
+            className="px-2.5 py-1 rounded-md flex items-center gap-1.5 bg-black/70 border backdrop-blur-sm shadow-lg"
+            style={{ borderColor: `${accent}66` }}
+          >
+            <span className="text-[10px] font-bold text-white/60 uppercase">Rango</span>
+            <span className="text-xl font-black" style={{ color: accent }}>{player.rank}</span>
           </div>
         </div>
 
-        {/* Banner diagonal con estado */}
+        {/* Banner diagonal con estado — teñido del color del rango */}
         <div className="absolute bottom-12 sm:bottom-14 left-0 right-0">
-          <div className={`
-            py-1.5 px-3
-            ${isLeft
-              ? "bg-gradient-to-r from-fuchsia-600/90 via-purple-600/90 to-transparent"
-              : "bg-gradient-to-l from-cyan-600/90 via-blue-600/90 to-transparent"
-            }
-            ${isLeft ? "text-left" : "text-right"}
-          `}
-            style={{ clipPath: isLeft
-              ? "polygon(0 0, 100% 10%, 95% 100%, 0 100%)"
-              : "polygon(5% 0, 100% 0, 100% 100%, 0 90%)"
+          <div
+            className={`py-1.5 px-3 ${isLeft ? "text-left" : "text-right"}`}
+            style={{
+              background: isLeft
+                ? `linear-gradient(90deg, ${accent}e6, ${accent}66, transparent)`
+                : `linear-gradient(270deg, ${accent}e6, ${accent}66, transparent)`,
+              clipPath: isLeft
+                ? "polygon(0 0, 100% 10%, 95% 100%, 0 100%)"
+                : "polygon(5% 0, 100% 0, 100% 100%, 0 90%)",
             }}
           >
-            <span className="text-white font-black text-sm sm:text-base tracking-wide drop-shadow-lg">
+            <span className="text-black font-black text-sm sm:text-base uppercase tracking-wide drop-shadow-[0_1px_2px_rgba(255,255,255,0.3)]">
               {statusText}
             </span>
           </div>
@@ -114,11 +116,16 @@ function PlayerCard({
         {/* Info inferior */}
         <div className="absolute bottom-2 left-0 right-0 px-3">
           <div className="flex items-center justify-between text-xs text-white/70">
-            <span>
-              {player.ticketPoints !== undefined ? `🎫 ${player.ticketPoints.toLocaleString()}` : ""}
+            <span className="flex items-center gap-1">
+              {player.ticketPoints !== undefined ? (
+                <>
+                  <Ticket className="size-3 text-cyan-300/80" />
+                  {player.ticketPoints.toLocaleString()}
+                </>
+              ) : null}
             </span>
             <span>{player.beyName ?? rankInfo(player.rank).name}</span>
-            <span>
+            <span className="font-mono">
               {player.wins !== undefined && player.losses !== undefined
                 ? `${player.wins}W ${player.losses}L`
                 : ""}
@@ -129,9 +136,9 @@ function PlayerCard({
         {/* Winner — borde dorado + banner arriba */}
         {isWinner && (
           <>
-            <div className="absolute inset-0 ring-4 ring-yellow-400/60 rounded-xl pointer-events-none" />
-            <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-yellow-500/90 to-amber-500/90 py-1.5 text-center z-20">
-              <span className="text-white font-black text-sm tracking-wider">GANADOR</span>
+            <div className="absolute inset-0 ring-4 ring-amber-300/60 rounded-xl pointer-events-none" />
+            <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-amber-400/90 to-amber-500/90 py-1.5 text-center z-20">
+              <span className="text-black font-black text-sm uppercase tracking-wider">Ganador</span>
             </div>
           </>
         )}
@@ -144,17 +151,17 @@ function PlayerCard({
 function HiddenCard() {
   return (
     <div className="relative flex-1 overflow-hidden rounded-xl">
-      <div className="relative w-full aspect-[4/3] sm:aspect-[3/4] bg-gradient-to-br from-slate-800 to-slate-950 flex flex-col items-center justify-center gap-3">
+      <div className="relative w-full aspect-[4/3] sm:aspect-[3/4] bg-[#05070d] flex flex-col items-center justify-center gap-3">
         {/* Silueta */}
         <div className="w-28 h-28 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
           <span className="text-5xl text-white/15">?</span>
         </div>
 
-        {/* Banner */}
-        <div className="bg-gradient-to-l from-cyan-600/90 via-blue-600/90 to-transparent py-1.5 px-6 w-full text-right"
+        {/* Banner — cian de la sección */}
+        <div className="bg-gradient-to-l from-cyan-500/80 via-cyan-500/40 to-transparent py-1.5 px-6 w-full text-right"
           style={{ clipPath: "polygon(5% 0, 100% 0, 100% 100%, 0 90%)" }}>
-          <span className="text-white font-black text-sm tracking-wide animate-pulse">
-            PRÓXIMO COMBATE
+          <span className="text-black font-black text-sm uppercase tracking-wide animate-pulse">
+            Próximo combate
           </span>
         </div>
       </div>
@@ -214,18 +221,19 @@ export default function BattleScreen({ player, opponent, status, winner, kind, p
 
   return (
     <div className="relative w-full max-w-2xl mx-auto">
-      {/* Header tabs (como Pokémon Z-A) */}
+      {/* Header tabs (marquesina de combate) */}
       <div className="flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-2">
-          <span className="text-white/40 text-xs">⚔️ Zona de combate</span>
+        <div className="flex items-center gap-1.5">
+          <Swords className="size-3.5 text-cyan-300/70" />
+          <span className="text-white/45 text-xs font-mono uppercase tracking-wider">Zona de combate</span>
         </div>
-        <span className="text-white font-bold text-xs sm:text-sm bg-white/10 px-3 py-1 rounded-full">
+        <span className="text-white font-bold text-xs sm:text-sm bg-white/10 border border-white/10 px-3 py-1 rounded-full">
           {isAscension ? "Combate de ascenso" : "Combate"}
         </span>
       </div>
 
       {/* Cards container */}
-      <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-slate-900/50">
+      <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/40 backdrop-blur-sm">
         {showLoading && <LoadingAnimation />}
 
         <div className="flex gap-1 p-1">
@@ -254,18 +262,34 @@ export default function BattleScreen({ player, opponent, status, winner, kind, p
 
         {/* Banner inferior */}
         {status === "ready" && (
-          <div className="bg-gradient-to-r from-cyan-600 to-blue-600 py-2 text-center">
-            <span className="text-white font-bold text-xs tracking-wider">
-              {isAscension ? "¡COMBATE DE ASCENSO LISTO!" : "¡COMBATE LISTO!"}
+          <div
+            className="py-2 text-center"
+            style={{
+              background: isAscension
+                ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
+                : "linear-gradient(90deg, #38bdf8, #0ea5e9)",
+            }}
+          >
+            <span className="text-black font-black text-xs uppercase tracking-wider">
+              {isAscension ? "¡Combate de ascenso listo!" : "¡Combate listo!"}
             </span>
           </div>
         )}
         {status === "completed" && winner && (
-          <div className={`py-2 text-center ${winner === player.id
-            ? "bg-gradient-to-r from-yellow-600 to-amber-600"
-            : "bg-gradient-to-r from-gray-700 to-gray-800"}`}>
-            <span className="text-white font-bold text-xs tracking-wider">
-              {winner === player.id ? victoryText : "DERROTA — INTENTÁ DE NUEVO"}
+          <div
+            className="py-2 text-center"
+            style={
+              winner === player.id
+                ? { background: "linear-gradient(90deg, #fbbf24, #f59e0b)" }
+                : { background: "linear-gradient(90deg, #374151, #1f2937)" }
+            }
+          >
+            <span
+              className={`font-black text-xs uppercase tracking-wider ${
+                winner === player.id ? "text-black" : "text-white"
+              }`}
+            >
+              {winner === player.id ? victoryText : "Derrota — intentá de nuevo"}
             </span>
           </div>
         )}

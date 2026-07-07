@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { characterFor } from "@/lib/ascenso-character";
 
 export async function GET() {
   try {
@@ -382,5 +384,76 @@ async function createAscensoMatch(
     return Response.json({ error: insertError.message }, { status: 500 });
   }
 
+  // ── Auto-publicar el versus en el carrusel del dashboard ──
+  // Solo para combates de ascenso: la gente ve la pelea que viene. Tolerante:
+  // si algo falla, se loguea y NO se rompe la creación del match.
+  if (kind === "ascension") {
+    await publishAscensoBannerToCarousel(createdBy, p1, p2);
+  }
+
   return Response.json(match, { status: 201 });
+}
+
+// ── Carrusel automático (combate de ascenso) ──
+// Genera la URL del banner de versus (/api/ascenso/banner) con los datos de
+// ambos jugadores e inserta un carousel_item target='dashboard' con el service
+// role (createAdminClient) para saltar la RLS de admin. Best-effort: cualquier
+// error se loguea y no afecta la creación del combate.
+async function publishAscensoBannerToCarousel(
+  createdBy: string,
+  p1: { id: string; alias: string; rank_letter: string },
+  p2: { id: string; alias: string; rank_letter: string }
+): Promise<void> {
+  try {
+    // Rango válido para el banner (regex /^[FEDCBAS]$/), sino "F".
+    const rangoValido = /^[FEDCBAS]$/;
+    const r1 = rangoValido.test(p1.rank_letter) ? p1.rank_letter : "F";
+    const r2 = rangoValido.test(p2.rank_letter) ? p2.rank_letter : "F";
+    // Personaje determinístico por id (igual que la página de ascenso).
+    const c1 = characterFor(p1.id);
+    const c2 = characterFor(p2.id);
+
+    const params = new URLSearchParams({
+      p1: p1.alias,
+      p2: p2.alias,
+      r1,
+      r2,
+      c1,
+      c2,
+    });
+    // URL relativa: el endpoint sirve el PNG on-the-fly en el mismo origen,
+    // así que sirve directo como src del <img> del carrusel.
+    const bannerUrl = `/api/ascenso/banner?${params.toString()}`;
+
+    const admin = createAdminClient();
+
+    // sort_order = max actual + 1 dentro del target 'dashboard'.
+    const { data: last } = await admin
+      .from("carousel_items")
+      .select("sort_order")
+      .eq("target", "dashboard")
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextOrder = (last?.sort_order ?? 0) + 1;
+
+    const { error: carouselError } = await admin.from("carousel_items").insert({
+      type: "photo",
+      url: bannerUrl,
+      title: `Combate de ascenso: ${p1.alias} vs ${p2.alias}`,
+      target: "dashboard",
+      sort_order: nextOrder,
+      is_active: true,
+      created_by: createdBy,
+    });
+
+    if (carouselError) {
+      console.error(
+        "[carrusel] No se pudo publicar el banner del combate de ascenso:",
+        carouselError.message
+      );
+    }
+  } catch (err) {
+    console.error("[carrusel] Error inesperado publicando el banner de ascenso:", err);
+  }
 }
