@@ -229,9 +229,10 @@ export default function AscensoPage() {
   // ── Fetch del estado real del jugador ──
   const fetchMe = useCallback(async () => {
     try {
-      // Passthrough del preview ?demo=N de localhost hacia la API (solo dev)
-      const demo = new URLSearchParams(window.location.search).get("demo");
-      const res = await fetch(`/api/ascenso/me${demo ? `?demo=${demo}` : ""}`, { cache: "no-store" });
+      // Passthrough del preview ?demo=N o ?mock=1 de localhost hacia la API (solo dev)
+      const qs = new URLSearchParams(window.location.search);
+      const passthrough = qs.get("demo") ? `?demo=${qs.get("demo")}` : qs.get("mock") ? "?mock=1" : "";
+      const res = await fetch(`/api/ascenso/me${passthrough}`, { cache: "no-store" });
       if (!res.ok) {
         if (!prevRef.current) {
           setUnauthorized(res.status === 401);

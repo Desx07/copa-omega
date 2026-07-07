@@ -142,9 +142,15 @@ export async function GET(request: Request) {
   try {
     // Preview sin base de datos, solo en desarrollo
     if (process.env.NODE_ENV === "development") {
-      const demo = new URL(request.url).searchParams.get("demo");
+      const params = new URL(request.url).searchParams;
+      const demo = params.get("demo");
       if (demo) {
         return Response.json(demoPayload(demo));
+      }
+      // Flujo real dinámico con 2 jugadores en memoria (mutable). Ver lib/ascenso-mock.
+      if (params.get("mock")) {
+        const { mockMePayload, MOCK_ME_ID } = await import("@/lib/ascenso-mock");
+        return Response.json(mockMePayload(MOCK_ME_ID));
       }
     }
 
