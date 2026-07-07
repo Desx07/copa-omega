@@ -234,6 +234,10 @@ export function PlayerActions({ playerId, isHidden, isJudge, ascensoEnabled, ran
         </button>
       )}
 
+      {/* Mientras se edita el rango, ocultamos el resto de controles para que el
+          editor (select + confirmar/cancelar) tenga lugar y la fila no desborde. */}
+      {!showRank && (
+        <>
       {/* Switch ascenso — habilita/deshabilita la participación en el Torneo de Ascenso */}
       <button
         onClick={handleToggleAscenso}
@@ -326,6 +330,8 @@ export function PlayerActions({ playerId, isHidden, isJudge, ascensoEnabled, ran
         >
           <Trash2 className="size-4" />
         </button>
+      )}
+        </>
       )}
     </div>
   );
