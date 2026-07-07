@@ -215,20 +215,23 @@ export default function AscensoSandbox() {
           const target = info.ticketTarget;
           const full = hasFullTicket(p.rank, p.ticket);
           return (
-            <div key={p.id} className={`flex items-center gap-2 rounded-lg p-2 text-xs ${p.enabled ? "bg-omega-card/40" : "opacity-50"}`}>
-              <span className={`grid size-7 place-items-center rounded bg-gradient-to-br ${info.color} font-black text-white`}>{p.rank}</span>
+            <div key={p.id} className={`flex items-center gap-3 rounded-lg p-2.5 text-xs ${p.enabled ? "bg-omega-card/40" : "opacity-50"}`}>
+              <span className={`grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${info.color} text-base font-black text-white`}>{p.rank}</span>
               <div className="flex-1 min-w-0">
-                <p className="font-bold">{p.alias} <span className="text-omega-muted">{p.wins}W-{p.losses}L</span></p>
-                <p className="text-omega-muted">
-                  {target === null ? "RANGO MÁXIMO" : `${p.ticket}/${target} pts${full ? " · 🎫 LLENO" : ""}`}
+                <p className="truncate font-bold text-omega-text">
+                  {p.alias} <span className="font-normal text-omega-muted">· {p.wins}W {p.losses}L</span>
+                </p>
+                <p className="truncate text-[11px] text-omega-muted">
+                  {target === null ? "🎫 Rango máximo" : `${p.ticket}/${target} pts${full ? " · 🎫 LLENO" : ""}`}
                 </p>
               </div>
               <select value={p.rank} onChange={(e) => changeRank(p.id, e.target.value as RankLetter)}
-                className="omega-input !py-1 !text-[11px]" title="Cambiar rango (admin)">
+                className="w-20 shrink-0 rounded-lg border border-omega-border bg-omega-elevated px-1.5 py-1.5 text-[11px] text-omega-text"
+                title="Cambiar rango (admin)">
                 {RANKS.map((r) => <option key={r.letter} value={r.letter}>{r.letter}·{r.name}</option>)}
               </select>
               <button onClick={() => toggleEnabled(p.id)}
-                className={`rounded-full px-2 py-1 font-bold ${p.enabled ? "bg-omega-green text-black" : "bg-omega-elevated text-omega-muted"}`}>
+                className={`w-11 shrink-0 rounded-full px-2 py-1.5 font-bold ${p.enabled ? "bg-omega-green text-black" : "bg-omega-elevated text-omega-muted"}`}>
                 {p.enabled ? "ON" : "OFF"}
               </button>
             </div>
