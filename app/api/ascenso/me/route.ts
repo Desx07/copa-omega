@@ -17,6 +17,17 @@ interface OpponentInfo {
   rank_letter: string;
 }
 
+// Jugador en la cola de combate por orden de llegada (FIFO). is_me marca al
+// propio usuario para que la UI pueda mostrar "sos el Nº de la fila".
+interface QueueEntry {
+  id: string;
+  alias: string;
+  avatar_url: string | null;
+  rank_letter: string;
+  ticket_filled_at: string | null;
+  is_me: boolean;
+}
+
 interface ActiveMatch {
   id: string;
   match_kind: string;
@@ -70,7 +81,31 @@ function demoPayload(escenario: string) {
     // El objetivo es del rango actual: C = 300, B = 400 (escenario 4, ya ascendido)
     ticket_target: escenario === "4" ? 400 : 300,
     has_ticket: hasTicket,
-    eligible_opponents: hasTicket ? [rival] : [],
+    eligible_opponents: hasTicket
+      ? [{ ...rival, ticket_filled_at: "2026-07-06T18:00:00.000Z" }]
+      : [],
+    // Cola FIFO de ejemplo: el rival llenó primero, después el usuario (si tiene
+    // ticket lleno). Solo con datos cuando el usuario está en la fila.
+    queue: hasTicket
+      ? [
+          {
+            id: rival.id,
+            alias: rival.alias,
+            avatar_url: null,
+            rank_letter: player.rank_letter,
+            ticket_filled_at: "2026-07-06T18:00:00.000Z",
+            is_me: false,
+          },
+          {
+            id: player.id,
+            alias: player.alias,
+            avatar_url: null,
+            rank_letter: player.rank_letter,
+            ticket_filled_at: "2026-07-06T18:30:00.000Z",
+            is_me: true,
+          },
+        ]
+      : [],
     active_match:
       escenario === "3"
         ? {
@@ -182,29 +217,54 @@ export async function GET(request: Request) {
 
     // Rivales elegibles: mismo rango, ticket lleno, activos. Solo si el usuario
     // ya tiene su propio ticket lleno; si no, lista vacía.
+    // Orden de llegada (FIFO): los que llenaron el ticket primero aparecen
+    // primero (ticket_filled_at asc). Los sin marca de llenado (columna vieja o
+    // dato faltante) van al final (nullsFirst: false).
     let eligibleOpponents: Array<{
       id: string;
       alias: string;
       avatar_url: string | null;
       rank_letter: string;
       ticket_points: number;
+      ticket_filled_at: string | null;
     }> = [];
 
     if (hasTicket && ticketTarget != null) {
       // Solo rivales habilitados para el torneo de ascenso (ascenso_enabled = true).
-      const { data: opponents, error: opponentsError } = await supabase
-        .from("players")
-        .select("id, alias, avatar_url, rank_letter, ticket_points")
-        .eq("rank_letter", rankLetter)
-        .gte("ticket_points", ticketTarget)
-        .eq("is_eliminated", false)
-        .eq("ascenso_enabled", true)
-        .neq("id", user.id)
-        .order("ticket_points", { ascending: false });
+      const baseOpponents = () =>
+        supabase
+          .from("players")
+          .select("id, alias, avatar_url, rank_letter, ticket_points, ticket_filled_at")
+          .eq("rank_letter", rankLetter)
+          .gte("ticket_points", ticketTarget)
+          .eq("is_eliminated", false)
+          .eq("ascenso_enabled", true)
+          .neq("id", user.id);
+
+      let { data: opponents, error: opponentsError } = await baseOpponents().order(
+        "ticket_filled_at",
+        { ascending: true, nullsFirst: false }
+      );
+
+      // Tolerante: si ticket_filled_at todavía no existe (migración sin aplicar),
+      // caemos al orden anterior por ticket_points desc sin romper.
+      if (opponentsError?.code === "42703") {
+        const fallback = await supabase
+          .from("players")
+          .select("id, alias, avatar_url, rank_letter, ticket_points")
+          .eq("rank_letter", rankLetter)
+          .gte("ticket_points", ticketTarget)
+          .eq("is_eliminated", false)
+          .eq("ascenso_enabled", true)
+          .neq("id", user.id)
+          .order("ticket_points", { ascending: false });
+        opponents = fallback.data as typeof opponents;
+        opponentsError = fallback.error;
+      }
 
       if (opponentsError) {
-        // Tolerante a columna inexistente (migración sin aplicar): sin el filtro
-        // de habilitación no podemos resolver rivales de forma segura, así que
+        // Tolerante a columna inexistente del filtro de habilitación (ascenso_enabled):
+        // sin ese filtro no podemos resolver rivales de forma segura, así que
         // devolvemos lista vacía en vez de 500.
         if (opponentsError.code !== "42703") {
           return Response.json({ error: opponentsError.message }, { status: 500 });
@@ -217,7 +277,41 @@ export async function GET(request: Request) {
         avatar_url: o.avatar_url ?? null,
         rank_letter: o.rank_letter,
         ticket_points: o.ticket_points ?? 0,
+        ticket_filled_at: (o as { ticket_filled_at?: string | null }).ticket_filled_at ?? null,
       }));
+    }
+
+    // Cola de combate por orden de llegada (FIFO): todos los jugadores del MISMO
+    // rango del usuario con ticket lleno, ordenados por quién llenó primero.
+    // Incluye al propio usuario (is_me) para que la UI muestre su lugar en la fila.
+    // Se arma siempre que el usuario NO esté en el rango máximo (S no tiene cola).
+    let queue: QueueEntry[] = [];
+    if (!esRangoMaximo && ticketTarget != null) {
+      const { data: queueRows, error: queueError } = await supabase
+        .from("players")
+        .select("id, alias, avatar_url, rank_letter, ticket_filled_at")
+        .eq("rank_letter", rankLetter)
+        .gte("ticket_points", ticketTarget)
+        .eq("is_eliminated", false)
+        .eq("ascenso_enabled", true)
+        .order("ticket_filled_at", { ascending: true, nullsFirst: false });
+
+      if (queueError) {
+        // Tolerante a columna inexistente (ticket_filled_at o ascenso_enabled sin
+        // migrar): la cola es informativa, devolvemos vacío en vez de 500.
+        if (queueError.code !== "42703") {
+          return Response.json({ error: queueError.message }, { status: 500 });
+        }
+      } else {
+        queue = (queueRows ?? []).map((q) => ({
+          id: q.id,
+          alias: q.alias,
+          avatar_url: q.avatar_url ?? null,
+          rank_letter: q.rank_letter,
+          ticket_filled_at: q.ticket_filled_at ?? null,
+          is_me: q.id === user.id,
+        }));
+      }
     }
 
     // Pelea de ascenso activa donde participa el usuario (la más reciente).
@@ -336,6 +430,7 @@ export async function GET(request: Request) {
       ticket_target: ticketTarget,
       has_ticket: hasTicket,
       eligible_opponents: eligibleOpponents,
+      queue,
       active_match: activeMatch,
       last_result: lastResult,
     });

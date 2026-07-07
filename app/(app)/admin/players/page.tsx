@@ -34,13 +34,14 @@ export default async function AdminPlayersPage() {
     is_judge: boolean;
     created_at: string;
     ascenso_enabled?: boolean | null;
+    rank_letter?: string | null;
   };
 
   const [profileResult, playersResult] = await Promise.all([
     supabase.from("players").select("is_admin").eq("id", user.id).single(),
     supabase
       .from("players")
-      .select(`${BASE_COLUMNS}, ascenso_enabled`)
+      .select(`${BASE_COLUMNS}, ascenso_enabled, rank_letter`)
       .order("stars", { ascending: false }),
   ]);
 
@@ -242,6 +243,7 @@ export default async function AdminPlayersPage() {
                         isHidden={player.is_hidden}
                         isJudge={player.is_judge}
                         ascensoEnabled={player.ascenso_enabled ?? false}
+                        rankLetter={player.rank_letter ?? "F"}
                         alias={player.alias}
                       />
                     )}

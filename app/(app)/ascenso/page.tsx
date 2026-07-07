@@ -26,6 +26,17 @@ interface MeOpponent {
   ticket_points: number;
 }
 
+// Jugador en la cola de combate por orden de llegada (FIFO). is_me marca al
+// propio usuario para resaltar su lugar en la fila.
+interface MeQueueEntry {
+  id: string;
+  alias: string;
+  avatar_url: string | null;
+  rank_letter: RankLetter;
+  ticket_filled_at: string | null;
+  is_me: boolean;
+}
+
 interface MeActiveMatch {
   id: string;
   match_kind: "normal" | "ascension";
@@ -61,6 +72,8 @@ interface AscensoMe {
   ticket_target: number | null;
   has_ticket: boolean;
   eligible_opponents: MeOpponent[];
+  // Cola FIFO del rango: todos con ticket lleno ordenados por quién llenó primero.
+  queue: MeQueueEntry[];
   active_match: MeActiveMatch | null;
   last_result: MeLastResult | null;
 }
@@ -348,9 +361,13 @@ export default function AscensoPage() {
     );
   }
 
-  const { player, eligible_opponents: eligibleOpponents } = data;
+  const { player } = data;
   const hasTicket = data.has_ticket;
   const activeMatch = data.active_match;
+  // Cola de combate FIFO del rango (incluye al usuario). Vacía = no se muestra.
+  const queue = data.queue ?? [];
+  // Posición del usuario en la fila (índice + 1); 0 si no está en la cola.
+  const myQueuePos = queue.findIndex((q) => q.is_me) + 1;
   const info = rankInfo(player.rank_letter);
   const ticketTarget = data.ticket_target;
   const progressPercent = ticketTarget
@@ -551,47 +568,89 @@ export default function AscensoPage() {
                 </p>
               </div>
 
-              {/* Rivales con ticket lleno */}
-              <div className="text-left">
-                <p className="text-xs font-mono tracking-[0.2em] text-cyan-400/70 mb-2">
-                  RIVALES CON TICKET LLENO
-                </p>
-                {eligibleOpponents.length === 0 ? (
-                  <p className="text-white/30 text-xs py-3 text-center bg-white/5 rounded-lg">
-                    Todavía no hay rivales con ticket lleno
+              {/* Cola de combate FIFO — posición del usuario + lista ordenada.
+                  No se muestra si la cola viene vacía o el usuario está en rango S
+                  (en S nunca hay ticket lleno, así que este branch tampoco corre). */}
+              {queue.length > 0 && player.rank_letter !== "S" && (
+                <div className="text-left" data-testid="ascenso-queue">
+                  {/* Titular con la posición en la fila */}
+                  <div className="mb-3 px-4 py-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-center">
+                    <p className="text-lg font-black text-cyan-200" data-testid="ascenso-queue-position">
+                      {myQueuePos > 0 ? (
+                        <>
+                          Sos el <span className="text-cyan-400">{myQueuePos}º</span> en la fila
+                        </>
+                      ) : (
+                        "Estás en la fila"
+                      )}
+                    </p>
+                    <p className="text-white/40 text-xs mt-1.5 leading-relaxed">
+                      Los combates se arman por <span className="text-white/60">orden de llegada</span>:
+                      a medida que cada jugador llena su ticket entra a la cola y se enfrenta cuando
+                      es su turno.
+                    </p>
+                  </div>
+
+                  <p className="text-xs font-mono tracking-[0.2em] text-cyan-400/70 mb-2">
+                    COLA DE COMBATE · {queue.length} EN ESPERA
                   </p>
-                ) : (
                   <div className="space-y-1.5">
-                    {eligibleOpponents.map((op) => (
+                    {queue.map((q, i) => (
                       <div
-                        key={op.id}
-                        className="flex items-center gap-3 px-3 py-2 bg-white/5 border border-white/10 rounded-lg"
-                        data-testid={`ascenso-rival-${op.id}`}
+                        key={q.id}
+                        data-testid={`ascenso-queue-${q.id}`}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${
+                          q.is_me
+                            ? "bg-cyan-500/15 border-cyan-400/50 shadow-[0_0_12px_rgba(34,211,238,0.2)]"
+                            : "bg-white/5 border-white/10"
+                        }`}
                       >
+                        {/* Posición en la fila */}
+                        <span
+                          className={`w-6 text-center text-sm font-black shrink-0 ${
+                            q.is_me ? "text-cyan-300" : "text-white/40"
+                          }`}
+                        >
+                          {i + 1}º
+                        </span>
                         <div className="w-9 h-9 rounded-full overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center shrink-0">
-                          {op.avatar_url ? (
+                          {q.avatar_url ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={op.avatar_url} alt={op.alias} className="w-full h-full object-cover" />
+                            <img src={q.avatar_url} alt={q.alias} className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-sm font-black text-purple-400">
-                              {op.alias.charAt(0).toUpperCase()}
+                              {q.alias.charAt(0).toUpperCase()}
                             </span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold truncate">{op.alias}</p>
+                          <p className="text-sm font-bold truncate">
+                            {q.alias}
+                            {q.is_me && (
+                              <span className="ml-1.5 align-middle text-[9px] font-black uppercase tracking-wide text-cyan-300 bg-cyan-500/20 px-1.5 py-0.5 rounded-full">
+                                Vos
+                              </span>
+                            )}
+                          </p>
                           <p className="text-[10px] text-white/40">
-                            🎫 {op.ticket_points.toLocaleString()} pts
+                            {q.ticket_filled_at
+                              ? `Ticket lleno · ${new Date(q.ticket_filled_at).toLocaleString("es-AR", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}`
+                              : "Ticket lleno"}
                           </p>
                         </div>
                         <span className="text-lg font-black text-purple-400 shrink-0">
-                          {op.rank_letter}
+                          {q.rank_letter}
                         </span>
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center">

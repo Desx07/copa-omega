@@ -2,24 +2,79 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EyeOff, Eye, Trash2, Loader2, Scale } from "lucide-react";
+import { EyeOff, Eye, Trash2, Loader2, Scale, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { RANKS, rankInfo, type RankLetter } from "@/lib/ascenso";
 
 interface PlayerActionsProps {
   playerId: string;
   isHidden: boolean;
   isJudge: boolean;
   ascensoEnabled: boolean;
+  /** Rango actual del jugador. Tolera migración pendiente: default "F". */
+  rankLetter: string;
   alias: string;
 }
 
-export function PlayerActions({ playerId, isHidden, isJudge, ascensoEnabled, alias }: PlayerActionsProps) {
+/** Normaliza un string arbitrario a una RankLetter válida (default "F"). */
+function toRankLetter(value: string): RankLetter {
+  return RANKS.some((r) => r.letter === value) ? (value as RankLetter) : "F";
+}
+
+export function PlayerActions({ playerId, isHidden, isJudge, ascensoEnabled, rankLetter, alias }: PlayerActionsProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState<"hide" | "delete" | "judge" | "ascenso" | null>(null);
+  const [loading, setLoading] = useState<"hide" | "delete" | "judge" | "ascenso" | "rank" | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   // Estado optimista local del flag de ascenso: se actualiza ni bien se clickea
   // y se revierte si el PATCH falla.
   const [ascenso, setAscenso] = useState(ascensoEnabled);
+  // Rango actual (fuente de verdad tras un cambio) y editor inline.
+  const [rank, setRank] = useState<RankLetter>(toRankLetter(rankLetter));
+  const [rankSel, setRankSel] = useState<RankLetter>(toRankLetter(rankLetter));
+  const [showRank, setShowRank] = useState(false);
+  const currentRankInfo = rankInfo(rank);
+
+  // ── Cambio manual de rango. Resetea el ticket del jugador a 0 (por eso confirm). ──
+  async function handleChangeRank() {
+    if (rankSel === rank) {
+      setShowRank(false);
+      return;
+    }
+    const info = rankInfo(rankSel);
+    // confirm() explícito: la acción es destructiva (reinicia el ticket).
+    if (
+      !window.confirm(
+        `¿Cambiar el rango de ${alias} a ${rankSel} · ${info.name}?\n\nEsto reinicia su ticket de ascenso a 0.`
+      )
+    ) {
+      return;
+    }
+    setLoading("rank");
+    try {
+      const res = await fetch(`/api/admin/players/${playerId}/rank`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rank_letter: rankSel }),
+      });
+      if (!res.ok) {
+        // No tragamos el error: mostramos el body del server tal cual.
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || `Error ${res.status} al cambiar el rango`);
+        return;
+      }
+      const data = await res.json();
+      const nuevo = toRankLetter(String(data.rank_letter ?? rankSel));
+      setRank(nuevo);
+      setRankSel(nuevo);
+      setShowRank(false);
+      toast.success(`${alias} ahora es rango ${nuevo} · ${rankInfo(nuevo).name}`);
+      router.refresh();
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setLoading(null);
+    }
+  }
 
   async function handleToggleAscenso() {
     const next = !ascenso;
@@ -119,6 +174,66 @@ export function PlayerActions({ playerId, isHidden, isJudge, ascensoEnabled, ali
 
   return (
     <div className="flex items-center gap-1 shrink-0">
+      {/* Rango actual + cambio manual (inline, patrón del confirm de borrado) */}
+      {showRank ? (
+        <div className="flex items-center gap-1">
+          <select
+            value={rankSel}
+            onChange={(e) => setRankSel(e.target.value as RankLetter)}
+            disabled={loading !== null}
+            aria-label={`Nuevo rango para ${alias}`}
+            data-testid="rank-select"
+            className="h-8 rounded-lg border border-omega-border bg-omega-elevated px-1.5 text-xs font-bold text-omega-text focus:outline-none focus:ring-1 focus:ring-omega-purple disabled:opacity-60"
+          >
+            {RANKS.map((r) => (
+              <option key={r.letter} value={r.letter}>
+                {r.letter} · {r.name}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={handleChangeRank}
+            disabled={loading !== null || rankSel === rank}
+            title="Cambiar rango"
+            aria-label={`Cambiar rango de ${alias}`}
+            data-testid="rank-save"
+            className="omega-btn omega-btn-purple size-8 !rounded-lg !p-0 disabled:opacity-50"
+          >
+            {loading === "rank" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Check className="size-4" />
+            )}
+          </button>
+          <button
+            onClick={() => {
+              setRankSel(rank);
+              setShowRank(false);
+            }}
+            disabled={loading !== null}
+            title="Cancelar"
+            aria-label="Cancelar cambio de rango"
+            className="omega-btn omega-btn-secondary size-8 !rounded-lg !p-0 disabled:opacity-50"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => {
+            setRankSel(rank);
+            setShowRank(true);
+          }}
+          disabled={loading !== null}
+          title={`Rango ${currentRankInfo.name} — cambiar`}
+          aria-label={`Rango actual ${rank} (${currentRankInfo.name}). Cambiar rango de ${alias}`}
+          data-testid="rank-chip"
+          className={`inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${currentRankInfo.color} text-sm font-black text-white shadow-sm ring-1 ring-inset ring-white/10 disabled:opacity-50`}
+        >
+          {rank}
+        </button>
+      )}
+
       {/* Switch ascenso — habilita/deshabilita la participación en el Torneo de Ascenso */}
       <button
         onClick={handleToggleAscenso}
