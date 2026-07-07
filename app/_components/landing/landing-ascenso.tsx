@@ -117,21 +117,14 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
                 <span className="font-black text-amber-300"> campeón en la cima</span>.
               </p>
 
-              {/* CTAs de combate */}
-              <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              {/* CTA de combate */}
+              <div className="mt-10 flex justify-center">
                 <Link
                   href="/auth/register"
-                  className="group inline-flex w-full items-center justify-center gap-2 rounded-lg border border-amber-300/60 bg-gradient-to-r from-amber-400 to-amber-500 px-7 py-3.5 text-sm font-black uppercase tracking-widest text-black shadow-[0_0_30px_rgba(251,191,36,0.45)] transition-all hover:shadow-[0_0_50px_rgba(251,191,36,0.7)] active:scale-95 sm:w-auto"
+                  className="group inline-flex items-center justify-center gap-2 rounded-lg border border-amber-300/60 bg-gradient-to-r from-amber-400 to-amber-500 px-9 py-4 text-sm font-black uppercase tracking-widest text-black shadow-[0_0_30px_rgba(251,191,36,0.45)] transition-all hover:shadow-[0_0_50px_rgba(251,191,36,0.7)] active:scale-95"
                 >
                   <ChevronsUp className="size-5" />
                   Empezar a ascender
-                </Link>
-                <Link
-                  href="/ascenso"
-                  className="group inline-flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-400/40 bg-cyan-500/10 px-7 py-3.5 text-sm font-bold uppercase tracking-widest text-cyan-200 backdrop-blur-sm transition-all hover:border-cyan-400/80 hover:bg-cyan-500/20 active:scale-95 sm:w-auto"
-                >
-                  Ver el estadio
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
             </div>
@@ -147,7 +140,7 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
           </div>
 
           {/* Cinta-marcador del combate (tipo HUD de fighting game) */}
-          <div className="mx-auto mt-2 flex max-w-2xl items-stretch divide-x divide-white/10 overflow-hidden rounded-lg border border-white/10 bg-black/50 backdrop-blur-md md:mt-0">
+          <div className="mx-auto mt-12 flex max-w-2xl items-stretch divide-x divide-white/10 overflow-hidden rounded-lg border border-white/10 bg-black/50 backdrop-blur-md md:mt-14">
             <ScoreCell value={totalPlayers} label="bladers en pista" accent="text-cyan-300" />
             <ScoreCell value={RANKS.length} label="rangos · F a S" accent="text-indigo-300" />
             <ScoreCell value={totalMatches} label="combates jugados" accent="text-amber-300" />
