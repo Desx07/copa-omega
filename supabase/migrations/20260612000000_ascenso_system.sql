@@ -74,14 +74,17 @@ CREATE TABLE IF NOT EXISTS ascenso_ranks (
 );
 
 -- Seed idempotente (re-ejecutable: converge a estos valores)
+-- Progresión por peleas (estilo Pokémon Z-A): cada victoria da 10 pts fijos.
+-- ticket_target = peleas × 10. Peleas: 30 el primero, +10 por rango.
+-- DEBE coincidir con FIGHTS_PER_RANK / POINTS_PER_WIN en lib/ascenso.ts.
 INSERT INTO ascenso_ranks (letter, name, ticket_target, sort) VALUES
-  ('F', 'Novato',   100,  0),
-  ('E', 'Hierro',   150,  1),
-  ('D', 'Bronce',   200,  2),
-  ('C', 'Plata',    300,  3),
-  ('B', 'Oro',      400,  4),
-  ('A', 'Diamante', 500,  5),
-  ('S', 'Omega',    NULL, 6)
+  ('F', 'Novato',   300,  0),  -- 30 peleas
+  ('E', 'Hierro',   400,  1),  -- 40 peleas
+  ('D', 'Bronce',   500,  2),  -- 50 peleas
+  ('C', 'Plata',    600,  3),  -- 60 peleas
+  ('B', 'Oro',      700,  4),  -- 70 peleas
+  ('A', 'Diamante', 800,  5),  -- 80 peleas
+  ('S', 'Omega',    NULL, 6)   -- rango máximo
 ON CONFLICT (letter) DO UPDATE
   SET name = EXCLUDED.name,
       ticket_target = EXCLUDED.ticket_target,

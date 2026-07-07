@@ -11,7 +11,7 @@
 
 import { useState, useMemo } from "react";
 import { notFound } from "next/navigation";
-import { RANKS, rankInfo, nextRank, hasFullTicket, type RankLetter } from "@/lib/ascenso";
+import { RANKS, rankInfo, nextRank, hasFullTicket, POINTS_PER_WIN, type RankLetter } from "@/lib/ascenso";
 
 interface SandboxPlayer {
   id: string;
@@ -46,7 +46,8 @@ export default function AscensoSandbox() {
   const [players, setPlayers] = useState<SandboxPlayer[]>(INITIAL);
   const [p1, setP1] = useState<string>("");
   const [p2, setP2] = useState<string>("");
-  const [points, setPoints] = useState<number>(50);
+  // Cada victoria vale POINTS_PER_WIN fijos (progresión por peleas, estilo Z-A).
+  const points = POINTS_PER_WIN;
   const [kind, setKind] = useState<"normal" | "ascension">("normal");
   const [log, setLog] = useState<string[]>([]);
 
@@ -166,11 +167,10 @@ export default function AscensoSandbox() {
           </select>
         </div>
         {kind === "normal" && (
-          <label className="flex items-center gap-2 text-xs">
-            Puntos al ganador:
-            <input type="number" min={1} max={500} value={points}
-              onChange={(e) => setPoints(Number(e.target.value))} className="omega-input w-20 text-xs" />
-          </label>
+          <p className="text-[11px] text-omega-muted">
+            Cada victoria da <span className="font-bold text-omega-green">{POINTS_PER_WIN} pts</span> fijos.
+            Subir de rango cuesta: F 30 peleas · E 40 · D 50 · C 60 · B 70 · A 80.
+          </p>
         )}
         {p1 && p2 && p1 !== p2 && (
           <div className="flex gap-2 text-xs">
