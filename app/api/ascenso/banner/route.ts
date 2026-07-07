@@ -25,156 +25,152 @@ export async function GET(req: NextRequest) {
     const c2Raw = searchParams.get("c2") ?? "";
     const c2 = PERSONAJE_VALIDO.test(c2Raw) ? c2Raw : "05";
 
+    // Colores hexagonales de rango — MISMOS que la landing (RANK_HEX)
+    const RANK_HEX: Record<string, string> = {
+      F: "#7dd3fc", E: "#38bdf8", D: "#22d3ee",
+      C: "#818cf8", B: "#c084fc", A: "#f472b6", S: "#fbbf24",
+    };
+    const hex1 = RANK_HEX[r1] ?? "#7dd3fc";
+    const hex2 = RANK_HEX[r2] ?? "#7dd3fc";
+
     const WIDTH = 1200;
     const HEIGHT = 630; // OG image standard
     const canvas = createCanvas(WIDTH, HEIGHT);
     const ctx = canvas.getContext("2d");
 
-    // Fondo oscuro con gradiente
-    const bgGrad = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
-    bgGrad.addColorStop(0, "#0f0a1e");
-    bgGrad.addColorStop(0.5, "#1a1030");
-    bgGrad.addColorStop(1, "#0f0a1e");
-    ctx.fillStyle = bgGrad;
+    const publicDir = path.join(process.cwd(), "public");
+
+    // ── Fondo: estadio real oscurecido (como el versus de la app) ──
+    ctx.fillStyle = "#05070d";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    try {
+      const stadium = await loadImage(path.join(publicDir, "stadium.png"));
+      // Cover: escalar para llenar el canvas manteniendo proporción
+      const scale = Math.max(WIDTH / stadium.width, HEIGHT / stadium.height);
+      const sw = stadium.width * scale;
+      const sh = stadium.height * scale;
+      ctx.globalAlpha = 0.35;
+      ctx.drawImage(stadium, (WIDTH - sw) / 2, (HEIGHT - sh) / 2, sw, sh);
+      ctx.globalAlpha = 1;
+    } catch { /* sin estadio, queda el fondo oscuro */ }
+
+    // Viñeta + glow frío central (profundidad de estadio)
+    const vig = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 100, WIDTH / 2, HEIGHT / 2, WIDTH * 0.7);
+    vig.addColorStop(0, "rgba(56,189,248,0.10)");
+    vig.addColorStop(0.55, "rgba(5,7,13,0.35)");
+    vig.addColorStop(1, "rgba(5,7,13,0.92)");
+    ctx.fillStyle = vig;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    // Grid tech de fondo
-    ctx.strokeStyle = "rgba(255,255,255,0.03)";
-    ctx.lineWidth = 1;
-    for (let x = 0; x < WIDTH; x += 40) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, HEIGHT);
-      ctx.stroke();
-    }
-    for (let y = 0; y < HEIGHT; y += 40) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(WIDTH, y);
-      ctx.stroke();
-    }
-
     // Cargar personajes
-    const publicDir = path.join(process.cwd(), "public");
     let chr1, chr2;
-    try {
-      chr1 = await loadImage(path.join(publicDir, "characters", `chr_${c1}.png`));
-    } catch { chr1 = null; }
-    try {
-      chr2 = await loadImage(path.join(publicDir, "characters", `chr_${c2}.png`));
-    } catch { chr2 = null; }
+    try { chr1 = await loadImage(path.join(publicDir, "characters", `chr_${c1}.png`)); } catch { chr1 = null; }
+    try { chr2 = await loadImage(path.join(publicDir, "characters", `chr_${c2}.png`)); } catch { chr2 = null; }
 
-    // Dividir en dos mitades
-    // Mitad izquierda — gradiente púrpura
-    const leftGrad = ctx.createLinearGradient(0, 0, WIDTH / 2, HEIGHT);
-    leftGrad.addColorStop(0, "rgba(88,28,135,0.4)");
-    leftGrad.addColorStop(1, "rgba(88,28,135,0.1)");
-    ctx.fillStyle = leftGrad;
-    ctx.fillRect(0, 0, WIDTH / 2, HEIGHT);
-
-    // Mitad derecha — gradiente azul
-    const rightGrad = ctx.createLinearGradient(WIDTH / 2, 0, WIDTH, HEIGHT);
-    rightGrad.addColorStop(0, "rgba(30,58,138,0.1)");
-    rightGrad.addColorStop(1, "rgba(30,58,138,0.4)");
-    ctx.fillStyle = rightGrad;
-    ctx.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-
-    // Personaje 1 (izquierda)
+    // Personajes en las esquinas inferiores, con halo del color de su rango
+    const chrSize = 430;
     if (chr1) {
-      const chrSize = 400;
-      ctx.drawImage(chr1, 50, HEIGHT - chrSize - 30, chrSize, chrSize);
+      ctx.save();
+      const gx = 150 + chrSize / 2, gy = HEIGHT - chrSize / 2;
+      const glow = ctx.createRadialGradient(gx, gy, 20, gx, gy, chrSize * 0.55);
+      glow.addColorStop(0, hex1 + "55");
+      glow.addColorStop(1, "transparent");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, HEIGHT - chrSize - 40, chrSize + 200, chrSize + 60);
+      ctx.drawImage(chr1, -30, HEIGHT - chrSize - 10, chrSize, chrSize);
+      ctx.restore();
     }
-
-    // Personaje 2 (derecha)
     if (chr2) {
-      const chrSize = 400;
-      ctx.drawImage(chr2, WIDTH - chrSize - 50, HEIGHT - chrSize - 30, chrSize, chrSize);
+      ctx.save();
+      const gx = WIDTH - 150 - chrSize / 2, gy = HEIGHT - chrSize / 2;
+      const glow = ctx.createRadialGradient(gx, gy, 20, gx, gy, chrSize * 0.55);
+      glow.addColorStop(0, hex2 + "55");
+      glow.addColorStop(1, "transparent");
+      ctx.fillStyle = glow;
+      ctx.fillRect(WIDTH - chrSize - 200, HEIGHT - chrSize - 40, chrSize + 200, chrSize + 60);
+      // Espejar el personaje derecho para que mire al centro
+      ctx.translate(WIDTH + 30, HEIGHT - chrSize - 10);
+      ctx.scale(-1, 1);
+      ctx.drawImage(chr2, 0, 0, chrSize, chrSize);
+      ctx.restore();
     }
 
-    // Línea diagonal central
-    ctx.strokeStyle = "rgba(255,50,50,0.6)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(WIDTH / 2, 0);
-    ctx.lineTo(WIDTH / 2, HEIGHT);
-    ctx.stroke();
-
-    // VS central
-    ctx.fillStyle = "#dc2626";
-    ctx.beginPath();
-    ctx.arc(WIDTH / 2, HEIGHT / 2, 45, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 36px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("VS", WIDTH / 2, HEIGHT / 2);
-
-    // Nombre jugador 1
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px Arial";
-    ctx.textAlign = "left";
-    ctx.fillText(p1Name, 60, 50);
-
-    // Rango 1
-    ctx.font = "bold 48px Arial";
-    ctx.fillStyle = "rgba(192,132,252,0.9)";
-    ctx.fillText(r1, 60, 110);
-
-    ctx.font = "12px Arial";
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.fillText("RANGO", 60, 130);
-
-    // Nombre jugador 2
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px Arial";
-    ctx.textAlign = "right";
-    ctx.fillText(p2Name, WIDTH - 60, 50);
-
-    // Rango 2
-    ctx.font = "bold 48px Arial";
-    ctx.fillStyle = "rgba(96,165,250,0.9)";
-    ctx.fillText(r2, WIDTH - 60, 110);
-
-    ctx.font = "12px Arial";
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.fillText("RANGO", WIDTH - 100, 130);
+    // ── Sello hexagonal de rango (flat-top, como la landing) ──
+    function drawRankSeal(cx: number, cy: number, radius: number, color: string, letter: string) {
+      ctx.save();
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const ang = (Math.PI / 3) * i - Math.PI / 6; // flat-top
+        const px = cx + radius * Math.cos(ang);
+        const py = cy + radius * Math.sin(ang);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      const g = ctx.createLinearGradient(cx, cy - radius, cx, cy + radius);
+      g.addColorStop(0, color);
+      g.addColorStop(1, color + "aa");
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 30;
+      ctx.fillStyle = g;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(255,255,255,0.85)";
+      ctx.stroke();
+      // Letra
+      ctx.fillStyle = "#05070d";
+      ctx.font = `900 ${radius}px Arial`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(letter, cx, cy + 2);
+      ctx.restore();
+    }
 
     // Título arriba
     ctx.textAlign = "center";
-    ctx.font = "bold 20px Arial";
-    ctx.fillStyle = "rgba(0,255,255,0.7)";
-    ctx.fillText("⚔ COMBATE DE ASCENSO ⚔", WIDTH / 2, 30);
+    ctx.textBaseline = "alphabetic";
+    ctx.font = "900 26px Arial";
+    ctx.fillStyle = "#fbbf24";
+    ctx.shadowColor = "rgba(251,191,36,0.6)";
+    ctx.shadowBlur = 18;
+    ctx.fillText("COMBATE DE ASCENSO", WIDTH / 2, 62);
+    ctx.shadowBlur = 0;
+    ctx.font = "bold 15px Arial";
+    ctx.fillStyle = "rgba(125,211,252,0.75)";
+    ctx.fillText("BLADERS SANTA FE · TORNEO DE ASCENSO", WIDTH / 2, 92);
 
-    // Footer
-    ctx.font = "14px Arial";
-    ctx.fillStyle = "rgba(255,255,255,0.3)";
-    ctx.fillText("BLADERS SANTA FE — TORNEO DE ASCENSO", WIDTH / 2, HEIGHT - 20);
+    // Sellos hexagonales de rango a cada lado del centro
+    drawRankSeal(WIDTH / 2 - 250, HEIGHT / 2, 60, hex1, r1);
+    drawRankSeal(WIDTH / 2 + 250, HEIGHT / 2, 60, hex2, r2);
 
-    // Banner diagonal "¡AL MÁXIMO!"
+    // ── VS central grande, dorado con stroke (como el clash de la app) ──
     ctx.save();
-    ctx.translate(200, 420);
-    ctx.rotate(-0.1);
-    ctx.fillStyle = "rgba(168,85,247,0.85)";
-    ctx.fillRect(-10, -15, 220, 35);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 18px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("¡AL MÁXIMO!", 100, 7);
+    ctx.textBaseline = "middle";
+    ctx.font = "900 130px Arial";
+    ctx.shadowColor = "rgba(251,191,36,0.9)";
+    ctx.shadowBlur = 40;
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "#0b0b16";
+    ctx.strokeText("VS", WIDTH / 2, HEIGHT / 2 + 4);
+    const vsGrad = ctx.createLinearGradient(0, HEIGHT / 2 - 70, 0, HEIGHT / 2 + 70);
+    vsGrad.addColorStop(0, "#fde68a");
+    vsGrad.addColorStop(1, "#f59e0b");
+    ctx.fillStyle = vsGrad;
+    ctx.fillText("VS", WIDTH / 2, HEIGHT / 2 + 4);
     ctx.restore();
 
-    // Banner "PRÓXIMO COMBATE"
-    ctx.save();
-    ctx.translate(WIDTH - 420, 420);
-    ctx.rotate(0.1);
-    ctx.fillStyle = "rgba(37,99,235,0.85)";
-    ctx.fillRect(-10, -15, 250, 35);
+    // Nombres de jugadores (bajo cada personaje)
+    ctx.textBaseline = "alphabetic";
+    ctx.font = "900 34px Arial";
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 18px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("PRÓXIMO COMBATE", 115, 7);
-    ctx.restore();
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 8;
+    ctx.textAlign = "left";
+    ctx.fillText(p1Name.toUpperCase(), 60, HEIGHT - 40);
+    ctx.textAlign = "right";
+    ctx.fillText(p2Name.toUpperCase(), WIDTH - 60, HEIGHT - 40);
+    ctx.shadowBlur = 0;
 
     // Return as PNG
     const buffer = canvas.toBuffer("image/png");
