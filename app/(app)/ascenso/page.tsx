@@ -757,7 +757,7 @@ export default function AscensoPage() {
           {/* La card de batalla solo si conocemos al rival; el resultado se muestra igual.
               El ref envuelve el recuadro para capturarlo como imagen (compartir/descargar). */}
           {battleOpponent && (
-            <div ref={captureRef}>
+            <div ref={captureRef} className="mx-auto w-full max-w-2xl">
               <BattleScreen
                 player={battlePlayer}
                 opponent={battleOpponent}
