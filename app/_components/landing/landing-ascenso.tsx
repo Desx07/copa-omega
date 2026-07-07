@@ -100,21 +100,21 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
 
               {/* HUD VS — sello de combate (insignia hexagonal con la letra del rango) */}
               <div className="mt-6 flex items-center justify-center gap-4 md:mt-7">
-                <RankSeal letter="F" hex="#7dd3fc" caption="vos" />
+                <RankSeal letter="F" hex="#7dd3fc" caption="retador" />
                 <div className="flex flex-col items-center">
                   <Swords className="size-6 text-amber-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)] md:size-7" />
                   <span className="mt-0.5 font-mono text-lg font-black italic text-amber-300 md:text-xl">
                     VS
                   </span>
                 </div>
-                <RankSeal letter="S" hex="#fbbf24" caption="la cima" />
+                <RankSeal letter="S" hex="#fbbf24" caption="campeón" />
               </div>
 
               <p className="mx-auto mt-6 max-w-sm text-sm leading-relaxed text-omega-muted md:text-base">
-                Entrás en <span className="font-black text-cyan-300">F</span>. Cada pelea ganada
-                suma puntos a tu ticket — perder no te resta nada. Con el ticket lleno jugás el
-                combate de ascenso por el salto de rango, hasta
-                la <span className="font-black text-amber-300">S</span>.
+                Arrancás desde abajo como <span className="font-black text-cyan-300">retador</span> y
+                subís peleando. Cada victoria llena tu ticket; con el ticket lleno jugás el combate
+                de ascenso y escalás de rango, hasta coronarte
+                <span className="font-black text-amber-300"> campeón en la cima</span>.
               </p>
 
               {/* CTAs de combate */}
