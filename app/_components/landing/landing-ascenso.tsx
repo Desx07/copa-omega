@@ -111,10 +111,8 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
               </div>
 
               <p className="mx-auto mt-6 max-w-sm text-sm leading-relaxed text-omega-muted md:text-base">
-                Arrancás desde abajo como <span className="font-black text-cyan-300">retador</span> y
-                subís peleando. Cada victoria llena tu ticket; con el ticket lleno jugás el combate
-                de ascenso y escalás de rango, hasta coronarte
-                <span className="font-black text-amber-300"> campeón en la cima</span>.
+                Se sube <span className="font-black text-cyan-300">rango por rango</span>, a fuerza
+                de combates. La <span className="font-black text-amber-300">cima</span> es de uno solo.
               </p>
 
               {/* CTA de combate */}
@@ -164,9 +162,8 @@ export function LandingAscenso({ totalPlayers, totalMatches }: LandingAscensoPro
               Subí <span className="text-amber-300">rango</span> a <span className="text-amber-300">rango</span>
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-omega-muted md:text-base">
-              El juez asigna puntos de ticket por cada pelea ganada — el que pierde no pierde
-              nada. Cada rango tiene su objetivo de Ticket Points: al llegar, desbloqueás el
-              combate de ascenso contra otro blader de tu rango con el ticket lleno.
+              Ganá peleas para cargar tu ticket. Cuando lo llenás, desbloqueás el combate de
+              ascenso contra otro blader de tu rango.
             </p>
           </div>
 
