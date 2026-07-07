@@ -279,16 +279,16 @@ export default function AscensoPage() {
   const onTowerComplete = useCallback(() => {
     setPhase("loading");
     setBattleStatus("loading");
-    // Loading 3s → reveal oponente → CHOQUE (clash) (cancelable: el resultado puede llegar antes)
+    // Breve loading (1s) → CHOQUE (clash). Antes eran 3,5s mostrando solo el logo,
+    // lo que hacía sentir que la animación no aparecía. Cancelable: si llega un
+    // resultado o el usuario sale, no pisamos la fase actual.
     if (versusTimerRef.current) clearTimeout(versusTimerRef.current);
     versusTimerRef.current = setTimeout(() => {
       versusTimerRef.current = null;
-      // Solo avanzamos al choque si seguimos en loading: si llegó un resultado
-      // o el usuario salió, no pisamos la fase actual
       if (phaseRef.current === "loading") {
         setPhase("clash");
       }
-    }, 3500);
+    }, 1000);
   }, []);
 
   // El choque (clash) terminó → mostramos la pantalla de versus estática
