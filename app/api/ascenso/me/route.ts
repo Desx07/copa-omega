@@ -159,10 +159,14 @@ export async function GET(request: Request) {
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Jugador del usuario
+    // Jugador del usuario — SOLO columnas base (existen siempre). Las columnas
+    // de ascenso (rank_letter, ticket_points, ascenso_enabled) se consultan
+    // aparte para tolerar que la migración todavía no esté aplicada: si no
+    // existen, caemos a defaults sin romper el endpoint (antes esto tiraba 404
+    // en toda la página porque la query principal las incluía).
     const { data: player, error: playerError } = await supabase
       .from("players")
-      .select("id, alias, avatar_url, rank_letter, ticket_points, wins, losses")
+      .select("id, alias, avatar_url, wins, losses")
       .eq("id", user.id)
       .single();
 
@@ -170,31 +174,33 @@ export async function GET(request: Request) {
       return Response.json({ error: "Jugador no encontrado" }, { status: 404 });
     }
 
-    const rankLetter: string = player.rank_letter ?? "F";
-    const ticketPoints: number = player.ticket_points ?? 0;
-    const esRangoMaximo = rankLetter === "S";
-
-    // Habilitación para el Torneo de Ascenso. Se consulta aparte para tolerar
-    // que la columna todavía no exista (migración sin aplicar): default false
-    // sin romper el endpoint.
+    // Columnas de ascenso, tolerantes a migración pendiente (42703).
+    let rankLetter = "F";
+    let ticketPoints = 0;
     let ascensoEnabled = false;
     {
-      const { data: flagRow, error: flagError } = await supabase
+      const { data: ascRow, error: ascError } = await supabase
         .from("players")
-        .select("ascenso_enabled")
+        .select("rank_letter, ticket_points, ascenso_enabled")
         .eq("id", user.id)
         .single();
-      if (flagError) {
-        if (flagError.code !== "42703") {
-          return Response.json({ error: flagError.message }, { status: 500 });
+      if (ascError) {
+        if (ascError.code !== "42703") {
+          return Response.json({ error: ascError.message }, { status: 500 });
         }
-        // columna inexistente → default false
-      } else {
-        ascensoEnabled = flagRow?.ascenso_enabled === true;
+        // columnas inexistentes → defaults F / 0 / false
+      } else if (ascRow) {
+        rankLetter = ascRow.rank_letter ?? "F";
+        ticketPoints = ascRow.ticket_points ?? 0;
+        ascensoEnabled = ascRow.ascenso_enabled ?? false;
       }
     }
 
-    // Objetivo de ticket del rango actual (null si es S: no hay más ascenso)
+    const esRangoMaximo = rankLetter === "S";
+
+    // Objetivo de ticket del rango actual (null si es S: no hay más ascenso).
+    // Fallback a los targets de lib/ascenso si la tabla ascenso_ranks no existe
+    // todavía (migración pendiente) — antes esto tiraba 500 y rompía la página.
     let ticketTarget: number | null = null;
     if (!esRangoMaximo) {
       const { data: rankRow, error: rankError } = await supabase
@@ -204,13 +210,11 @@ export async function GET(request: Request) {
         .single();
 
       if (rankError || !rankRow) {
-        return Response.json(
-          { error: `No se encontró configuración del rango ${rankLetter}` },
-          { status: 500 }
-        );
+        const fallback = RANKS.find((r) => r.letter === rankLetter);
+        ticketTarget = fallback?.ticketTarget ?? null;
+      } else {
+        ticketTarget = rankRow.ticket_target;
       }
-
-      ticketTarget = rankRow.ticket_target;
     }
 
     const hasTicket = !esRangoMaximo && ticketTarget != null && ticketPoints >= ticketTarget;
@@ -329,12 +333,15 @@ export async function GET(request: Request) {
       .limit(1)
       .maybeSingle();
 
-    if (matchError) {
+    // Tolerante: si las columnas de ascenso no existen (migración pendiente),
+    // no puede haber partidas de ascenso todavía → tratamos como sin partida
+    // activa en vez de tirar 500 (antes esto rompía toda la página).
+    if (matchError && matchError.code !== "42703") {
       return Response.json({ error: matchError.message }, { status: 500 });
     }
 
     let activeMatch: ActiveMatch | null = null;
-    if (pendingMatch) {
+    if (!matchError && pendingMatch) {
       // El rival es el jugador que no es el usuario
       const esPlayer1 = pendingMatch.player1_id === user.id;
       // Supabase puede tipar las relaciones embebidas como array — normalizamos
@@ -350,7 +357,7 @@ export async function GET(request: Request) {
             id: opponent.id,
             alias: opponent.alias,
             avatar_url: opponent.avatar_url ?? null,
-            rank_letter: opponent.rank_letter,
+            rank_letter: opponent.rank_letter ?? rankLetter,
             ticket_points: opponent.ticket_points ?? null,
           },
         };
