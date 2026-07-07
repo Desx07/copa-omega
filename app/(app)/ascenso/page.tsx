@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { toBlob } from "html-to-image";
 import { Ticket, Swords, Trophy, ChevronsUp, Share2, Lock, Users } from "lucide-react";
 import BattleScreen, { type BattlePlayer } from "./_components/battle-card";
 import BattleClash from "./_components/battle-clash";
@@ -165,6 +166,49 @@ export default function AscensoPage() {
   const demoSeenRef = useRef<string | null>(null);
   // Timer del loading → versus, cancelable si el resultado llega antes
   const versusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref al recuadro del versus para capturarlo como imagen (compartir/descargar)
+  const captureRef = useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = useState(false);
+
+  // Captura el recuadro del versus (DOM → PNG en el navegador) y lo comparte por
+  // WhatsApp (Web Share con archivo) o lo descarga. Corre 100% en el cliente:
+  // funciona online, sin depender de captura en el servidor.
+  const shareVersus = useCallback(async () => {
+    const node = captureRef.current;
+    if (!node || sharing) return;
+    setSharing(true);
+    try {
+      const blob = await toBlob(node, { pixelRatio: 2, cacheBust: true, backgroundColor: "#05070d" });
+      if (!blob) return;
+      const file = new File([blob], "combate-ascenso.png", { type: "image/png" });
+
+      // Descarga como fallback (desktop, o si el share falla/se cancela)
+      const descargar = () => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "combate-ascenso.png";
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      // En mobile abre el menú de compartir (WhatsApp). Si no se puede, descarga.
+      if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: "Combate de ascenso — Bladers SF" });
+        } catch (shareErr) {
+          // Usuario canceló o el share no está permitido → descargamos
+          if ((shareErr as Error)?.name !== "AbortError") descargar();
+        }
+      } else {
+        descargar();
+      }
+    } catch (err) {
+      console.error("No se pudo generar la imagen del combate:", err);
+    } finally {
+      setSharing(false);
+    }
+  }, [sharing]);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -710,16 +754,33 @@ export default function AscensoPage() {
       {/* ── LOADING + VERSUS + RESULT: pantalla de combate ── */}
       {(phase === "loading" || phase === "versus" || phase === "result") && (
         <div className="px-4 mb-8">
-          {/* La card de batalla solo si conocemos al rival; el resultado se muestra igual */}
+          {/* La card de batalla solo si conocemos al rival; el resultado se muestra igual.
+              El ref envuelve el recuadro para capturarlo como imagen (compartir/descargar). */}
           {battleOpponent && (
-            <BattleScreen
-              player={battlePlayer}
-              opponent={battleOpponent}
-              status={battleStatus}
-              winner={battleWinner}
-              kind={battleKind}
-              pointsAwarded={battlePoints}
-            />
+            <div ref={captureRef}>
+              <BattleScreen
+                player={battlePlayer}
+                opponent={battleOpponent}
+                status={battleStatus}
+                winner={battleWinner}
+                kind={battleKind}
+                pointsAwarded={battlePoints}
+              />
+            </div>
+          )}
+
+          {/* En versus, botón para compartir el combate por WhatsApp / descargar */}
+          {phase === "versus" && battleOpponent && (
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={shareVersus}
+                disabled={sharing}
+                className="inline-flex items-center gap-2 rounded-lg border border-omega-green/40 bg-omega-green/15 px-5 py-2.5 text-sm font-bold text-omega-green transition-all hover:bg-omega-green/25 active:scale-95 disabled:opacity-50"
+              >
+                <Share2 className="size-4" />
+                {sharing ? "Generando imagen…" : "Compartir por WhatsApp"}
+              </button>
+            </div>
           )}
 
           {/* En versus/loading, el resultado lo carga el juez — siempre con salida */}
