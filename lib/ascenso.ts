@@ -34,13 +34,13 @@ export interface RankInfo {
 
 /** Rangos en orden ascendente: F → S. ticketTarget = peleas × POINTS_PER_WIN. */
 export const RANKS: RankInfo[] = [
-  { letter: "F", name: "Novato",   fightsToRankUp: 30,   ticketTarget: 30 * POINTS_PER_WIN,  color: "from-gray-700 to-gray-900",     glow: "rgba(156,163,175,0.3)" },
-  { letter: "E", name: "Hierro",   fightsToRankUp: 40,   ticketTarget: 40 * POINTS_PER_WIN,  color: "from-green-800 to-green-950",   glow: "rgba(74,222,128,0.4)" },
-  { letter: "D", name: "Bronce",   fightsToRankUp: 50,   ticketTarget: 50 * POINTS_PER_WIN,  color: "from-blue-700 to-blue-900",     glow: "rgba(96,165,250,0.5)" },
-  { letter: "C", name: "Plata",    fightsToRankUp: 60,   ticketTarget: 60 * POINTS_PER_WIN,  color: "from-purple-700 to-purple-900", glow: "rgba(192,132,252,0.5)" },
-  { letter: "B", name: "Oro",      fightsToRankUp: 70,   ticketTarget: 70 * POINTS_PER_WIN,  color: "from-red-700 to-red-900",       glow: "rgba(248,113,113,0.5)" },
-  { letter: "A", name: "Diamante", fightsToRankUp: 80,   ticketTarget: 80 * POINTS_PER_WIN,  color: "from-amber-700 to-amber-900",   glow: "rgba(251,191,36,0.5)" },
-  { letter: "S", name: "Omega",    fightsToRankUp: null, ticketTarget: null, color: "from-yellow-500 to-amber-600",  glow: "rgba(253,224,71,0.6)" },
+  { letter: "F", name: "F"     ,   fightsToRankUp: 30,   ticketTarget: 30 * POINTS_PER_WIN,  color: "from-gray-700 to-gray-900",     glow: "rgba(156,163,175,0.3)" },
+  { letter: "E", name: "E"     ,   fightsToRankUp: 40,   ticketTarget: 40 * POINTS_PER_WIN,  color: "from-green-800 to-green-950",   glow: "rgba(74,222,128,0.4)" },
+  { letter: "D", name: "D"     ,   fightsToRankUp: 50,   ticketTarget: 50 * POINTS_PER_WIN,  color: "from-blue-700 to-blue-900",     glow: "rgba(96,165,250,0.5)" },
+  { letter: "C", name: "C"    ,    fightsToRankUp: 60,   ticketTarget: 60 * POINTS_PER_WIN,  color: "from-purple-700 to-purple-900", glow: "rgba(192,132,252,0.5)" },
+  { letter: "B", name: "B"  ,      fightsToRankUp: 70,   ticketTarget: 70 * POINTS_PER_WIN,  color: "from-red-700 to-red-900",       glow: "rgba(248,113,113,0.5)" },
+  { letter: "A", name: "A"       , fightsToRankUp: 80,   ticketTarget: 80 * POINTS_PER_WIN,  color: "from-amber-700 to-amber-900",   glow: "rgba(251,191,36,0.5)" },
+  { letter: "S", name: "S"    ,    fightsToRankUp: null, ticketTarget: null, color: "from-yellow-500 to-amber-600",  glow: "rgba(253,224,71,0.6)" },
 ];
 
 /** Info completa de un rango. Lanza si la letra no existe (imposible por tipo). */

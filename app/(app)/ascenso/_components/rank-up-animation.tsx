@@ -84,10 +84,6 @@ export default function RankUpAnimation({
               {toRank}
             </span>
           </div>
-
-          <p className="text-center text-white/70 text-xl font-bold mt-2">
-            {toName}
-          </p>
         </div>
 
         {/* Texto de ascenso */}

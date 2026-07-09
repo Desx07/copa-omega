@@ -812,18 +812,18 @@ export default function AscensoPage() {
               {resultInfo.kind === "rank_up" && rankUp ? (
                 <div className="flex flex-col items-center">
                   {/* Sello hexagonal del rango alcanzado */}
-                  <RankSeal letter={rankUp.to} caption={rankInfo(rankUp.to).name} size="lg" pulse />
+                  <RankSeal letter={rankUp.to} caption="Nuevo rango" size="lg" pulse />
                   <p className="mt-3 flex items-center justify-center gap-2 text-lg font-black uppercase tracking-wide">
                     <ChevronsUp className="size-5 text-amber-300" />
                     <span className={ASCENSO_TEXT_GRADIENT_GOLD}>¡Ascenso al rango {rankUp.to}!</span>
                   </p>
                   <p className="text-white/50 text-sm mb-4">
-                    Tu nuevo rango: {rankInfo(rankUp.to).name}
+                    Reiniciás el ticket y peleás por el siguiente rango.
                   </p>
                   {/* Compartir en WhatsApp (verde de marca; el mensaje lleva emojis, la UI no) */}
                   <a
                     href={`https://wa.me/?text=${encodeURIComponent(
-                      `⚔️ *COMBATE DE ASCENSO* ⚔️\n\n${player.alias} venció a ${opponentInfo?.alias ?? "su rival"} y ascendió al *Rango ${rankUp.to} (${rankInfo(rankUp.to).name})*!\n\n🏆 Bladers Santa Fe — Torneo de Ascenso\n👉 https://bladers-sf.vercel.app/ascenso`
+                      `⚔️ *COMBATE DE ASCENSO* ⚔️\n\n${player.alias} venció a ${opponentInfo?.alias ?? "su rival"} y ascendió al *Rango ${rankUp.to}*!\n\n🏆 Bladers Santa Fe — Torneo de Ascenso\n👉 https://bladers-sf.vercel.app/ascenso`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
