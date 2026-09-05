@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // GET — obtener mis invitaciones pendientes
 export async function GET() {
@@ -95,8 +96,12 @@ export async function PATCH(request: Request) {
       return Response.json({ error: "El equipo ya tiene 3 miembros" }, { status: 400 });
     }
 
-    // Agregar miembro
-    const { error: memberError } = await supabase
+    // Agregar miembro con service role: la RLS de team_members solo permite
+    // insertar al capitan o admin, pero acá el que acepta es el jugador invitado.
+    // Ya validamos arriba que es SU invitación pendiente y que puede unirse
+    // (no está en otro equipo, hay lugar), así que el bypass es seguro.
+    const admin = createAdminClient();
+    const { error: memberError } = await admin
       .from("team_members")
       .insert({
         team_id: invitation.team_id,
