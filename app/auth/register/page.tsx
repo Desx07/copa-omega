@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, UserPlus, Swords } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [alias, setAlias] = useState("");
   const [email, setEmail] = useState("");
@@ -54,19 +52,25 @@ export default function RegisterPage() {
           toast.error("Cuenta creada pero hubo un error guardando tu alias");
         }
 
-        // Insert new_player event into activity_feed
-        await supabase.from("activity_feed").insert({
-          type: "new_player",
-          actor_id: data.user.id,
-          target_id: null,
-          reference_id: null,
-          metadata: { alias: alias.trim() },
-        });
-
+        // Evento de feed en segundo plano: NO debe bloquear el ingreso al
+        // dashboard. Si falla (p.ej. RLS) o tarda, el registro igual redirige.
+        void supabase
+          .from("activity_feed")
+          .insert({
+            type: "new_player",
+            actor_id: data.user.id,
+            target_id: null,
+            reference_id: null,
+            metadata: { alias: alias.trim() },
+          })
+          .then(undefined, () => {});
       }
 
       toast.success("Bienvenido a la arena, blader!");
-      router.push("/dashboard");
+      // Hard navigation (no router.push): fuerza al servidor a leer la cookie de
+      // sesion recien creada por signUp. Con soft navigation la cookie no siempre
+      // esta propagada y el layout de (app) rebota a /auth/login.
+      window.location.href = "/dashboard";
     } catch {
       toast.error("Error de conexión, intentá de nuevo");
     } finally {
