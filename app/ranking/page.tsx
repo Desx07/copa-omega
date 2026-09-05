@@ -6,6 +6,7 @@ import { RANKS, type RankLetter } from "@/lib/ascenso";
 import { RankingTabs } from "./_components/ranking-tabs";
 import type { AscensoEntry } from "./_components/ascenso-section";
 import TournamentCountdown from "@/app/_components/tournament-countdown";
+import { skin } from "@/app/_components/ascenso-skin";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +76,8 @@ export default async function RankingPage() {
 
   const leaderboard = players ?? [];
   const matches = recentMatches ?? [];
+  // Piel del hero del ranking: combate cuando ascenso es la modalidad destacada.
+  const ascensoSkin = modeConfig.featured === "ascenso";
 
   // Función para agregar puntos por jugador
   function aggregatePoints(rawPoints: typeof rawStandardPoints) {
@@ -191,10 +194,10 @@ export default async function RankingPage() {
   return (
     <div className="mx-auto max-w-3xl pb-10 space-y-5">
       {/* ═══ HERO BANNER ═══ */}
-      <div className="-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-gold/20 via-omega-surface to-omega-purple/15 px-6 pt-8 pb-10 shadow-lg shadow-omega-gold/40">
-        {/* Decorative orbs */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-omega-gold/15 rounded-full blur-[80px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-omega-purple/15 rounded-full blur-[60px] pointer-events-none" />
+      <div className={skin(ascensoSkin, "-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-gold/20 via-omega-surface to-omega-purple/15 px-6 pt-8 pb-10 shadow-lg shadow-omega-gold/40", "-mx-4 overflow-hidden rounded-b-[2rem] bg-[#05070d] px-6 pt-8 pb-10 shadow-lg shadow-cyan-500/20")}>
+        {/* Orbs decorativos: oro/púrpura en Copa, cyan/ámbar en ascenso */}
+        <div className={skin(ascensoSkin, "absolute top-0 right-0 w-48 h-48 bg-omega-gold/15 rounded-full blur-[80px] pointer-events-none", "absolute top-0 right-0 w-48 h-48 bg-cyan-400/15 rounded-full blur-[80px] pointer-events-none")} />
+        <div className={skin(ascensoSkin, "absolute bottom-0 left-0 w-32 h-32 bg-omega-purple/15 rounded-full blur-[60px] pointer-events-none", "absolute bottom-0 left-0 w-32 h-32 bg-amber-300/12 rounded-full blur-[60px] pointer-events-none")} />
 
         {/* Back button */}
         <div className="relative mb-5">
@@ -213,29 +216,29 @@ export default async function RankingPage() {
 
         {/* Title */}
         <div className="relative text-center space-y-1">
-          <h1 className="text-3xl font-black tracking-tight neon-gold">RANKING</h1>
-          <p className="text-sm text-omega-muted">Bladers Santa Fe</p>
+          <h1 className={skin(ascensoSkin, "text-3xl font-black tracking-tight neon-gold", "text-3xl font-black uppercase tracking-tight bg-gradient-to-b from-cyan-200 via-sky-300 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(56,189,248,0.4)]")}>RANKING</h1>
+          <p className={skin(ascensoSkin, "text-sm text-omega-muted", "font-mono text-[11px] font-bold uppercase tracking-[0.35em] text-cyan-300/80")}>Bladers Santa Fe</p>
         </div>
 
         {/* Stats strip inside hero */}
         <div className="relative flex items-center justify-around rounded-xl bg-omega-dark/60 border border-white/[0.06] py-2.5 px-2 mt-6">
           <div className="flex items-center gap-1.5 text-sm">
-            <Trophy className="size-3.5 text-omega-gold" />
-            <span className="font-bold text-omega-gold">{leaderboard.length}</span>
+            <Trophy className={skin(ascensoSkin, "size-3.5 text-omega-gold", "size-3.5 text-cyan-300")} />
+            <span className={skin(ascensoSkin, "font-bold text-omega-gold", "font-bold text-cyan-300")}>{leaderboard.length}</span>
             <span className="text-omega-muted text-xs">bladers</span>
           </div>
           <div className="w-px h-4 bg-white/10" />
           <div className="flex items-center gap-1.5 text-sm">
-            <Swords className="size-3.5 text-omega-blue" />
-            <span className="font-bold text-omega-blue">{matches.length}</span>
+            <Swords className={skin(ascensoSkin, "size-3.5 text-omega-blue", "size-3.5 text-cyan-300")} />
+            <span className={skin(ascensoSkin, "font-bold text-omega-blue", "font-bold text-cyan-300")}>{matches.length}</span>
             <span className="text-omega-muted text-xs">partidas recientes</span>
           </div>
           {totalTournamentPlayers > 0 && (
             <>
               <div className="w-px h-4 bg-white/10" />
               <div className="flex items-center gap-1.5 text-sm">
-                <Medal className="size-3.5 text-omega-purple" />
-                <span className="font-bold text-omega-purple">{totalTournamentPlayers}</span>
+                <Medal className={skin(ascensoSkin, "size-3.5 text-omega-purple", "size-3.5 text-amber-300")} />
+                <span className={skin(ascensoSkin, "font-bold text-omega-purple", "font-bold text-amber-300")}>{totalTournamentPlayers}</span>
                 <span className="text-omega-muted text-xs">en torneos</span>
               </div>
             </>

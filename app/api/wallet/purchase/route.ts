@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCapabilities, capabilityGate } from "@/lib/capabilities";
 
 // POST — comprar voucher o golden ticket (via RPC atomico)
 export async function POST(request: Request) {
@@ -9,6 +10,11 @@ export async function POST(request: Request) {
     if (authError || !user) {
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }
+
+    // Gate de wallet: si está apagada no se puede comprar con Omega Coins.
+    const caps = await getCapabilities(supabase);
+    const gate = capabilityGate(caps.walletEnabled, "La wallet está desactivada");
+    if (gate) return gate;
 
     const body = await request.json();
     const { item_type } = body as { item_type: string };

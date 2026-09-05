@@ -22,7 +22,10 @@ export default function SeasonBanner({ name, number, endsAt }: SeasonBannerProps
             Temporada {number}: {name}
           </span>
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-omega-muted">
+        <div
+          suppressHydrationWarning
+          className="flex items-center gap-1 text-[10px] text-omega-muted"
+        >
           <Clock className="size-3" />
           {daysLeft > 0 ? `${daysLeft} dias restantes` : "Ultima semana!"}
         </div>

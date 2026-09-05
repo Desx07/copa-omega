@@ -4,12 +4,18 @@ import { useState, useEffect } from "react";
 import { Store, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-type StoreStatus = "open" | "closed" | "hidden";
+// Tienda: 2 estados. "Abierta" = visible en el dashboard; "Apagada" = fuera del
+// dashboard (se guarda como "hidden" en la DB, que es lo que oculta el botón y
+// la sección). El estado legacy "closed" se normaliza a "Abierta".
+type StoreStatus = "open" | "hidden";
+
+function normalize(raw: string | undefined): StoreStatus {
+  return raw === "hidden" ? "hidden" : "open";
+}
 
 const statusConfig: Record<StoreStatus, { label: string; desc: string; color: string; borderColor: string; next: StoreStatus }> = {
-  open: { label: "Abierta", desc: "Visible y operativa", color: "text-omega-green", borderColor: "border-l-omega-green", next: "closed" },
-  closed: { label: "Cerrada", desc: "Se ve el cartel de mantenimiento", color: "text-omega-gold", borderColor: "border-l-omega-gold", next: "hidden" },
-  hidden: { label: "Oculta", desc: "No aparece en el dashboard", color: "text-omega-red", borderColor: "border-l-omega-red", next: "open" },
+  open: { label: "Abierta", desc: "Visible en el dashboard", color: "text-omega-green", borderColor: "border-l-omega-green", next: "hidden" },
+  hidden: { label: "Apagada", desc: "No aparece en el dashboard", color: "text-omega-red", borderColor: "border-l-omega-red", next: "open" },
 };
 
 export function StoreToggle() {
@@ -20,7 +26,7 @@ export function StoreToggle() {
   useEffect(() => {
     fetch("/api/settings/store")
       .then((r) => r.json())
-      .then((d) => setStatus(d.status || "open"))
+      .then((d) => setStatus(normalize(d.status)))
       .finally(() => setLoading(false));
   }, []);
 
@@ -55,6 +61,7 @@ export function StoreToggle() {
   if (loading) return null;
 
   const config = statusConfig[status];
+  const isOn = status === "open";
 
   return (
     <div className={`omega-card shadow-sm border-l-4 ${config.borderColor} !rounded-2xl !p-4 flex items-center gap-3 transition-all hover:shadow-md`}>
@@ -63,12 +70,26 @@ export function StoreToggle() {
         <p className="text-sm font-bold text-omega-text">Tienda: <span className={config.color}>{config.label}</span></p>
         <p className="text-xs text-omega-muted">{config.desc}</p>
       </div>
+      {/* Switch on/off: prendido = Abierta, apagado = Apagada */}
       <button
         onClick={handleCycle}
         disabled={toggling}
-        className="omega-btn omega-btn-secondary px-3 py-1.5 text-xs shadow-sm hover:shadow-md"
+        role="switch"
+        aria-checked={isOn}
+        aria-label="Prender o apagar la tienda"
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+          isOn ? "bg-omega-green" : "bg-omega-border/60"
+        } ${toggling ? "opacity-60" : ""}`}
       >
-        {toggling ? <Loader2 className="size-3 animate-spin" /> : "Cambiar"}
+        {toggling ? (
+          <Loader2 className="size-3 animate-spin text-white mx-auto" />
+        ) : (
+          <span
+            className={`inline-block size-4 transform rounded-full bg-white shadow transition-transform ${
+              isOn ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        )}
       </button>
     </div>
   );
@@ -81,7 +102,7 @@ export function useStoreStatus() {
   useEffect(() => {
     fetch("/api/settings/store")
       .then((r) => r.json())
-      .then((d) => setStatus(d.status || "open"))
+      .then((d) => setStatus(normalize(d.status)))
       .finally(() => setLoading(false));
   }, []);
 

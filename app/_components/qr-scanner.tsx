@@ -3,18 +3,19 @@
 import { useState, useEffect, useRef } from "react";
 import { ScanLine, X, Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { skin } from "@/app/_components/ascenso-skin";
 
-export function QrScannerButton() {
+export function QrScannerButton({ ascensoSkin = false }: { ascensoSkin?: boolean }) {
   const [scanning, setScanning] = useState(false);
 
   return (
     <>
       <button
         onClick={() => setScanning(true)}
-        className="group flex flex-col omega-card-elevated !bg-gradient-to-br !from-omega-blue/25 !to-omega-purple/10 p-5 shadow-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+        className={skin(ascensoSkin, "group flex flex-col omega-card-elevated !bg-gradient-to-br !from-omega-blue/25 !to-omega-purple/10 p-5 shadow-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]", "group flex flex-col rounded-2xl border border-cyan-400/25 bg-[#0a0f1a] p-5 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-cyan-400/50 shadow-[0_0_18px_rgba(56,189,248,0.12)] hover:shadow-[0_0_28px_rgba(56,189,248,0.25)]")}
       >
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors shadow-sm">
-          <ScanLine className="size-6 text-white" />
+        <div className={skin(ascensoSkin, "flex size-12 items-center justify-center rounded-2xl bg-white/15 mb-3 group-hover:bg-white/25 transition-colors shadow-sm", "flex size-12 items-center justify-center rounded-2xl bg-cyan-400/15 mb-3 group-hover:bg-cyan-400/25 transition-colors")}>
+          <ScanLine className={skin(ascensoSkin, "size-6 text-white", "size-6 text-cyan-300")} />
         </div>
         <p className="font-bold text-white text-sm">Escanear QR</p>
         <p className="text-xs text-white/60 mt-0.5">Inscribirme a torneo</p>

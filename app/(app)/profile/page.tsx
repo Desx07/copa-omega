@@ -93,6 +93,9 @@ export default function ProfilePage() {
   >([]);
   const [rank, setRank] = useState(0);
   const [totalPlayers, setTotalPlayers] = useState(0);
+  // Capacidades: si la Copa está apagada, no se muestran estrellas en la UI.
+  // Default true para no ocultar por error mientras carga / si copa está activa.
+  const [canViewStars, setCanViewStars] = useState(true);
 
   useEffect(() => {
     loadProfile();
@@ -108,7 +111,7 @@ export default function ProfilePage() {
       return;
     }
 
-    const [playerResult, beysResult, badgesResult, allPlayersResult, tournamentBadgesResult] = await Promise.all([
+    const [playerResult, beysResult, badgesResult, allPlayersResult, tournamentBadgesResult, configResult] = await Promise.all([
       supabase
         .from("players")
         .select("id, full_name, alias, stars, wins, losses, is_eliminated, avatar_url, tagline, hide_beys, badge, accent_color, created_at, profile_card_url, is_judge")
@@ -135,7 +138,15 @@ export default function ProfilePage() {
         .select("position, tournament:tournaments!tournament_id(name, logo_url)")
         .eq("player_id", user.id)
         .order("created_at", { ascending: false }),
+      // Feature flags de modalidades (mismo endpoint que usa el toggle de admin).
+      fetch("/api/app-config")
+        .then((r) => (r.ok ? r.json() : {}))
+        .catch(() => ({})),
     ]);
+
+    // Copa activa → se muestran estrellas. Default "on" salvo que esté en "false".
+    const config = (configResult ?? {}) as Record<string, string>;
+    setCanViewStars(config.mode_copa_omega_enabled !== "false");
 
     if (playerResult.data) {
       setPlayer(playerResult.data);
@@ -407,11 +418,16 @@ export default function ProfilePage() {
 
           {/* Stats strip inside hero */}
           <div className="relative flex items-center justify-around rounded-xl bg-omega-dark/60 border border-white/[0.06] py-2.5 px-2 mt-5">
-            <div className="flex items-center gap-1.5 text-sm">
-              <Star className="size-3.5 text-omega-gold fill-omega-gold star-glow" />
-              <span className="text-xl font-black neon-gold">{player.stars}</span>
-            </div>
-            <div className="w-px h-4 bg-white/10" />
+            {/* Bloque de estrellas: solo si la Copa está activa (canViewStars). */}
+            {canViewStars && (
+              <>
+                <div className="flex items-center gap-1.5 text-sm">
+                  <Star className="size-3.5 text-omega-gold fill-omega-gold star-glow" />
+                  <span className="text-xl font-black neon-gold">{player.stars}</span>
+                </div>
+                <div className="w-px h-4 bg-white/10" />
+              </>
+            )}
             {rank > 0 && (
               <>
                 <div className="flex items-center gap-1.5 text-sm">

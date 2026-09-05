@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Dices, Sparkles, Clock, Trophy, ChevronDown, ChevronUp } from "lucide-react";
 import { TIER_CONFIG, GACHA_COST } from "@/lib/gacha";
 
@@ -507,16 +507,34 @@ function TierReveal({
 }
 
 function GoldenParticles() {
+  // Las partículas decorativas usan valores aleatorios. Generarlos durante el
+  // render provoca hydration mismatch (Math.random difiere entre server y
+  // cliente). Se generan una sola vez en el cliente tras montar: en SSR el
+  // contenedor va vacío y las partículas aparecen al hidratar, sin mismatch.
+  const [particles, setParticles] = useState<
+    { left: number; delay: number; duration: number }[]
+  >([]);
+
+  useEffect(() => {
+    setParticles(
+      Array.from({ length: 20 }, () => ({
+        left: Math.random() * 100,
+        delay: Math.random() * 2,
+        duration: 1.5 + Math.random() * 2,
+      }))
+    );
+  }, []);
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 20 }).map((_, i) => (
+      {particles.map((p, i) => (
         <div
           key={i}
           className="absolute size-1.5 rounded-full bg-omega-gold animate-particle"
           style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 2}s`,
-            animationDuration: `${1.5 + Math.random() * 2}s`,
+            left: `${p.left}%`,
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${p.duration}s`,
           }}
         />
       ))}
@@ -541,7 +559,9 @@ function PullHistoryRow({ pull }: { pull: GachaPull }) {
         <p className="text-sm font-bold text-omega-text truncate">
           {pull.blade} {pull.ratchet} {pull.bit}
         </p>
-        <p className="text-[10px] text-omega-muted">{timeAgo}</p>
+        {/* "Hace Xm/h" depende del reloj actual → se suprime el warning de
+            hidratación por si el gap server↔cliente cambia el valor. */}
+        <p suppressHydrationWarning className="text-[10px] text-omega-muted">{timeAgo}</p>
       </div>
       {pull.tournament_id && (
         <div className="shrink-0">

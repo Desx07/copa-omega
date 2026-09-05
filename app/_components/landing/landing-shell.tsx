@@ -37,7 +37,7 @@ export function LandingShell({ children }: { children: React.ReactNode }) {
 
       {/* ═══ FOOTER ═══ */}
       <footer className="py-8 px-4 md:px-8">
-        <p className="text-center text-xs text-omega-muted/50">&copy; {new Date().getFullYear()} Bladers Santa Fe — Beyblade X</p>
+        <p suppressHydrationWarning className="text-center text-xs text-omega-muted/50">&copy; {new Date().getFullYear()} Bladers Santa Fe — Beyblade X</p>
       </footer>
     </div>
   );

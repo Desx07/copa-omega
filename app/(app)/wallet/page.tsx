@@ -19,6 +19,7 @@ import {
   Clock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useWalletEnabled } from "@/app/_components/wallet-toggle";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -97,6 +98,7 @@ function useAnimatedCounter(target: number, duration = 1200) {
 
 export default function WalletPage() {
   const router = useRouter();
+  const { enabled: walletEnabled, loading: walletLoading } = useWalletEnabled();
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -123,8 +125,14 @@ export default function WalletPage() {
   }, []);
 
   useEffect(() => {
+    // Si la wallet está deshabilitada no tiene sentido pedir el balance.
+    if (walletLoading) return;
+    if (!walletEnabled) {
+      setLoading(false);
+      return;
+    }
     fetchWallet();
-  }, [fetchWallet]);
+  }, [fetchWallet, walletEnabled, walletLoading]);
 
   async function handlePurchase(itemType: string) {
     setPurchasing(itemType);
@@ -178,10 +186,30 @@ export default function WalletPage() {
     }
   }
 
-  if (loading) {
+  if (loading || walletLoading) {
     return (
       <div className="flex items-center justify-center py-32">
         <Loader2 className="size-8 text-omega-gold animate-spin" />
+      </div>
+    );
+  }
+
+  // Wallet deshabilitada: mismo patrón que /team y /league.
+  if (!walletEnabled) {
+    return (
+      <div className="max-w-lg mx-auto pb-10 pt-6 px-4 space-y-6">
+        <Link
+          href="/dashboard"
+          className="text-sm text-omega-muted hover:text-omega-text transition-colors inline-flex items-center gap-1"
+        >
+          <ArrowLeft className="size-3.5" />
+          Dashboard
+        </Link>
+        <div className="omega-card p-8 text-center space-y-3">
+          <Coins className="size-12 text-omega-muted/30 mx-auto" />
+          <h2 className="text-xl font-black text-omega-text">Wallet deshabilitada</h2>
+          <p className="text-sm text-omega-muted">La wallet no esta activa en este momento.</p>
+        </div>
       </div>
     );
   }

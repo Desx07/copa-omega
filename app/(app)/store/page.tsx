@@ -59,8 +59,11 @@ export default function StorePage() {
       const settingsRes = await fetch("/api/settings/store");
       if (settingsRes.ok) {
         const settingsData = await settingsRes.json();
-        setStoreStatus(settingsData.status || "open");
-        if (settingsData.status !== "open") {
+        // 2 estados: solo "hidden" apaga la tienda. El "closed" legacy se
+        // trata como abierta (consistente con el toggle del dashboard).
+        const storeSt = settingsData.status === "hidden" ? "hidden" : "open";
+        setStoreStatus(storeSt);
+        if (storeSt === "hidden") {
           setLoading(false);
           return;
         }

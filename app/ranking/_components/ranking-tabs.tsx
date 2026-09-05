@@ -362,8 +362,10 @@ export function RankingTabs({
         />
       </div>
 
-      {/* ═══ COLLAPSIBLE RECENT MATCHES (always visible, below tabs) ═══ */}
-      {matches.length > 0 && (
+      {/* ═══ COLLAPSIBLE RECENT MATCHES (solo si Copa Omega está activa) ═══ */}
+      {/* Las partidas apuestan estrellas (stars_bet) → pertenecen al ecosistema
+          de la Copa. Con la copa apagada no deben verse. */}
+      {showEstrellas && matches.length > 0 && (
         <div className="px-4 space-y-3">
           {/* Collapsible header */}
           <button

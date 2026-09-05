@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Check, Swords, Target, BarChart3, Trophy, MessageSquare, Zap } from "lucide-react";
+import { skin } from "@/app/_components/ascenso-skin";
 
 interface Mission {
   id: string;
@@ -26,7 +27,7 @@ const HREF_MAP: Record<string, string> = {
   challenge: "/challenges",
 };
 
-export default function WeeklyMissions() {
+export default function WeeklyMissions({ ascensoSkin = false }: { ascensoSkin?: boolean }) {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,10 +57,10 @@ export default function WeeklyMissions() {
   }
 
   return (
-    <div className="omega-card p-4 space-y-3 border-l-4 border-l-omega-blue">
+    <div className={skin(ascensoSkin, "omega-card p-4 space-y-3 border-l-4 border-l-omega-blue", "omega-card p-4 space-y-3 border-l-4 border-l-cyan-400")}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Target className="size-4 text-omega-blue" />
+          <Target className={skin(ascensoSkin, "size-4 text-omega-blue", "size-4 text-cyan-300")} />
           <h3 className="text-sm font-bold text-omega-text">Misiones de la semana</h3>
         </div>
         <span className="text-[10px] text-omega-muted font-bold">{completed}/{missions.length}</span>
@@ -68,7 +69,7 @@ export default function WeeklyMissions() {
       {/* Progress bar */}
       <div className="h-1.5 bg-omega-dark rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-omega-blue to-omega-purple rounded-full transition-all duration-500"
+          className={skin(ascensoSkin, "h-full bg-gradient-to-r from-omega-blue to-omega-purple rounded-full transition-all duration-500", "h-full bg-gradient-to-r from-cyan-400 to-amber-300 rounded-full transition-all duration-500")}
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -81,9 +82,9 @@ export default function WeeklyMissions() {
             <Link
               key={m.id}
               href={HREF_MAP[m.check] || "/dashboard"}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all bg-omega-dark/40 hover:bg-omega-blue/10"
+              className={skin(ascensoSkin, "flex items-center gap-3 px-3 py-2 rounded-lg transition-all bg-omega-dark/40 hover:bg-omega-blue/10", "flex items-center gap-3 px-3 py-2 rounded-lg transition-all bg-omega-dark/40 hover:bg-cyan-400/10")}
             >
-              <div className="size-6 rounded-full flex items-center justify-center shrink-0 bg-omega-blue/20 text-omega-blue">
+              <div className={skin(ascensoSkin, "size-6 rounded-full flex items-center justify-center shrink-0 bg-omega-blue/20 text-omega-blue", "size-6 rounded-full flex items-center justify-center shrink-0 bg-cyan-400/15 text-cyan-300")}>
                 <Icon className="size-3.5" />
               </div>
               <div className="flex-1 min-w-0">

@@ -23,7 +23,11 @@ export default function TournamentCountdown({ tournament }: TournamentCountdownP
     return () => clearInterval(interval);
   }, []);
 
-  const eventDate = new Date(tournament.event_date + "T14:00:00");
+  // Fecha del evento anclada a hora de Argentina (-03:00) de forma explícita.
+  // Sin el offset, "T14:00:00" se interpretaba en la zona horaria local: el
+  // server (UTC) y el cliente (ART) obtenían instantes distintos (3h de
+  // diferencia) y el texto del countdown no coincidía → hydration mismatch.
+  const eventDate = new Date(tournament.event_date + "T14:00:00-03:00");
   const diff = eventDate.getTime() - now.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -78,7 +82,11 @@ export default function TournamentCountdown({ tournament }: TournamentCountdownP
         </div>
       </div>
 
-      <div className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-black ${
+      {/* El texto depende del reloj actual: se suprime el warning por si el gap
+          server↔cliente cruza un límite de hora/día en el momento de hidratar. */}
+      <div
+        suppressHydrationWarning
+        className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-black ${
         isLive
           ? "bg-omega-red/20 text-omega-red animate-pulse"
           : isToday

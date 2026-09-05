@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { characterFor } from "@/lib/ascenso-character";
+import { getCapabilities, capabilityGate } from "@/lib/capabilities";
 
 export async function GET() {
   try {
@@ -68,8 +69,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // Gate de capacidades: blindar la creación en el backend según el modo (la
+    // UI ya oculta el botón, pero el endpoint seguía creando partidas). El gate
+    // se aplica en la rama correcta: ascenso con canPlayAscenso, copa/estrellas
+    // con canPlayStars. NUNCA se cruza (ascenso jamás se bloquea por la copa).
+    const caps = await getCapabilities(supabase);
+
     // ── MODO ASCENSO: peleas sin apuesta de estrellas ──
     if (mode === "ascenso") {
+      const ascensoGate = capabilityGate(
+        caps.canPlayAscenso,
+        "El Torneo de Ascenso está desactivado"
+      );
+      if (ascensoGate) return ascensoGate;
+
       return createAscensoMatch(supabase, user.id, {
         player1_id,
         player2_id,
@@ -77,6 +90,13 @@ export async function POST(request: Request) {
         points_awarded,
       });
     }
+
+    // ── MODO COPA OMEGA (sin mode o 'copa_omega'): apuesta estrellas ──
+    const starsGate = capabilityGate(
+      caps.canPlayStars,
+      "La Copa Omega está desactivada"
+    );
+    if (starsGate) return starsGate;
 
     // match_kind y points_awarded solo aplican al modo ascenso
     if (match_kind != null || points_awarded != null) {

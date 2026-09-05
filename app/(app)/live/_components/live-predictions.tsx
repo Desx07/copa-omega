@@ -11,6 +11,7 @@ import {
   Zap,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useWalletEnabled } from "@/app/_components/wallet-toggle";
 
 // ─── Tipos ──────────────────────────────────────────────
 
@@ -49,6 +50,8 @@ interface Odds {
 // ─── Componente ─────────────────────────────────────────
 
 export default function LivePredictions() {
+  // Las apuestas usan Omega Coins: si la wallet está deshabilitada, no se muestran.
+  const { enabled: walletEnabled, loading: walletLoading } = useWalletEnabled();
   const [liveMatch, setLiveMatch] = useState<LiveMatch | null>(null);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [myPrediction, setMyPrediction] = useState<Prediction | null>(null);
@@ -140,6 +143,9 @@ export default function LivePredictions() {
     }
     setPlacing(false);
   };
+
+  // Wallet deshabilitada: ocultar el panel de apuestas por completo.
+  if (walletLoading || !walletEnabled) return null;
 
   // No hay match en vivo -- no mostrar nada
   if (loading) {

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowLeft, Dices } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getCapabilities } from "@/lib/capabilities";
 import { getGachaStats } from "@/lib/gacha";
 import GachaClient from "./_components/gacha-client";
 
@@ -11,6 +13,13 @@ export default async function GachaPage() {
   } = await supabase.auth.getUser();
 
   if (!user) return null;
+
+  // Guard de modalidad: el BeyGacha es parte de la economía de coins. Si la
+  // wallet está apagada, la ruta no debe ser accesible ni por URL directa ni
+  // por bookmark → redirige al dashboard. Con wallet encendida (caso normal)
+  // sigue el flujo sin cambios.
+  const caps = await getCapabilities(supabase);
+  if (!caps.walletEnabled) redirect("/dashboard");
 
   // Obtener datos del jugador
   const { data: player } = await supabase

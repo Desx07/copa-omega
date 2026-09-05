@@ -151,9 +151,10 @@ export default function TeamPage() {
     fetchData();
   }, [fetchData]);
 
-  // Search players — autocomplete con debounce, busca por alias Y full_name
+  // Search players — autocomplete con debounce, busca por alias Y full_name.
+  // Mínimo 2 caracteres: con 1 sola letra la query matchea a casi todos y es lenta.
   useEffect(() => {
-    if (searchQuery.length < 1) {
+    if (searchQuery.trim().length < 2) {
       setSearchResults([]);
       return;
     }

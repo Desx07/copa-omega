@@ -23,6 +23,7 @@ import {
   TrendingUp,
   Shuffle,
   Coins,
+  Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { BADGE_EMOJIS, ACCENT_COLORS } from "@/lib/titles";
@@ -44,11 +45,15 @@ import TournamentCountdown from "@/app/_components/tournament-countdown";
 import DashboardCarousel from "@/app/_components/dashboard-carousel";
 import WeeklyMissions from "@/app/_components/weekly-missions";
 import OnlineUsers from "@/app/_components/online-users";
-import { DashboardTeamsButtons, DashboardTeamsSorteoButton } from "@/app/_components/dashboard-teams-buttons";
+import { DashboardTeamsButtons } from "@/app/_components/dashboard-teams-buttons";
 import { TeamsToggle } from "@/app/_components/teams-toggle";
+import { WalletToggle } from "@/app/_components/wallet-toggle";
 import { TournamentModeToggle } from "@/app/_components/tournament-mode-toggle";
 import { AscensoCtaCard } from "@/app/_components/ascenso-cta-card";
+import { AscensoHero } from "@/app/_components/ascenso-hero";
+import { skin, CB } from "@/app/_components/ascenso-skin";
 import { getModeConfig } from "@/lib/tournament-mode";
+import { getCapabilities } from "@/lib/capabilities";
 import { RANKS, rankInfo, type RankLetter } from "@/lib/ascenso";
 
 export default async function DashboardPage() {
@@ -65,7 +70,7 @@ export default async function DashboardPage() {
     playerResult, matchesResult, allPlayersResult, last10Result,
     nextTournamentResult, liveTournamentResult,
     activeSeasonResult, carouselSettingResult, beysResult, predictionsResult,
-    challengesResult, carouselItemsResult, modeConfig, ascensoRowResult,
+    challengesResult, carouselItemsResult, modeConfig, ascensoRowResult, caps,
   ] = await Promise.all([
     supabase
       .from("players")
@@ -119,12 +124,25 @@ export default async function DashboardPage() {
     // Columnas de ascenso por separado: pueden NO existir todavía (migración
     // pendiente). Si la query falla, data queda null y caemos al fallback F/0.
     supabase.from("players").select("rank_letter, ticket_points").eq("id", user.id).maybeSingle(),
+    // Capacidades resueltas (motor central): gatean qué se muestra según qué
+    // modalidad está activa. `caps.canViewStars` = Copa Omega activa.
+    getCapabilities(supabase),
   ]);
 
   const player = playerResult.data;
   if (!player) return null;
 
   const carouselEnabled = carouselSettingResult.data?.value === "true";
+
+  // Flags leídos server-side en una sola query (evita flicker en lo que gatea
+  // el render del server): wallet y equipos.
+  const { data: flagRows } = await supabase
+    .from("app_settings").select("key, value").in("key", ["wallet_enabled", "teams_enabled"]);
+  const flagMap = new Map((flagRows ?? []).map((r) => [r.key, r.value]));
+  // Wallet: habilitada por defecto, se oculta solo si el flag está en "false".
+  const walletEnabled = flagMap.get("wallet_enabled") !== "false";
+  // Equipos: mismo criterio explícito que la vista jugador — solo si es "true".
+  const teamsEnabled = flagMap.get("teams_enabled") === "true";
 
   const matches = matchesResult.data ?? [];
   const allPlayers = allPlayersResult.data ?? [];
@@ -181,6 +199,9 @@ export default async function DashboardPage() {
   // y muestra el rango de ascenso.
   const ascensoActivo = modeConfig.active.ascenso;
   const copaActiva = modeConfig.active.copa_omega;
+  // Piel del dashboard: la modalidad DESTACADA decide si las superficies hablan
+  // el lenguaje de combate (ascenso) o quedan en Copa Omega. Ver ascenso-skin.ts.
+  const ascensoSkin = modeConfig.featured === "ascenso";
 
   // Rango y ticket con fallback silencioso (las columnas pueden no existir aún)
   const ascensoRow = (ascensoRowResult.data ?? null) as { rank_letter?: string | null; ticket_points?: number | null } | null;
@@ -192,7 +213,10 @@ export default async function DashboardPage() {
   const ascensoInfo = rankInfo(ascensoRank);
 
   return (
-    <div className="max-w-lg mx-auto pb-10 space-y-5">
+    // suppressHydrationWarning: blinda el árbol del dashboard contra mismatches
+    // provocados por extensiones del navegador que reescriben el HTML del wrapper
+    // antes de que React hidrate (Dark Reader, traductores, etc.).
+    <div className="max-w-lg mx-auto pb-10 space-y-5" suppressHydrationWarning>
       {/* ═══ HYPE MODE — live tournament top bar ═══ */}
       {nextTournament?.status === "in_progress" && (
         <div className="bg-omega-red/20 border-b border-omega-red/40 px-4 py-2 -mx-4 flex items-center justify-center gap-2 animate-pulse">
@@ -205,6 +229,25 @@ export default async function DashboardPage() {
       )}
 
       {/* ═══ HERO BANNER ═══ */}
+      {/* La modalidad DESTACADA decide la piel del hero: ascenso = pantalla de
+          combate (cyan/ámbar, sello hexagonal); copa/liga = hero de estrellas. */}
+      {modeConfig.featured === "ascenso" ? (
+        <AscensoHero
+          userId={user.id}
+          alias={player.alias}
+          avatarUrl={player.avatar_url}
+          badgeEmoji={player.badge ? BADGE_EMOJIS[player.badge] : undefined}
+          tagline={player.tagline}
+          wins={player.wins}
+          losses={player.losses}
+          rankPosition={rank}
+          totalPlayers={allPlayers.length}
+          winRate={winRate}
+          streak={currentStreak}
+          rankLetter={ascensoRank}
+          ticketPoints={ascensoTicket}
+        />
+      ) : (
       <div className="-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-purple/30 via-omega-surface to-omega-blue/15 px-6 pt-8 pb-10 shadow-lg shadow-omega-purple/40">
         {/* Decorative orbs */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-omega-purple/20 rounded-full blur-[80px] pointer-events-none" />
@@ -250,12 +293,12 @@ export default async function DashboardPage() {
                   : "Rango máximo"}
               </span>
             </div>
-          ) : (
+          ) : caps.canViewStars ? (
             <div className="text-center shrink-0">
               <Star className="size-6 text-omega-gold fill-omega-gold star-glow mx-auto" />
               <span className="text-3xl font-black neon-gold block -mt-1">{player.stars}</span>
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Dynamic title + level + login streak badges */}
@@ -278,7 +321,8 @@ export default async function DashboardPage() {
 
         {/* Stats strip inside hero */}
         <div className="relative flex items-center justify-around rounded-xl bg-omega-dark/60 border border-white/[0.06] py-2.5 px-2 mt-4">
-          {rank > 0 && (
+          {/* #puesto sale del ranking por estrellas: ocultar si la Copa esta apagada */}
+          {caps.canViewStars && rank > 0 && (
             <>
               <div className="flex items-center gap-1.5 text-sm">
                 <Trophy className="size-3.5 text-omega-gold" />
@@ -325,7 +369,10 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Progress bar inside hero */}
+        {/* Progress bar inside hero — clasificación Top 16 por ESTRELLAS.
+            Solo con Copa Omega activa: sin estrellas no hay ranking por estrellas
+            que mostrar (el hero queda neutral). */}
+        {caps.canViewStars && (
         <div className="relative mt-4 space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="text-omega-muted font-bold uppercase tracking-wider">Clasificacion</span>
@@ -342,10 +389,13 @@ export default async function DashboardPage() {
             <span>{rank > 0 && rank <= 16 ? <span className="text-omega-green font-bold">Clasificado</span> : <span className="text-omega-red">Fuera del top 16</span>}</span>
           </div>
         </div>
+        )}
       </div>
+      )}
 
-      {/* ═══ TORNEO DE ASCENSO — CTA para todos cuando la modalidad está activa ═══ */}
-      {ascensoActivo && (
+      {/* ═══ TORNEO DE ASCENSO — CTA suelta solo cuando ascenso está activo pero
+          NO es la modalidad destacada (con destacada, el hero ya es de ascenso). ═══ */}
+      {ascensoActivo && modeConfig.featured !== "ascenso" && (
         <div className="px-4">
           <AscensoCtaCard rankLetter={ascensoRank} ticketPoints={ascensoTicket} />
         </div>
@@ -353,7 +403,7 @@ export default async function DashboardPage() {
 
       {/* ═══ SEARCH BAR — find bladers ═══ */}
       <div className="px-4">
-        <Link href="/search" className="omega-card flex items-center gap-3 px-4 py-3 hover:border-omega-purple/30 transition-all">
+        <Link href="/search" className={skin(ascensoSkin, "omega-card flex items-center gap-3 px-4 py-3 hover:border-omega-purple/30 transition-all", CB.rowCyan)}>
           <Search className="size-5 text-omega-muted" />
           <span className="text-sm text-omega-muted">Buscar bladers...</span>
         </Link>
@@ -424,63 +474,8 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* ═══ WALLET BUTTON ═══ */}
-      <div className="px-4">
-        <Link
-          href="/wallet"
-          className="group relative overflow-hidden rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.98]"
-          style={{
-            background: "linear-gradient(135deg, rgba(255,214,10,0.15) 0%, rgba(255,195,0,0.05) 50%, rgba(123,47,247,0.08) 100%)",
-            border: "1px solid rgba(255,214,10,0.3)",
-            boxShadow: "0 4px 15px rgba(255,214,10,0.1)",
-          }}
-        >
-          <div className="size-12 rounded-2xl bg-omega-gold/20 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors ring-2 ring-omega-gold/30">
-            <Coins className="size-6 text-omega-gold" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-black text-omega-gold">Wallet</p>
-            <p className="text-[10px] text-omega-muted">Omega Coins, vouchers y tickets</p>
-          </div>
-          <span className="text-xs text-omega-muted group-hover:text-omega-gold transition-colors">&rarr;</span>
-        </Link>
-      </div>
-
-      {/* ═══ ENGAGEMENT QUICK LINKS — compact row ═══ */}
-      <div className="grid grid-cols-2 gap-2 px-4">
-        <Link href="/predictions" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-10 rounded-xl bg-omega-purple/20 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
-            <Target className="size-5 text-omega-purple" />
-          </div>
-          <p className="text-xs font-bold text-omega-text">Predicciones</p>
-          <p className="text-[10px] text-omega-muted leading-tight">Adiviná quién gana</p>
-        </Link>
-        <Link href="/combos" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-green/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-10 rounded-xl bg-omega-green/20 flex items-center justify-center group-hover:bg-omega-green/30 transition-colors">
-            <Swords className="size-5 text-omega-green" />
-          </div>
-          <p className="text-xs font-bold text-omega-text">Combos</p>
-          <p className="text-[10px] text-omega-muted leading-tight">Compartí tu combo</p>
-        </Link>
-        <Link href="/polls" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-blue/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-10 rounded-xl bg-omega-blue/20 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors">
-            <BarChart3 className="size-5 text-omega-blue" />
-          </div>
-          <p className="text-xs font-bold text-omega-text">Encuestas</p>
-          <p className="text-[10px] text-omega-muted leading-tight">Votá y opiná</p>
-        </Link>
-        <Link href="/encyclopedia" className="group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-gold/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-10 rounded-xl bg-omega-gold/20 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors">
-            <BookOpen className="size-5 text-omega-gold" />
-          </div>
-          <p className="text-xs font-bold text-omega-text">Xciclopedia</p>
-          <p className="text-[10px] text-omega-muted leading-tight">Guía de piezas</p>
-        </Link>
-        {/* Team buttons (client-side, conditionally rendered when teams enabled) */}
-        <DashboardTeamsButtons isAdmin={!!player.is_admin} isJudge={!!player.is_judge} />
-      </div>
-
       {/* ═══ ONBOARDING CHECKLIST ═══ */}
+      {/* Nudge de primera vez: se mantiene arriba de las secciones del menú. */}
       {!player.onboarding_completed && (
         <div className="px-4">
           <OnboardingChecklist
@@ -493,71 +488,188 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* ═══ WEEKLY MISSIONS ═══ */}
-      <div className="px-4">
-        <WeeklyMissions />
+      {/* ═══════════════════════════════════════════════════════════
+          SECCIÓN: JUGAR — competir en el torneo
+          Torneos, Retar blader, Ranking. Se suman los accesos utilitarios
+          que no entran en otra sección: Escanear QR (inscripción a torneo) y
+          Mi Perfil.
+          ═══════════════════════════════════════════════════════════ */}
+      <div className="px-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Swords className="size-4 text-omega-green" />
+          <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Jugar</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/tournaments" className={skin(ascensoSkin, "group rounded-2xl bg-gradient-to-br from-omega-green to-omega-green/60 p-5 shadow-md shadow-omega-green/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]", CB.bigCyan)}>
+            <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <Trophy className="size-5 text-white" />
+            </div>
+            <p className="font-bold text-white text-sm">Torneos</p>
+            <p className="text-xs text-white/70 mt-0.5">Inscribite y competí en copa</p>
+          </Link>
+          {/* Retar blader = reto por estrellas: oculto si la Copa esta apagada */}
+          {caps.canViewStars && (
+          <Link href="/challenges" className={skin(ascensoSkin, "group rounded-2xl bg-gradient-to-br from-omega-red to-omega-red/60 p-5 shadow-md shadow-omega-red/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]", CB.bigCyan)}>
+            <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <Zap className="size-5 text-white" />
+            </div>
+            <p className="font-bold text-white text-sm">Retar blader</p>
+            <p className="text-xs text-white/70 mt-0.5">Buscá y desafiá a un rival</p>
+          </Link>
+          )}
+          <Link href="/ranking" className={skin(ascensoSkin, "group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-5 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]", CB.bigAmber)}>
+            <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <Trophy className="size-5 text-white" />
+            </div>
+            <p className="font-bold text-white text-sm">Ranking</p>
+            {/* Con copa apagada el ranking no gira en torno a estrellas */}
+            <p className="text-xs text-white/70 mt-0.5">{copaActiva ? "Tabla de estrellas y posiciones" : "Tabla de posiciones"}</p>
+          </Link>
+          <QrScannerButton ascensoSkin={ascensoSkin} />
+          <Link href="/profile" className={skin(ascensoSkin, "group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-5 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]", CB.bigCyan)}>
+            <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <User className="size-5 text-white" />
+            </div>
+            <p className="font-bold text-white text-sm">Mi Perfil</p>
+            <p className="text-xs text-white/70 mt-0.5">Avatar, beys, ficha y medallas</p>
+          </Link>
+        </div>
       </div>
 
-      {/* ═══ QUICK ACTIONS — grid ═══ */}
-      <div className="grid grid-cols-2 gap-3 px-4">
-        <QrScannerButton />
-        <Link href="/feed" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-5 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-            <Activity className="size-5 text-white" />
+      {/* ═══════════════════════════════════════════════════════════
+          SECCIÓN: EQUIPOS — solo si teams_enabled (gate server-side).
+          El contenido (Mi Equipo, Ranking equipos, Liga) lo renderiza
+          DashboardTeamsButtons, que ya gatea teams_enabled y Liga por
+          mode_liga_enabled internamente. Doble gate = consistente y SSR-safe.
+          ═══════════════════════════════════════════════════════════ */}
+      {teamsEnabled && (
+        <div className="px-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Users className="size-4 text-omega-purple" />
+            <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Equipos</h2>
           </div>
-          <p className="font-bold text-white text-sm">Feed</p>
-          <p className="text-xs text-white/70 mt-0.5">Qué está pasando</p>
-        </Link>
-        <Link href="/challenges" className="group rounded-2xl bg-gradient-to-br from-omega-red to-omega-red/60 p-5 shadow-md shadow-omega-red/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-            <Zap className="size-5 text-white" />
+          <div className="grid grid-cols-2 gap-2">
+            <DashboardTeamsButtons />
           </div>
-          <p className="font-bold text-white text-sm">Retar blader</p>
-          <p className="text-xs text-white/70 mt-0.5">Buscá y desafiá a un rival</p>
-        </Link>
-        <Link href="/ranking" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-5 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-            <Trophy className="size-5 text-white" />
-          </div>
-          <p className="font-bold text-white text-sm">Ranking</p>
-          {/* Con copa apagada el ranking no gira en torno a estrellas */}
-          <p className="text-xs text-white/70 mt-0.5">{copaActiva ? "Tabla de estrellas y posiciones" : "Tabla de posiciones"}</p>
-        </Link>
-        <Link href="/profile" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-5 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-            <User className="size-5 text-white" />
-          </div>
-          <p className="font-bold text-white text-sm">Mi Perfil</p>
-          <p className="text-xs text-white/70 mt-0.5">Avatar, beys, ficha y medallas</p>
-        </Link>
-        <Link href="/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-green to-omega-green/60 p-5 shadow-md shadow-omega-green/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
-          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-            <Trophy className="size-5 text-white" />
-          </div>
-          <p className="font-bold text-white text-sm">Torneos</p>
-          <p className="text-xs text-white/70 mt-0.5">Inscribite y competí en copa</p>
-        </Link>
-        <Link href="/galeria" className="group rounded-2xl bg-gradient-to-br from-omega-card-hover to-omega-surface p-5 shadow-md shadow-omega-purple/20 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] border border-omega-border/30">
-          <div className="size-12 rounded-2xl bg-omega-purple/20 mb-3 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors">
-            <Image className="size-5 text-omega-purple" />
-          </div>
-          <p className="font-bold text-omega-text text-sm">Galería</p>
-          <p className="text-xs text-omega-muted mt-0.5">Fotos y videos de torneos</p>
-        </Link>
-        <Link href="/chat" className="relative group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow/60 p-5 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
-          <ChatUnread userId={user.id} />
-          <div className="size-12 rounded-2xl bg-white/20 mb-3 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-            <MessageSquare className="size-5 text-white" />
-          </div>
-          <p className="font-bold text-white text-sm">Chat</p>
-          <p className="text-xs text-white/70 mt-0.5">Hablá con la comunidad</p>
-        </Link>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECCIÓN: COMUNIDAD
+          Feed, Predicciones, Combos, Encuestas, Chat, Galería, Xciclopedia.
+          ═══════════════════════════════════════════════════════════ */}
+      <div className="px-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Activity className="size-4 text-omega-blue" />
+          <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Comunidad</h2>
+        </div>
+        {/* Todas las cards al MISMO formato chico (p-3) para que el grid quede
+            parejo. Antes Feed/Chat/Galería eran p-5 (grandes) y se mezclaban
+            con las chicas, dejando filas desalineadas. */}
+        <div className="grid grid-cols-2 gap-2">
+          <Link href="/feed" className={skin(ascensoSkin, "group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]", CB.smallCard)}>
+            <div className={skin(ascensoSkin, "size-10 rounded-xl bg-omega-purple/20 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors", CB.smallIconWrap)}>
+              <Activity className={skin(ascensoSkin, "size-5 text-omega-purple", "size-5 text-cyan-300")} />
+            </div>
+            <p className="text-xs font-bold text-omega-text">Feed</p>
+            <p className="text-[10px] text-omega-muted leading-tight">Qué está pasando</p>
+          </Link>
+          <Link href="/chat" className={skin(ascensoSkin, "relative group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-blue/30 transition-all hover:scale-[1.02] active:scale-[0.98]", CB.smallCard)}>
+            <ChatUnread userId={user.id} />
+            <div className={skin(ascensoSkin, "size-10 rounded-xl bg-omega-blue/20 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors", CB.smallIconWrap)}>
+              <MessageSquare className={skin(ascensoSkin, "size-5 text-omega-blue", "size-5 text-cyan-300")} />
+            </div>
+            <p className="text-xs font-bold text-omega-text">Chat</p>
+            <p className="text-[10px] text-omega-muted leading-tight">Hablá con la comunidad</p>
+          </Link>
+          <Link href="/predictions" className={skin(ascensoSkin, "group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]", CB.smallCard)}>
+            <div className={skin(ascensoSkin, "size-10 rounded-xl bg-omega-purple/20 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors", CB.smallIconWrap)}>
+              <Target className={skin(ascensoSkin, "size-5 text-omega-purple", "size-5 text-cyan-300")} />
+            </div>
+            <p className="text-xs font-bold text-omega-text">Predicciones</p>
+            <p className="text-[10px] text-omega-muted leading-tight">Adiviná quién gana</p>
+          </Link>
+          <Link href="/combos" className={skin(ascensoSkin, "group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-green/30 transition-all hover:scale-[1.02] active:scale-[0.98]", CB.smallCard)}>
+            <div className={skin(ascensoSkin, "size-10 rounded-xl bg-omega-green/20 flex items-center justify-center group-hover:bg-omega-green/30 transition-colors", CB.smallIconWrap)}>
+              <Swords className={skin(ascensoSkin, "size-5 text-omega-green", "size-5 text-cyan-300")} />
+            </div>
+            <p className="text-xs font-bold text-omega-text">Combos</p>
+            <p className="text-[10px] text-omega-muted leading-tight">Compartí tu combo</p>
+          </Link>
+          <Link href="/polls" className={skin(ascensoSkin, "group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-blue/30 transition-all hover:scale-[1.02] active:scale-[0.98]", CB.smallCard)}>
+            <div className={skin(ascensoSkin, "size-10 rounded-xl bg-omega-blue/20 flex items-center justify-center group-hover:bg-omega-blue/30 transition-colors", CB.smallIconWrap)}>
+              <BarChart3 className={skin(ascensoSkin, "size-5 text-omega-blue", "size-5 text-cyan-300")} />
+            </div>
+            <p className="text-xs font-bold text-omega-text">Encuestas</p>
+            <p className="text-[10px] text-omega-muted leading-tight">Votá y opiná</p>
+          </Link>
+          <Link href="/galeria" className={skin(ascensoSkin, "group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-purple/30 transition-all hover:scale-[1.02] active:scale-[0.98]", CB.smallCard)}>
+            <div className={skin(ascensoSkin, "size-10 rounded-xl bg-omega-purple/20 flex items-center justify-center group-hover:bg-omega-purple/30 transition-colors", CB.smallIconWrap)}>
+              <Image className={skin(ascensoSkin, "size-5 text-omega-purple", "size-5 text-cyan-300")} />
+            </div>
+            <p className="text-xs font-bold text-omega-text">Galería</p>
+            <p className="text-[10px] text-omega-muted leading-tight">Fotos y videos</p>
+          </Link>
+          <Link href="/encyclopedia" className={skin(ascensoSkin, "group omega-card p-3 flex flex-col items-center gap-1.5 text-center hover:border-omega-gold/30 transition-all hover:scale-[1.02] active:scale-[0.98]", CB.smallCard)}>
+            <div className={skin(ascensoSkin, "size-10 rounded-xl bg-omega-gold/20 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors", CB.smallIconWrap)}>
+              <BookOpen className={skin(ascensoSkin, "size-5 text-omega-gold", "size-5 text-cyan-300")} />
+            </div>
+            <p className="text-xs font-bold text-omega-text">Xciclopedia</p>
+            <p className="text-[10px] text-omega-muted leading-tight">Guía de piezas</p>
+          </Link>
+        </div>
       </div>
 
-      {/* ═══ STORE BUTTON — dynamic, outside the grid ═══ */}
-      <div className="px-4">
-        <StoreButton />
+      {/* ═══════════════════════════════════════════════════════════
+          SECCIÓN: WALLET Y TIENDA
+          Wallet (solo si walletEnabled, gate server-side) y Tienda
+          (StoreButton, que se auto-oculta si la tienda está en "hidden").
+          La SECCIÓN entera (incluido el encabezado) se oculta si no hay ni
+          wallet ni tienda visible, para no dejar un título huérfano.
+          ═══════════════════════════════════════════════════════════ */}
+      {(walletEnabled || caps.storeVisible) && (
+      <div className="px-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Coins className="size-4 text-omega-gold" />
+          <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Wallet y Tienda</h2>
+        </div>
+        <div className="space-y-2">
+          {walletEnabled && (
+            <Link
+              href="/wallet"
+              className={skin(ascensoSkin, "group relative overflow-hidden rounded-2xl p-4 flex items-center gap-4 transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.98]", CB.walletAmber)}
+              style={ascensoSkin ? undefined : {
+                background: "linear-gradient(135deg, rgba(255,214,10,0.15) 0%, rgba(255,195,0,0.05) 50%, rgba(123,47,247,0.08) 100%)",
+                border: "1px solid rgba(255,214,10,0.3)",
+                boxShadow: "0 4px 15px rgba(255,214,10,0.1)",
+              }}
+            >
+              <div className={skin(ascensoSkin, "size-12 rounded-2xl bg-omega-gold/20 flex items-center justify-center group-hover:bg-omega-gold/30 transition-colors ring-2 ring-omega-gold/30", CB.walletIconWrap)}>
+                <Coins className={skin(ascensoSkin, "size-6 text-omega-gold", "size-6 text-amber-300")} />
+              </div>
+              <div className="flex-1">
+                <p className={skin(ascensoSkin, "text-sm font-black text-omega-gold", "text-sm font-black text-amber-300")}>Wallet</p>
+                <p className="text-[10px] text-omega-muted">Omega Coins, vouchers y tickets</p>
+              </div>
+              <span className={skin(ascensoSkin, "text-xs text-omega-muted group-hover:text-omega-gold transition-colors", "text-xs text-omega-muted group-hover:text-amber-300 transition-colors")}>&rarr;</span>
+            </Link>
+          )}
+          <StoreButton />
+        </div>
       </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          SECCIÓN: MISIONES — misiones de la semana.
+          El componente ya trae su propio encabezado ("Misiones de la
+          semana"), por eso no se agrega un h2 duplicado. Reparte Omega
+          Coins: se oculta si la wallet está apagada.
+          ═══════════════════════════════════════════════════════════ */}
+      {walletEnabled && (
+        <div className="px-4">
+          <WeeklyMissions ascensoSkin={ascensoSkin} />
+        </div>
+      )}
 
       {/* ═══ ZONA JUEZ — for judges and admins ═══ */}
       {(player.is_admin || player.is_judge) && (
@@ -566,15 +678,15 @@ export default async function DashboardPage() {
             <Gavel className="size-4 text-omega-gold" />
             <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Zona Juez</h2>
           </div>
+
+          {/* Sub-seccion PARTIDAS completa: solo si hay algun modo de partida
+              individual disponible (copa o ascenso). Con ambos apagados no hay
+              nada que crear, ver ni sortear. */}
+          {caps.availableMatchModes.length > 0 && (
+          <>
+          {/* Sub-grupo: PARTIDAS — crear, ver y sortear enfrentamientos. */}
+          <p className="text-[10px] font-bold text-omega-muted/70 uppercase tracking-wider">Partidas</p>
           <div className="grid grid-cols-2 gap-2">
-            <Link href="/admin/matches/random" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-4 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
-              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                <Shuffle className="size-5 text-white" />
-              </div>
-              <p className="text-xs font-bold text-white">Sorteo</p>
-            </Link>
-            {/* Sorteo Equipos — only when teams feature is enabled */}
-            <DashboardTeamsSorteoButton isAdmin={!!player.is_admin} isJudge={!!player.is_judge} />
             <Link href="/admin/matches/new" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <Plus className="size-5 text-white" />
@@ -587,6 +699,22 @@ export default async function DashboardPage() {
               </div>
               <p className="text-xs font-bold text-omega-text">Ver partidas</p>
             </Link>
+            {/* Sorteo aleatorio = partidas por estrellas: oculto si la Copa esta apagada */}
+            {caps.canViewStars && (
+            <Link href="/admin/matches/random" className="group rounded-2xl bg-gradient-to-br from-omega-purple to-omega-purple-glow/70 p-4 shadow-md shadow-omega-purple/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
+              <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Shuffle className="size-5 text-white" />
+              </div>
+              <p className="text-xs font-bold text-white">Sorteo</p>
+            </Link>
+            )}
+          </div>
+          </>
+          )}
+
+          {/* Sub-grupo: TORNEOS — gestión de torneos (vista admin). */}
+          <p className="text-[10px] font-bold text-omega-muted/70 uppercase tracking-wider">Torneos</p>
+          <div className="grid grid-cols-2 gap-2">
             <Link href="/admin/tournaments" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <Trophy className="size-5 text-white" />
@@ -594,17 +722,34 @@ export default async function DashboardPage() {
               <p className="text-xs font-bold text-white">Torneos</p>
             </Link>
           </div>
+
+          {/* Sub-grupo: EQUIPOS — sorteo de partidas de equipos. Control de
+              gestión, solo admin/juez (esta zona ya está gateada por rol) y
+              solo si equipos está activo. */}
+          {teamsEnabled && (
+            <>
+              <p className="text-[10px] font-bold text-omega-muted/70 uppercase tracking-wider">Equipos</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/admin/team-matches/random" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
+                  <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                    <Shuffle className="size-5 text-white" />
+                  </div>
+                  <p className="text-xs font-bold text-white">Sorteo equipos</p>
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* ═══ MATCH HISTORY — collapsed by default ═══ */}
-      <MatchHistory matches={matches} userId={user.id} />
+      <MatchHistory matches={matches} userId={user.id} showStars={caps.canViewStars} />
 
       {/* ═══ ALL MATCHES LINK ═══ */}
       <div className="px-4">
         <Link
           href="/matches"
-          className="omega-card flex items-center justify-between px-4 py-3 hover:border-omega-blue/30 transition-all group"
+          className={skin(ascensoSkin, "omega-card flex items-center justify-between px-4 py-3 hover:border-omega-blue/30 transition-all group", CB.rowCyanBetween)}
         >
           <div className="flex items-center gap-3">
             <Swords className="size-5 text-omega-blue" />
@@ -621,6 +766,9 @@ export default async function DashboardPage() {
             <Shield className="size-4 text-omega-blue" />
             <h2 className="text-xs font-bold text-omega-muted uppercase tracking-wider">Zona Admin</h2>
           </div>
+
+          {/* Sub-grupo: CATÁLOGO — tienda (productos y pedidos). */}
+          <p className="text-[10px] font-bold text-omega-muted/70 uppercase tracking-wider">Catálogo</p>
           <div className="grid grid-cols-2 gap-2">
             <Link href="/admin/products" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
@@ -634,12 +782,22 @@ export default async function DashboardPage() {
               </div>
               <p className="text-xs font-bold text-white">Pedidos</p>
             </Link>
+          </div>
+
+          {/* Sub-grupo: GENTE — jugadores de la comunidad. */}
+          <p className="text-[10px] font-bold text-omega-muted/70 uppercase tracking-wider">Gente</p>
+          <div className="grid grid-cols-2 gap-2">
             <Link href="/admin/players" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <User className="size-5 text-white" />
               </div>
               <p className="text-xs font-bold text-white">Jugadores</p>
             </Link>
+          </div>
+
+          {/* Sub-grupo: CONTENIDO — carousel y temporadas. */}
+          <p className="text-[10px] font-bold text-omega-muted/70 uppercase tracking-wider">Contenido</p>
+          <div className="grid grid-cols-2 gap-2">
             <Link href="/admin/carousel" className="group rounded-2xl bg-gradient-to-br from-omega-blue to-omega-blue-glow p-4 shadow-md shadow-omega-blue/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <Image className="size-5 text-white" />
@@ -652,16 +810,25 @@ export default async function DashboardPage() {
               </div>
               <p className="text-xs font-bold text-white">Temporadas</p>
             </Link>
-            <Link href="/admin/analytics" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center">
+          </div>
+
+          {/* Sub-grupo: DATOS — analytics. */}
+          <p className="text-[10px] font-bold text-omega-muted/70 uppercase tracking-wider">Datos</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Link href="/admin/analytics" className="group rounded-2xl bg-gradient-to-br from-omega-gold/80 to-omega-gold-glow/60 p-4 shadow-md shadow-omega-gold/30 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col items-center text-center col-span-2">
               <div className="size-10 rounded-xl bg-white/20 mb-2 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <TrendingUp className="size-5 text-white" />
               </div>
               <p className="text-xs font-bold text-white">Analytics</p>
             </Link>
           </div>
+
+          {/* Sub-grupo: CONFIGURACIÓN — toggles de modalidad y features. */}
+          <p className="text-[10px] font-bold text-omega-muted/70 uppercase tracking-wider">Configuración</p>
           <TournamentModeToggle />
           <StoreToggle />
           <TeamsToggle />
+          <WalletToggle />
         </div>
       )}
 

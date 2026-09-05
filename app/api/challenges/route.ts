@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { sendPushToPlayer } from "@/lib/push";
 import { getCurrentWeekStart } from "@/lib/missions";
+import { getCapabilities, capabilityGate } from "@/lib/capabilities";
 
 export async function GET(request: Request) {
   try {
@@ -84,6 +85,12 @@ export async function POST(request: Request) {
     if (authError || !user) {
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }
+
+    // Gate de capacidades: los retos son 100% por estrellas (copa). La UI ya
+    // oculta la acción; acá se blinda también el endpoint.
+    const caps = await getCapabilities(supabase);
+    const gate = capabilityGate(caps.canPlayStars, "La Copa Omega está desactivada");
+    if (gate) return gate;
 
     const body = await request.json();
     const { challenged_id, stars_bet, message } = body;

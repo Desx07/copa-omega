@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { pullGacha, GACHA_COST } from "@/lib/gacha";
+import { getCapabilities, capabilityGate } from "@/lib/capabilities";
 
 // POST /api/gacha/pull — Realizar un pull del BeyGacha
 export async function POST() {
@@ -14,6 +15,11 @@ export async function POST() {
     if (!user) {
       return Response.json({ error: "No autorizado" }, { status: 401 });
     }
+
+    // Gate de wallet: el pull cuesta Omega Coins, si está apagada no se descuenta.
+    const caps = await getCapabilities(supabase);
+    const gate = capabilityGate(caps.walletEnabled, "La wallet está desactivada");
+    if (gate) return gate;
 
     // Generar el combo random
     const result = pullGacha();

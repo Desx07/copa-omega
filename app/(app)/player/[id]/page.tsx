@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCapabilities } from "@/lib/capabilities";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -35,6 +36,8 @@ export default async function PlayerProfilePage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  // Capacidades: si la Copa está apagada, no se muestran estrellas en la UI.
+  const { canViewStars } = await getCapabilities(supabase);
   const { data: { user: currentUser } } = await supabase.auth.getUser();
   const isOwnProfile = currentUser?.id === id;
 
@@ -217,11 +220,16 @@ export default async function PlayerProfilePage({
 
         {/* Stats strip inside hero */}
         <div className="relative flex items-center justify-around rounded-xl bg-omega-dark/60 border border-white/[0.06] py-2.5 px-2 mt-5">
-          <div className="flex items-center gap-1.5 text-sm">
-            <Star className="size-3.5 text-omega-gold fill-omega-gold star-glow" />
-            <span className="text-xl font-black neon-gold">{player.stars}</span>
-          </div>
-          <div className="w-px h-4 bg-white/10" />
+          {/* Bloque de estrellas: solo si la Copa está activa (canViewStars). */}
+          {canViewStars && (
+            <>
+              <div className="flex items-center gap-1.5 text-sm">
+                <Star className="size-3.5 text-omega-gold fill-omega-gold star-glow" />
+                <span className="text-xl font-black neon-gold">{player.stars}</span>
+              </div>
+              <div className="w-px h-4 bg-white/10" />
+            </>
+          )}
           <div className="flex items-center gap-1.5 text-sm">
             <span className="font-bold text-omega-green">{player.wins}W</span>
             <span className="text-omega-muted/50">/</span>
@@ -452,13 +460,15 @@ export default async function PlayerProfilePage({
                     </p>
                   </div>
 
-                  {/* Stars */}
-                  <div className={`flex items-center gap-1 shrink-0 ${won ? "text-omega-green" : "text-omega-red"}`}>
-                    <span className="text-sm font-black">
-                      {won ? "+" : "-"}{match.stars_bet}
-                    </span>
-                    <Star className="size-3.5 text-omega-gold fill-omega-gold" />
-                  </div>
+                  {/* Stars: solo si la Copa está activa (canViewStars). */}
+                  {canViewStars && (
+                    <div className={`flex items-center gap-1 shrink-0 ${won ? "text-omega-green" : "text-omega-red"}`}>
+                      <span className="text-sm font-black">
+                        {won ? "+" : "-"}{match.stars_bet}
+                      </span>
+                      <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                    </div>
+                  )}
                 </div>
               );
             })}

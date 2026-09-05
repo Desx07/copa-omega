@@ -5,6 +5,7 @@ import { isTournamentMode, LANDING_FEATURED_KEY } from "@/lib/tournament-mode";
 // Keys de configuración de modalidades + flags varios de la app.
 const CONFIG_KEYS = [
   "teams_enabled",
+  "wallet_enabled",
   "mode_copa_omega_enabled",
   "mode_ascenso_enabled",
   "mode_liga_enabled",

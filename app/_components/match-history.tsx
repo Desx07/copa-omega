@@ -32,7 +32,7 @@ function groupMatchesByDate(matches: Match[]) {
   return Object.entries(groups);
 }
 
-export default function MatchHistory({ matches, userId }: { matches: Match[]; userId: string }) {
+export default function MatchHistory({ matches, userId, showStars = true }: { matches: Match[]; userId: string; showStars?: boolean }) {
   const [open, setOpen] = useState(false);
   const grouped = useMemo(() => groupMatchesByDate(matches), [matches]);
 
@@ -86,15 +86,18 @@ export default function MatchHistory({ matches, userId }: { matches: Match[]; us
                             {match.completed_at ? new Date(match.completed_at).toLocaleDateString("es-AR", { day: "numeric", month: "short" }) : ""}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          {!won && match.stars_bet > 0 && (
-                            <RematchButton opponentId={opponentId} starsBet={match.stars_bet} />
-                          )}
-                          <div className={`flex items-center gap-1 ${won ? "text-omega-green" : "text-omega-red"}`}>
-                            <span className="text-sm font-black">{won ? "+" : "-"}{match.stars_bet}</span>
-                            <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                        {/* Bloque de estrellas (score + revancha): oculto si la Copa esta apagada */}
+                        {showStars && (
+                          <div className="flex items-center gap-2 shrink-0">
+                            {!won && match.stars_bet > 0 && (
+                              <RematchButton opponentId={opponentId} starsBet={match.stars_bet} />
+                            )}
+                            <div className={`flex items-center gap-1 ${won ? "text-omega-green" : "text-omega-red"}`}>
+                              <span className="text-sm font-black">{won ? "+" : "-"}{match.stars_bet}</span>
+                              <Star className="size-3.5 text-omega-gold fill-omega-gold" />
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     );
                   })}

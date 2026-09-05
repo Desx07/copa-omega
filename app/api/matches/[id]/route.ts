@@ -320,6 +320,26 @@ export async function PATCH(
       // Non-blocking — match is still resolved
     }
 
+    // Resolver apuestas (parimutuel) de esta partida y del reto vinculado.
+    // Idempotente: el RPC solo toca apuestas 'open'. Si la migración de betting no
+    // corrió todavía, el RPC no existe → el error se ignora y la partida igual queda
+    // resuelta. Non-blocking.
+    try {
+      const adminBets = createAdminClient();
+      const { data: linkedChallengeForBets } = await adminBets
+        .from("challenges")
+        .select("id")
+        .eq("match_id", id)
+        .maybeSingle();
+      await adminBets.rpc("resolve_bets_for_match", {
+        p_match_id: id,
+        p_challenge_id: linkedChallengeForBets?.id ?? null,
+        p_winner_id: winner_id,
+      });
+    } catch (betErr) {
+      console.error("Error resolving bets:", betErr);
+    }
+
     // Update dynamic title for both players (combines matches + tournament_matches)
     if (matchData) {
       try {
@@ -429,6 +449,22 @@ export async function DELETE(
       if (reverseError) {
         return Response.json({ error: reverseError.message }, { status: 400 });
       }
+    }
+
+    // Reembolsar apuestas abiertas antes de borrar la partida (no dejar coins colgados).
+    // Non-blocking; si la migración de betting no corrió, el RPC no existe y se ignora.
+    try {
+      const { data: linkedChallengeForBets } = await adminSupabase
+        .from("challenges")
+        .select("id")
+        .eq("match_id", id)
+        .maybeSingle();
+      await adminSupabase.rpc("refund_bets_for_match", {
+        p_match_id: id,
+        p_challenge_id: linkedChallengeForBets?.id ?? null,
+      });
+    } catch (betErr) {
+      console.error("Error refunding bets:", betErr);
     }
 
     // Delete the match

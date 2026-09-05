@@ -34,6 +34,7 @@ export default function NewMatchPage() {
 
   // ── Modo ascenso ──
   const [ascensoEnabled, setAscensoEnabled] = useState(false);
+  const [copaEnabled, setCopaEnabled] = useState(true);
   const [matchMode, setMatchMode] = useState<MatchMode>("copa_omega");
   const [isAscension, setIsAscension] = useState(false); // combate de ascenso (sube de rango)
   const [pointsAwarded, setPointsAwarded] = useState("25"); // puntos para el ganador (default 25)
@@ -100,7 +101,13 @@ export default function NewMatchPage() {
         const res = await fetch("/api/app-config");
         if (!res.ok) return;
         const config = (await res.json()) as Record<string, string>;
-        setAscensoEnabled(config?.mode_ascenso_enabled === "true");
+        const copaOn = config?.mode_copa_omega_enabled !== "false";
+        const ascensoOn = config?.mode_ascenso_enabled === "true";
+        setCopaEnabled(copaOn);
+        setAscensoEnabled(ascensoOn);
+        // Con la Copa apagada, el modo por defecto pasa a ascenso: evita
+        // arrancar en un modo que el backend ahora rechaza.
+        if (!copaOn && ascensoOn) setMatchMode("ascenso");
       } catch {
         // sin config no mostramos el selector — flujo copa intacto
       }
@@ -293,6 +300,7 @@ export default function NewMatchPage() {
                 Modalidad
               </span>
               <div className="grid grid-cols-2 gap-2">
+                {copaEnabled && (
                 <button
                   type="button"
                   onClick={() => setMatchMode("copa_omega")}
@@ -306,6 +314,7 @@ export default function NewMatchPage() {
                   <Star className="size-4" />
                   Copa Omega
                 </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {

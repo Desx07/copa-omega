@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCapabilities, capabilityGate } from "@/lib/capabilities";
 
 /**
  * POST /api/matches/random
@@ -31,6 +32,12 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
+
+    // Gate de capacidades: el sorteo arma partidas por estrellas (copa), así que
+    // se blindan con canPlayStars. La UI ya lo oculta; el endpoint también.
+    const caps = await getCapabilities(supabase);
+    const gate = capabilityGate(caps.canPlayStars, "La Copa Omega está desactivada");
+    if (gate) return gate;
 
     const body = await request.json();
     const { player_ids, stars_bet } = body as {
