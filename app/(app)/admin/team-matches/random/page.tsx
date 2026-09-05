@@ -261,7 +261,7 @@ export default function TeamRandomMatchPage() {
                   </div>
                   <div className="flex items-center px-4 py-4">
                     <div className="flex-1 flex flex-col items-center gap-2">
-                      <div className="size-14 rounded-xl bg-omega-purple/15 flex items-center justify-center overflow-hidden border border-omega-purple/30">
+                      <div className="size-14 rounded-full bg-omega-purple/15 flex items-center justify-center overflow-hidden border border-omega-purple/30">
                         {match.team1?.logo_url ? (
                           <img src={match.team1.logo_url} alt={match.team1.name} className="size-full object-cover" />
                         ) : (
@@ -274,7 +274,7 @@ export default function TeamRandomMatchPage() {
                     </div>
                     <span className="text-2xl font-black neon-red animate-vs-pulse inline-block px-3">VS</span>
                     <div className="flex-1 flex flex-col items-center gap-2">
-                      <div className="size-14 rounded-xl bg-omega-blue/15 flex items-center justify-center overflow-hidden border border-omega-blue/30">
+                      <div className="size-14 rounded-full bg-omega-blue/15 flex items-center justify-center overflow-hidden border border-omega-blue/30">
                         {match.team2?.logo_url ? (
                           <img src={match.team2.logo_url} alt={match.team2.name} className="size-full object-cover" />
                         ) : (
@@ -293,7 +293,7 @@ export default function TeamRandomMatchPage() {
             {resultBye && visibleCards > createdMatches.length && (
               <div className="animate-announce rounded-2xl overflow-hidden border border-omega-blue/30 bg-gradient-to-r from-omega-card via-omega-surface to-omega-card shadow-lg shadow-omega-blue/10">
                 <div className="flex items-center gap-4 px-5 py-4">
-                  <div className="size-12 rounded-xl bg-omega-blue/15 flex items-center justify-center overflow-hidden border border-omega-blue/30">
+                  <div className="size-12 rounded-full bg-omega-blue/15 flex items-center justify-center overflow-hidden border border-omega-blue/30">
                     <Users className="size-5 text-omega-blue" />
                   </div>
                   <div className="flex-1">
@@ -443,7 +443,7 @@ export default function TeamRandomMatchPage() {
                   }`}>
                     {isSelected && <Check className="size-3 text-white" />}
                   </div>
-                  <div className="size-9 rounded-xl bg-omega-purple/15 flex items-center justify-center overflow-hidden shrink-0">
+                  <div className="size-9 rounded-full bg-omega-purple/15 flex items-center justify-center overflow-hidden shrink-0">
                     {team.logo_url ? (
                       <img src={team.logo_url} alt={team.name} className="size-full object-cover" />
                     ) : (

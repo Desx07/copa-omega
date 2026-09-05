@@ -303,7 +303,7 @@ export default function LeaguePage() {
                       {pos}
                     </span>
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="size-7 rounded-lg bg-omega-purple/15 flex items-center justify-center overflow-hidden shrink-0">
+                      <div className="size-7 rounded-full ring-1 ring-omega-border/30 bg-omega-purple/15 flex items-center justify-center overflow-hidden shrink-0">
                         {team.team_logo ? (
                           <img src={team.team_logo} alt={team.team_name} className="size-full object-cover" />
                         ) : (

@@ -11,8 +11,10 @@ import {
   Shield,
   Crown,
   Medal,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
+import { downloadCircleImage } from "@/lib/download-circle-image";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -42,6 +44,20 @@ export default function TeamRankingPage() {
   const [loading, setLoading] = useState(true);
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamsEnabled, setTeamsEnabled] = useState(true);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  async function handleDownloadLogo(team: Team) {
+    if (!team.logo_url) return;
+    setDownloadingId(team.id);
+    try {
+      await downloadCircleImage(team.logo_url, team.name);
+      toast.success("Logo descargado en círculo (PNG transparente)");
+    } catch {
+      toast.error("No se pudo descargar el logo");
+    } finally {
+      setDownloadingId(null);
+    }
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -181,7 +197,7 @@ export default function TeamRankingPage() {
                 </div>
 
                 {/* Team info */}
-                <div className="size-10 rounded-xl bg-omega-purple/15 flex items-center justify-center overflow-hidden shrink-0">
+                <div className="size-10 rounded-full ring-1 ring-omega-border/30 bg-omega-purple/15 flex items-center justify-center overflow-hidden shrink-0">
                   {team.logo_url ? (
                     <img src={team.logo_url} alt={team.name} className="size-full object-cover" />
                   ) : (
@@ -210,6 +226,23 @@ export default function TeamRankingPage() {
                     {team.wins}W/{team.losses}L
                   </p>
                 </div>
+
+                {/* Descargar logo en círculo (para flyers) */}
+                {team.logo_url && (
+                  <button
+                    onClick={() => handleDownloadLogo(team)}
+                    disabled={downloadingId === team.id}
+                    className="size-8 rounded-lg flex items-center justify-center text-omega-muted hover:text-omega-purple hover:bg-omega-purple/10 transition-all shrink-0 disabled:opacity-50"
+                    title="Descargar logo (círculo PNG)"
+                    data-testid={`download-logo-${team.id}`}
+                  >
+                    {downloadingId === team.id ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Download className="size-4" />
+                    )}
+                  </button>
+                )}
               </div>
             );
           })

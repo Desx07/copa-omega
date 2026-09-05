@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -17,9 +17,13 @@ import {
   Shield,
   Swords,
   Mail,
+  Camera,
+  Download,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { ImageCropper } from "@/app/_components/image-cropper";
+import { downloadCircleImage } from "@/lib/download-circle-image";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -76,7 +80,14 @@ export default function TeamPage() {
   const [myTeam, setMyTeam] = useState<Team | null>(null);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [teamsEnabled, setTeamsEnabled] = useState(true);
+
+  // Logo del equipo (subida + recorte redondo + descarga circular)
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [logoCropSrc, setLogoCropSrc] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [downloadingLogo, setDownloadingLogo] = useState(false);
 
   // Create team form
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -101,6 +112,14 @@ export default function TeamPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     setUserId(user.id);
+
+    // Saber si el usuario es admin (puede editar el logo de cualquier equipo)
+    const { data: me } = await supabase
+      .from("players")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+    setIsAdmin(me?.is_admin === true);
 
     // Check feature flag
     try {
@@ -180,6 +199,59 @@ export default function TeamPage() {
 
     return () => clearTimeout(timeout);
   }, [searchQuery, userId, myTeam]);
+
+  // ─── Logo del equipo ───
+
+  function handleLogoFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no puede pesar más de 5MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setLogoCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
+
+  async function handleLogoCropped(blob: Blob) {
+    if (!myTeam) return;
+    setLogoCropSrc(null);
+    setUploadingLogo(true);
+    try {
+      const form = new FormData();
+      form.append("file", blob, "logo.jpg");
+      const res = await fetch(`/api/teams/${myTeam.id}/logo`, {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Error subiendo el logo");
+        return;
+      }
+      setMyTeam({ ...myTeam, logo_url: data.logo_url });
+      toast.success("Logo actualizado!");
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
+  async function handleDownloadLogo() {
+    if (!myTeam?.logo_url) return;
+    setDownloadingLogo(true);
+    try {
+      await downloadCircleImage(myTeam.logo_url, myTeam.name);
+      toast.success("Logo descargado en círculo (PNG transparente)");
+    } catch {
+      toast.error("No se pudo descargar el logo");
+    } finally {
+      setDownloadingLogo(false);
+    }
+  }
 
   // Handlers
   async function handleCreateTeam() {
@@ -322,6 +394,7 @@ export default function TeamPage() {
   const memberCount = myTeam?.team_members?.length ?? 0;
 
   return (
+    <>
     <div className="max-w-lg mx-auto pb-10 space-y-6">
       {/* Header */}
       <div className="-mx-4 overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-omega-purple/20 via-omega-surface to-omega-blue/10 shadow-lg shadow-omega-purple/10">
@@ -334,8 +407,36 @@ export default function TeamPage() {
             Dashboard
           </Link>
           <div className="flex items-center gap-3">
-            <div className="size-12 rounded-xl bg-omega-purple/20 flex items-center justify-center ring-2 ring-omega-purple/30">
-              <Users className="size-6 text-omega-purple" />
+            <div className="relative shrink-0">
+              <div className="size-14 rounded-full overflow-hidden bg-omega-dark ring-2 ring-omega-purple/30 flex items-center justify-center">
+                {myTeam?.logo_url ? (
+                  <img src={myTeam.logo_url} alt={myTeam.name} className="size-full object-cover" />
+                ) : myTeam ? (
+                  <span className="text-xl font-black text-omega-purple">
+                    {myTeam.name.charAt(0).toUpperCase()}
+                  </span>
+                ) : (
+                  <Users className="size-6 text-omega-purple" />
+                )}
+              </div>
+              {myTeam && (isCaptain || isAdmin) && (
+                <button
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={uploadingLogo}
+                  className="absolute -bottom-1 -right-1 size-7 rounded-full bg-omega-purple text-white flex items-center justify-center shadow-lg hover:bg-omega-purple-glow transition-colors disabled:opacity-50"
+                  title="Cambiar logo del equipo"
+                  data-testid="team-logo-upload-btn"
+                >
+                  {uploadingLogo ? <Loader2 className="size-3.5 animate-spin" /> : <Camera className="size-3.5" />}
+                </button>
+              )}
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleLogoFileSelect}
+              />
             </div>
             <div>
               <h1 className="text-2xl font-black neon-purple">
@@ -479,6 +580,23 @@ export default function TeamPage() {
               </div>
             )}
           </div>
+
+          {/* Descargar logo en círculo (PNG transparente, para flyers) */}
+          {myTeam.logo_url && (
+            <button
+              onClick={handleDownloadLogo}
+              disabled={downloadingLogo}
+              className="omega-btn omega-btn-secondary w-full py-3 text-sm"
+              data-testid="team-logo-download-btn"
+            >
+              {downloadingLogo ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Download className="size-4" />
+              )}
+              Descargar logo (círculo PNG)
+            </button>
+          )}
 
           {/* Actions */}
           <div className="space-y-2">
@@ -651,5 +769,15 @@ export default function TeamPage() {
         </div>
       )}
     </div>
+
+    {/* Modal de recorte redondo para el logo del equipo */}
+    {logoCropSrc && (
+      <ImageCropper
+        imageSrc={logoCropSrc}
+        onCropDone={handleLogoCropped}
+        onCancel={() => setLogoCropSrc(null)}
+      />
+    )}
+    </>
   );
 }

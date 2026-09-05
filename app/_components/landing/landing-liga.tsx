@@ -512,8 +512,8 @@ function TeamLogo({
 }) {
   const box =
     size === "lg"
-      ? "size-14 rounded-xl shadow-[0_0_20px_rgba(46,213,115,0.15)]"
-      : "size-7 rounded-lg md:size-8";
+      ? "size-14 rounded-full shadow-[0_0_20px_rgba(46,213,115,0.15)]"
+      : "size-7 rounded-full md:size-8";
   const border = tone === "gold" ? "border-omega-gold/30" : "border-white/15";
   const icon = tone === "gold" ? "text-omega-gold" : "text-omega-green";
   return (
